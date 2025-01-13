@@ -148,7 +148,7 @@ const Stores = () => {
                                                     className="wd-image wd-wpb wd-rs-6380af6571b8a text-center vc_custom_1669377903437"
                                                 >
                                                     <picture
-                                                        fetchpriority="high"
+                                                        fetchPriority="high"
                                                         decoding="async"
                                                         className="attachment-full size-full"
                                                     >
@@ -160,7 +160,7 @@ const Stores = () => {
                                                             sizes="(max-width: 538px) 100vw, 538px"
                                                         />
                                                         <img
-                                                            fetchpriority="high"
+                                                            fetchPriority="high"
                                                             decoding="async"
                                                             width={538}
                                                             height={303}
@@ -176,7 +176,7 @@ const Stores = () => {
                                                         />
                                                     </picture>
                                                     <noscript>
-                                                        &lt;picture fetchpriority="high" decoding="async"
+                                                        &lt;picture fetchPriority="high" decoding="async"
                                                         class="attachment-full size-full"&gt; &lt;source
                                                         type="image/webp"
                                                         srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/stores.png.webp
@@ -189,7 +189,7 @@ const Stores = () => {
                                                         430w,
                                                         https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/stores-180x101.png.webp
                                                         180w" sizes="(max-width: 538px) 100vw, 538px"/&gt; &lt;img
-                                                        fetchpriority="high" decoding="async" width="538"
+                                                        fetchPriority="high" decoding="async" width="538"
                                                         height="303"
                                                         src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/stores.png"
                                                         alt=""

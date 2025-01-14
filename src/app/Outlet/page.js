@@ -10,7 +10,7 @@ const outlet = () => {
                             className="entry-content post-26 page type-page status-publish hentry"
                             id="post-26">
                             <div className="wpb-content-wrapper">
-                                <div className="vc_row wpb_row vc_row-fluid vc_custom_1668695979397 vc_row-has-fill vc_row-o-content-middle vc_row-flex wd-rs-637647a011dce">
+                                {/* <div className="vc_row wpb_row vc_row-fluid vc_custom_1668695979397 vc_row-has-fill vc_row-o-content-middle vc_row-flex wd-rs-637647a011dce">
                                     <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-lg-6 vc_col-md-6 wd-rs-63caa555691b6">
                                         <div className="vc_column-inner vc_custom_1674225001054">
                                             <div className="wpb_wrapper">
@@ -74,7 +74,7 @@ const outlet = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
                                 <div className="vc_row wpb_row vc_row-fluid vc_custom_1668695995322 wd-rs-637647b66f615">
                                     <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-634ff2b59ca25">
                                         <div className="vc_column-inner vc_custom_1666183867410">

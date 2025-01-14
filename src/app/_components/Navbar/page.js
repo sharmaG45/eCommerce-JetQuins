@@ -5,28 +5,48 @@ const Navbar = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [activeMenu, setActiveMenu] = useState("categories");
 
-    // Function to open the modal
+    // Function to open the My Account Modal
     const openModal = (e) => {
         e.preventDefault();
-
         setIsModalOpen(true);
     };
 
-    // Function to close the modal
     const closeModal = () => {
         setIsModalOpen(false);
     };
 
-    const openCart= (e) => {
+    // Function to open the Cart Modal
+    const openCart = (e) => {
         e.preventDefault();
-
         setIsCartOpen(true);
     };
 
-    // Function to close the modal
     const closeCart = () => {
         setIsCartOpen(false);
+    };
+
+    // Function to open Mobile Menu Modal
+    const openMobileMenu = (e) => {
+        e.preventDefault();
+        setIsMenuOpen(true);
+    };
+
+    const closeMobileMenu = () => {
+        setIsMenuOpen(false);
+    };
+
+
+
+    const menuItems = [
+        { id: "menu-mobile-menu-mega-electronics", label: "Menu", link: "#" },
+        { id: "menu-mobile-categories-mega-electronics", label: "Categories", link: "#" },
+    ];
+
+    const handleMenuClick = (menuId) => {
+        setActiveMenu(menuId);
     };
 
     return <>
@@ -179,7 +199,7 @@ const Navbar = () => {
                                 </div>
                             </div>
                             <div className="whb-column whb-mobile-left whb-hidden-lg">
-                                <div className="wd-tools-element wd-header-mobile-nav wd-style-icon wd-design-1 whb-2pcq59rrgv7khz6hxoix" onClick={openModal}>
+                                <div className="wd-tools-element wd-header-mobile-nav wd-style-icon wd-design-1 whb-2pcq59rrgv7khz6hxoix" onClick={openMobileMenu} >
                                     <a href="#" rel="nofollow" aria-label="Open mobile menu">
                                         <span className="wd-tools-icon"></span>
                                         <span className="wd-tools-text">Menu</span>
@@ -256,7 +276,7 @@ const Navbar = () => {
                                                 href="/"
                                                 className="woodmart-nav-link"
                                             >
-                                                <span className="nav-link-text">Promotions</span>
+                                                <span className="nav-link-text">About Us</span>
                                             </a>
                                         </li>
                                         <li
@@ -267,7 +287,7 @@ const Navbar = () => {
                                                 href="/stores"
                                                 className="woodmart-nav-link"
                                             >
-                                                <span className="nav-link-text">Stores</span>
+                                                <span className="nav-link-text">Site Policies</span>
                                             </a>
                                         </li>
                                         <li
@@ -281,7 +301,7 @@ const Navbar = () => {
                                                 <span className="nav-link-text">Our Contacts</span>
                                             </a>
                                         </li>
-                                        <li
+                                        {/* <li
                                             id="menu-item-90"
                                             className="menu-item menu-item-type-post_type menu-item-object-page menu-item-90 item-level-0 menu-simple-dropdown wd-event-hover"
                                         >
@@ -291,7 +311,7 @@ const Navbar = () => {
                                             >
                                                 <span className="nav-link-text">Delivery &amp; Return</span>
                                             </a>
-                                        </li>
+                                        </li> */}
                                         <li
                                             id="menu-item-91"
                                             className="menu-item menu-item-type-post_type menu-item-object-page menu-item-91 item-level-0 menu-simple-dropdown wd-event-hover"
@@ -300,7 +320,7 @@ const Navbar = () => {
                                                 href="/Outlet"
                                                 className="woodmart-nav-link"
                                             >
-                                                <span className="nav-link-text">Outlet</span>
+                                                <span className="nav-link-text">Products</span>
                                             </a>
                                         </li>
                                     </ul>
@@ -488,7 +508,7 @@ const Navbar = () => {
 
         {/* My-Account  Modal */}
 
-        {isModalOpen && (<div className="login-form-side wd-side-hidden woocommerce wd-right wd-opened">
+        <div className={`login-form-side wd-side-hidden woocommerce wd-right ${isModalOpen ? 'wd-opened' : ''}`}  >
             <div className="wd-heading">
                 <span className="title">Sign in</span>
                 <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
@@ -600,7 +620,123 @@ const Navbar = () => {
                     Create an Account
                 </a>
             </div>
-        </div>)}
+        </div>
+
+        {/* {isModalOpen && (
+            <div className="login-form-side wd-side-hidden woocommerce wd-right wd-opened" >
+            <div className="wd-heading">
+                <span className="title">Sign in</span>
+                <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
+                    <a href="#" rel="nofollow" onClick={closeModal}>
+                        Close
+                    </a>
+                </div>
+            </div>
+            <div className="woocommerce-notices-wrapper" />
+            <form
+                method="post"
+                className="login woocommerce-form woocommerce-form-login"
+                action="https://woodmart.xtemos.com/mega-electronics/my-account/"
+                style={{ display: 'block' }}
+            >
+                <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-username">
+                    <label htmlFor="username">
+                        Username or email address&nbsp;
+                        <span className="required" aria-hidden="true">
+                            *
+                        </span>
+                        <span className="screen-reader-text">Required</span>
+                    </label>
+                    <input
+                        type="text"
+                        className="woocommerce-Input woocommerce-Input--text input-text"
+                        name="username"
+                        id="username"
+                        defaultValue=""
+                    />{" "}
+                    <input
+                        type="hidden"
+                        name="wfls-email-verification"
+                        id="wfls-email-verification"
+                        defaultValue=""
+                    />
+                </p>
+                <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-password">
+                    <label htmlFor="password">
+                        Password&nbsp;
+                        <span className="required" aria-hidden="true">
+                            *
+                        </span>
+                        <span className="screen-reader-text">Required</span>
+                    </label>
+                    <span className="password-input">
+                        <input
+                            className="woocommerce-Input woocommerce-Input--text input-text"
+                            type="password"
+                            name="password"
+                            id="password"
+                            autoComplete="current-password"
+                        />
+                        <span className="show-password-input" />
+                    </span>
+                </p>
+                <p className="form-row">
+                    <input
+                        type="hidden"
+                        id="woocommerce-login-nonce"
+                        name="woocommerce-login-nonce"
+                        defaultValue="fb5f3b2126"
+                    />
+                    <input
+                        type="hidden"
+                        name="_wp_http_referer"
+                        defaultValue="/mega-electronics/"
+                    />{" "}
+                    <input
+                        type="hidden"
+                        name="redirect"
+                        defaultValue="https://woodmart.xtemos.com/mega-electronics/"
+                    />
+                    <button
+                        type="submit"
+                        className="button woocommerce-button woocommerce-form-login__submit"
+                        name="login"
+                        value="Log in"
+                    >
+                        Log in
+                    </button>
+                </p>
+                <p className="login-form-footer">
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/my-account/lost-password/"
+                        className="woocommerce-LostPassword lost_password"
+                    >
+                        Lost your password?
+                    </a>
+                    <label className="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme">
+                        <input
+                            className="woocommerce-form__input woocommerce-form__input-checkbox"
+                            name="rememberme"
+                            type="checkbox"
+                            defaultValue="forever"
+                            title="Remember me"
+                            aria-label="Remember me"
+                        />{" "}
+                        <span>Remember me</span>
+                    </label>
+                </p>
+            </form>
+            <div className="create-account-question">
+                <p>No account yet?</p>
+                <a
+                    href="https://woodmart.xtemos.com/mega-electronics/my-account/?action=register"
+                    className="btn create-account-button"
+                >
+                    Create an Account
+                </a>
+            </div>
+        </div>
+        )} */}
 
         {/* Cart Modal */}
 
@@ -816,7 +952,526 @@ const Navbar = () => {
             </div>{" "}
         </div>)}
 
+        {/* Mobile Menu Bar */}
 
+        <div className={isMenuOpen ? "mobile-nav wd-side-hidden wd-side-hidden-nav wd-left wd-opener-arrow wd-opened" : "mobile-nav wd-side-hidden wd-side-hidden-nav wd-left wd-opener-arrow"}
+        >
+            {" "}
+            <ul className="wd-nav wd-nav-mob-tab wd-style-underline wd-swap">
+                {menuItems.map((item) => (
+                    <li
+                        key={item.id}
+                        className={`mobile-tab-title mobile-${item.id}-title ${activeMenu === item.id ? "wd-active" : ""
+                            }`}
+                        data-menu={item.id}
+                    >
+                        <a
+                            // href={item.link}
+                            rel="nofollow noopener"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleMenuClick(item.id);
+                            }}
+                        >
+                            <span className="nav-link-text">{item.label}</span>
+                        </a>
+                    </li>
+                ))}
+            </ul>
+            <ul
+                id="menu-mobile-categories-mega-electronics"
+                className="mobile-categories-menu menu wd-nav wd-nav-mobile wd-layout-drilldown wd-drilldown-slide wd-active"
+            >
+                <li
+                    id="menu-item-112"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-112 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/"
+                        className="woodmart-nav-link"
+                    >
+                        <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Laptops-Tablets-PC.svg"
+                            title="Laptops, Tablets & PC"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        />
+                        <span className="nav-link-text">Laptops, Tablets &amp; PCs</span>
+                    </a>
+                    <ul className="wd-sub-menu">
+                        <li className="wd-drilldown-back">
+                            <span className="wd-nav-opener" />
+                            <a href="#">Back </a>
+                        </li>
+                        <li
+                            id="menu-item-4684"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4684 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/"
+                                className="woodmart-nav-link"
+                            >
+                                Laptops
+                            </a>
+                            <ul className="sub-sub-menu">
+                                <li className="wd-drilldown-back">
+                                    <span className="wd-nav-opener" />
+                                    <a href="#">Back </a>
+                                </li>
+                                <li
+                                    id="menu-item-4685"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4685 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/apple-macbook/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Apple MacBook
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4686"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4686 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/business-laptop/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Business Laptop
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4687"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4687 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/gaming-laptop/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Gaming Laptop
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4688"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4688 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/ultrabook/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Ultrabook
+                                    </a>
+                                </li>
+                            </ul>
+                            <span className="wd-nav-opener" />
+                        </li>
+                        <li
+                            id="menu-item-4689"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4689 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/"
+                                className="woodmart-nav-link"
+                            >
+                                Tablets
+                            </a>
+                            <ul className="sub-sub-menu">
+                                <li className="wd-drilldown-back">
+                                    <span className="wd-nav-opener" />
+                                    <a href="#">Back </a>
+                                </li>
+                                <li
+                                    id="menu-item-4690"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4690 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/apple-ipad/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Apple Ipad
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4691"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4691 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/android-tablets/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Android Tablets
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4692"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4692 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/windows-tablets/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Windows Tablets
+                                    </a>
+                                </li>
+                            </ul>
+                            <span className="wd-nav-opener" />
+                        </li>
+                        <li
+                            id="menu-item-4693"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4693 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/"
+                                className="woodmart-nav-link"
+                            >
+                                PCs
+                            </a>
+                            <ul className="sub-sub-menu">
+                                <li className="wd-drilldown-back">
+                                    <span className="wd-nav-opener" />
+                                    <a href="#">Back </a>
+                                </li>
+                                <li
+                                    id="menu-item-4694"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4694 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/gaming-pcs/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Gaming PCs
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4695"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4695 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/office-pcs/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Office PCs
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4696"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4696 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/all-in-one/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        All in one
+                                    </a>
+                                </li>
+                            </ul>
+                            <span className="wd-nav-opener" />
+                        </li>
+                    </ul>
+                    <span className="wd-nav-opener" />
+                </li>
+                <li
+                    id="menu-item-108"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-108 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/"
+                        className="woodmart-nav-link"
+                    >
+                        <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Computer-Office.svg"
+                            title="Computer & Office"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        />
+                        <span className="nav-link-text">Computer &amp; Office</span>
+                    </a>
+                    <ul className="wd-sub-menu">
+                        <li className="wd-drilldown-back">
+                            <span className="wd-nav-opener" />
+                            <a href="#">Back </a>
+                        </li>
+                        <li
+                            id="menu-item-4697"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4697 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/monitors/"
+                                className="woodmart-nav-link"
+                            >
+                                Monitors
+                            </a>
+                        </li>
+                        <li
+                            id="menu-item-4698"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4698 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/printers-scanners/"
+                                className="woodmart-nav-link"
+                            >
+                                Printers &amp; Scanners
+                            </a>
+                        </li>
+                        <li
+                            id="menu-item-4699"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4699 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/input-devices/"
+                                className="woodmart-nav-link"
+                            >
+                                Input Devices
+                            </a>
+                        </li>
+                    </ul>
+                    <span className="wd-nav-opener" />
+                </li>
+                <li
+                    id="menu-item-110"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-110 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/"
+                        className="woodmart-nav-link"
+                    >
+                        <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Hardware-Components.svg"
+                            title="Hardware & Components"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        />
+                        <span className="nav-link-text">Hardware &amp; Components</span>
+                    </a>
+                    <ul className="wd-sub-menu">
+                        <li className="wd-drilldown-back">
+                            <span className="wd-nav-opener" />
+                            <a href="#">Back </a>
+                        </li>
+                        <li
+                            id="menu-item-4700"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4700 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/"
+                                className="woodmart-nav-link"
+                            >
+                                PC Components
+                            </a>
+                        </li>
+                        <li
+                            id="menu-item-4701"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4701 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/cooling/"
+                                className="woodmart-nav-link"
+                            >
+                                Cooling
+                            </a>
+                        </li>
+                        <li
+                            id="menu-item-4702"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4702 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/hardware-other/"
+                                className="woodmart-nav-link"
+                            >
+                                Hardware &amp; Other
+                            </a>
+                        </li>
+                    </ul>
+                    <span className="wd-nav-opener" />
+                </li>
+                <li
+                    id="menu-item-114"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-114 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/"
+                        className="woodmart-nav-link"
+                    >
+                        <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones.svg"
+                            title="Smartphones"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        />
+                        <span className="nav-link-text">Smartphones</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-109"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-109 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/"
+                        className="woodmart-nav-link"
+                    >
+                        <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones.svg"
+                            title="Smartphones"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        />
+                        <span className="nav-link-text">Games &amp; Entertainment</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-115"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-115 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/tv-hifi/"
+                        className="woodmart-nav-link"
+                    >
+                        <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/TV-HIFI.svg"
+                            title="TV & HIFI"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        />
+                        <span className="nav-link-text">TV &amp; Hi-Fi</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-113"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-113 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/photo-video/"
+                        className="woodmart-nav-link"
+                    >
+                        <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Photo-Video.svg"
+                            title="Photo & Video"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        />
+                        <span className="nav-link-text">Photo &amp; Video</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-111"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-111 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/"
+                        className="woodmart-nav-link"
+                    >
+                        <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Home-Appliance.svg"
+                            title="Home Appliance"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        />
+                        <span className="nav-link-text">Home Appliance</span>
+                    </a>
+                </li>
+            </ul>
+            <ul
+                id="menu-mobile-menu-mega-electronics"
+                className="mobile-pages-menu menu wd-nav wd-nav-mobile wd-layout-drilldown wd-drilldown-slide"
+            >
+                <li
+                    id="menu-item-4628"
+                    className="xtemos-show-demos menu-item menu-item-type-custom menu-item-object-custom menu-item-4628 item-level-0"
+                >
+                    <a href="#" className="woodmart-nav-link">
+                        <span className="nav-link-text">Demos</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-4623"
+                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4623 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/promotions/"
+                        className="woodmart-nav-link"
+                    >
+                        <span className="nav-link-text">About Us</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-4624"
+                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4624 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/stores/"
+                        className="woodmart-nav-link"
+                    >
+                        <span className="nav-link-text">Stores</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-4625"
+                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4625 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/our-contacts/"
+                        className="woodmart-nav-link"
+                    >
+                        <span className="nav-link-text">Our Contacts</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-4626"
+                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4626 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/delivery-return/"
+                        className="woodmart-nav-link"
+                    >
+                        <span className="nav-link-text">Delivery &amp; Return</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-4627"
+                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4627 item-level-0"
+                >
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/outlet/"
+                        className="woodmart-nav-link"
+                    >
+                        <span className="nav-link-text">Outlet</span>
+                    </a>
+                </li>
+                <li className="menu-item menu-item-wishlist wd-with-icon item-level-0">
+                    {" "}
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/wishlist/"
+                        className="woodmart-nav-link"
+                    >
+                        <span className="nav-link-text">Wishlist</span>
+                    </a>
+                </li>
+                <li className="menu-item menu-item-compare wd-with-icon item-level-0">
+                    <a
+                        href="https://woodmart.xtemos.com/mega-electronics/compare/"
+                        className="woodmart-nav-link"
+                    >
+                        Compare
+                    </a>
+                </li>
+            </ul>
+        </div>
     </>
 }
 

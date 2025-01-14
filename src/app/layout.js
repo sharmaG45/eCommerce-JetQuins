@@ -11,7 +11,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className="browser-Chrome platform-Windows wd-scrollbar js_active  vc_desktop  vc_transform  vc_transform ">
       <head>
-      <link href="/assets/wp-content/themes/woodmart/css/parts/mega-electronics.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/all.min.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/v4-shims.min.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/selects2.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/mega-electronics.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart-child/style.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart-child/wordfence.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/base.min.css?v=2" rel="stylesheet" />
@@ -39,7 +42,9 @@ export default function RootLayout({ children }) {
         <link href="/assets/wp-content/themes/woodmart/css/parts/el-slider.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/el-social-icons.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/el-subtitle-style.min.css" rel="stylesheet" />
-
+        <link href="/assets/wp-content/themes/woodmart/css/parts/el-banner-hover-zoom.min.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/el-accordion-wpb-elem.min.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/el-accordion.min.css" rel="stylesheet" />
 
         <link href="/assets/wp-content/themes/woodmart/css/parts/el-text-block.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/helpers-wpb-elem.min.css?ver=8.0.4" rel="stylesheet" />
@@ -114,14 +119,21 @@ export default function RootLayout({ children }) {
 
 
         <script src="/assets/wp-includes/js/jquery/jquery.min.js"></script>
-        {/* <script src="/assets/wp-content/themes/woodmart/js/libs/autocomplete.min.js"></script>
+        <script src="/assets/wp-content/themes/woodmart/js/libs/autocomplete.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/countdown-bundle.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/device.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/magnific-popup.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/tooltips.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/swiper.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/scripts/header/headerBuilder.min.js"></script>
-        <script src="/assets/wp-content/plugins/wocommerce/assets/js/js-cookie/js.cookie.min.js"></script> */}
+        <script type="text/javascript"
+          src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/add-to-cart.min.js?ver=9.1.4"
+          id="wc-add-to-cart-js" data-wp-strategy="defer"></script>
+        <script type="text/javascript" src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/woocommerce.min.js?ver=9.1.4" id="woocommerce-js" defer="defer" data-wp-strategy="defer"></script>
+        <script data-minify="1" type="text/javascript" src="/assets/wp-content/plugins/js_composer/assets/js/vendors/woocommerce-add-to-cart.js?ver=1734449562" id="vc_woocommerce-add-to-cart-js-js" data-rocket-defer defer></script>
+        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/device.min.js?ver=8.0.4" id="wd-device-library-js" data-rocket-defer defer></script>
+        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/scrollBar.min.js?ver=8.0.4" id="wd-scrollbar-js" data-rocket-defer defer></script>
+        <script type="text/javascript" src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/single-product.min.js?ver=9.1.4" id="wc-single-product-js" defer="defer" data-wp-strategy="defer"></script>
       </head>
       <body
         className="home page-template-default page page-id-15 theme-woodmart woocommerce-js wrapper-custom  categories-accordion-on woodmart-ajax-shop-on sticky-toolbar-on hide-larger-price wd-sticky-nav-enabled wpb-js-composer js-comp-ver-7.8 vc_responsiv"

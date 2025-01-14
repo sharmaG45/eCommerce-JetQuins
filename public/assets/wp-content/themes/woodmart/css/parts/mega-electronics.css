@@ -1050,11 +1050,13 @@ body,
         font-size: 18px;
     }
 }
+
 .recentcomments a {
     display: inline !important;
     padding: 0 !important;
     margin: 0 !important;
 }
+
 .woocommerce-product-gallery {
     opacity: 1 !important;
 }
@@ -1062,3 +1064,8 @@ body,
 .woocommerce form .form-row .required {
     visibility: visible;
 }
+
+
+
+
+

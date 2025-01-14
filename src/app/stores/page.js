@@ -12,7 +12,7 @@ const Stores = () => {
                             className="entry-content post-40 page type-page status-publish hentry"
                         >
                             <div className="wpb-content-wrapper">
-                                <div className="vc_row wpb_row vc_row-fluid vc_custom_1668695057159 vc_row-has-fill vc_row-o-content-middle vc_row-flex wd-rs-637643f83e5bf">
+                                {/* <div className="vc_row wpb_row vc_row-fluid vc_custom_1668695057159 vc_row-has-fill vc_row-o-content-middle vc_row-flex wd-rs-637643f83e5bf">
                                     <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-lg-6 vc_col-md-6 color-scheme-light wd-rs-63778b724b661">
                                         <div className="vc_column-inner vc_custom_1668778869304">
                                             <div className="wpb_wrapper">
@@ -209,8 +209,8 @@ const Stores = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="vc_row wpb_row vc_row-fluid vc_custom_1668694599456 vc_row-has-fill wd-rs-6376424395433">
+                                </div> */}
+                                {/* <div className="vc_row wpb_row vc_row-fluid vc_custom_1668694599456 vc_row-has-fill wd-rs-6376424395433">
                                     <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63763b6f4f967">
                                         <div className="vc_column-inner vc_custom_1668692851420">
                                             <div className="wpb_wrapper">
@@ -595,7 +595,7 @@ const Stores = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
                                 <div className="vc_row wpb_row vc_row-fluid vc_custom_1668011402189 vc_row-has-fill wd-rs-636bd57f5840b">
                                     <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63caa3240e18f wd-collapsible-content">
                                         <div className="vc_column-inner vc_custom_1674224426164">

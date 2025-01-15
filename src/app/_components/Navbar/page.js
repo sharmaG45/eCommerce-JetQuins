@@ -6,7 +6,21 @@ const Navbar = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [activeMenu, setActiveMenu] = useState("categories");
+
+
+    const menuItems = [
+        { id: "menu-mobile-categories-mega-electronics", label: "Menu", link: "#" },
+        { id: "menu-mobile-menu-mega-electronics", label: "Categories", link: "#" },
+    ];
+
+    const [activeSection, setActiveSection] = useState(menuItems[0]?.id);
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    const toggleDropdown = () => {
+        setIsOpen(!isOpen);
+    };
+
 
     // Function to open the My Account Modal
     const openModal = (e) => {
@@ -38,15 +52,8 @@ const Navbar = () => {
         setIsMenuOpen(false);
     };
 
-
-
-    const menuItems = [
-        { id: "menu-mobile-menu-mega-electronics", label: "Menu", link: "#" },
-        { id: "menu-mobile-categories-mega-electronics", label: "Categories", link: "#" },
-    ];
-
-    const handleMenuClick = (menuId) => {
-        setActiveMenu(menuId);
+    const handleMenuClick = (id) => {
+        setActiveSection((prev) => (prev === id ? null : id));
     };
 
     return <>
@@ -58,7 +65,7 @@ const Navbar = () => {
                             <div className="whb-column whb-col-left whb-visible-lg">
                                 <div className="site-logo">
                                     <a
-                                        href="/"
+
                                         className="wd-logo wd-main-logo"
                                         rel="home"
                                         aria-label="Site logo"
@@ -200,7 +207,7 @@ const Navbar = () => {
                             </div>
                             <div className="whb-column whb-mobile-left whb-hidden-lg">
                                 <div className="wd-tools-element wd-header-mobile-nav wd-style-icon wd-design-1 whb-2pcq59rrgv7khz6hxoix" onClick={openMobileMenu} >
-                                    <a href="#" rel="nofollow" aria-label="Open mobile menu">
+                                    <a rel="nofollow" aria-label="Open mobile menu">
                                         <span className="wd-tools-icon"></span>
                                         <span className="wd-tools-text">Menu</span>
                                     </a>
@@ -234,7 +241,7 @@ const Navbar = () => {
                                 />{" "}
                                 <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-1 wd-account-style-icon login-side-opener whb-hehq7b9i6crxiw1rjzt3" onClick={openModal}>
                                     <a
-                                        href="/"
+
                                         title="My account"
                                     >
                                         <span className="wd-tools-icon"></span>
@@ -242,6 +249,7 @@ const Navbar = () => {
                                     </a>
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -250,7 +258,7 @@ const Navbar = () => {
                         <div className="whb-flex-row whb-header-bottom-inner">
                             <div className="whb-column whb-col-left whb-visible-lg">
                                 <div className="wd-tools-element wd-header-sticky-nav wd-style-text wd-design-8 wd-close-menu-mouseout whb-07amklogpjd7r42vt1ip">
-                                    <a href="#" rel="nofollow" aria-label="Open sticky navigation">
+                                    <a rel="nofollow" aria-label="Open sticky navigation">
                                         <span className="wd-tools-inner">
                                             <span className="wd-tools-icon"></span>
                                             <span className="wd-tools-text">All Categories</span>
@@ -268,12 +276,101 @@ const Navbar = () => {
                                         id="menu-main-menu-mega-electronics"
                                         className="menu wd-nav wd-nav-main wd-style-bg wd-gap-s wd-offsets-calculated"
                                     >
+
+                                        <li
+                                            id="menu-item-88"
+                                            className="menu-item menu-item-type-post_type menu-item-object-page menu-item-88 item-level-0 menu-simple-dropdown wd-event-hover"
+                                            style={{
+                                                position: "relative",
+                                                display: "inline-block",
+                                                margin: "0 10px",
+                                            }}
+                                        >
+                                            {/* Dropdown Toggle */}
+                                            <a
+                                                href="#"
+                                                className="woodmart-nav-link"
+                                                onClick={(e) => {
+                                                    e.preventDefault(); // Prevent default anchor behavior
+                                                    toggleDropdown();
+                                                }}
+                                                style={{
+                                                    textDecoration: "none",
+                                                    color: "#333",
+                                                    fontSize: "16px",
+                                                    padding: "10px 15px",
+                                                    background: "#f8f9fa",
+                                                    borderRadius: "5px",
+                                                    display: "inline-block",
+                                                    cursor: "pointer",
+                                                }}
+                                            >
+                                                <span className="nav-link-text">Site Policies</span>
+                                            </a>
+
+                                            {/* Dropdown Menu */}
+                                            {isOpen && (
+                                                <ul
+                                                    className="dropdown-menu"
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: "100%",
+                                                        left: "0",
+                                                        background: "#fff",
+                                                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                                                        borderRadius: "5px",
+                                                        listStyleType: "none",
+                                                        margin: "5px 0 0 0",
+                                                        padding: "10px 0",
+                                                        minWidth: "150px",
+                                                        zIndex: 1000,
+                                                    }}
+                                                >
+                                                    <li style={{ padding: "10px 20px" }}>
+                                                        <a
+                                                            href="/terms"
+                                                            style={{
+                                                                textDecoration: "none",
+                                                                color: "#333",
+                                                                display: "block",
+                                                            }}
+                                                        >
+                                                            Terms of Service
+                                                        </a>
+                                                    </li>
+                                                    <li style={{ padding: "10px 20px" }}>
+                                                        <a
+                                                            href="/privacy"
+                                                            style={{
+                                                                textDecoration: "none",
+                                                                color: "#333",
+                                                                display: "block",
+                                                            }}
+                                                        >
+                                                            Privacy Policy
+                                                        </a>
+                                                    </li>
+                                                    <li style={{ padding: "10px 20px" }}>
+                                                        <a
+                                                            href="/return"
+                                                            style={{
+                                                                textDecoration: "none",
+                                                                color: "#333",
+                                                                display: "block",
+                                                            }}
+                                                        >
+                                                            Return Policy
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            )}
+                                        </li>
                                         <li
                                             id="menu-item-87"
                                             className="menu-item menu-item-type-post_type menu-item-object-page menu-item-87 item-level-0 menu-simple-dropdown wd-event-hover"
                                         >
                                             <a
-                                                href="/"
+
                                                 className="woodmart-nav-link"
                                             >
                                                 <span className="nav-link-text">About Us</span>
@@ -290,6 +387,10 @@ const Navbar = () => {
                                                 <span className="nav-link-text">Site Policies</span>
                                             </a>
                                         </li>
+
+
+
+
                                         <li
                                             id="menu-item-89"
                                             className="menu-item menu-item-type-post_type menu-item-object-page menu-item-89 item-level-0 menu-simple-dropdown wd-event-hover"
@@ -332,7 +433,7 @@ const Navbar = () => {
                                     role="navigation"
                                     aria-label="Secondary navigation"
                                 >
-                                    <ul
+                                    {/* <ul
                                         id="menu-header-right-menu"
                                         className="menu wd-nav wd-nav-secondary wd-style-bg wd-gap-s"
                                     >
@@ -340,7 +441,7 @@ const Navbar = () => {
                                             id="menu-item-101"
                                             className="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-101 item-level-0 menu-simple-dropdown wd-event-hover"
                                         >
-                                            <a href="#" className="woodmart-nav-link">
+                                            <a className="woodmart-nav-link">
                                                 <span className="nav-link-text">USA</span>
                                             </a>
                                             <div
@@ -353,7 +454,7 @@ const Navbar = () => {
                                                             id="menu-item-102"
                                                             className="menu-item menu-item-type-custom menu-item-object-custom menu-item-102 item-level-1 wd-event-hover"
                                                         >
-                                                            <a href="#" className="woodmart-nav-link">
+                                                            <a className="woodmart-nav-link">
                                                                 Deutschland
                                                             </a>
                                                         </li>
@@ -361,7 +462,7 @@ const Navbar = () => {
                                                             id="menu-item-103"
                                                             className="menu-item menu-item-type-custom menu-item-object-custom menu-item-103 item-level-1 wd-event-hover"
                                                         >
-                                                            <a href="#" className="woodmart-nav-link">
+                                                            <a className="woodmart-nav-link">
                                                                 United Kingdom
                                                             </a>
                                                         </li>
@@ -373,7 +474,7 @@ const Navbar = () => {
                                             id="menu-item-104"
                                             className="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-104 item-level-0 menu-simple-dropdown wd-event-hover"
                                         >
-                                            <a href="#" className="woodmart-nav-link">
+                                            <a className="woodmart-nav-link">
                                                 <span className="nav-link-text">USD</span>
                                             </a>
                                             <div
@@ -386,7 +487,7 @@ const Navbar = () => {
                                                             id="menu-item-105"
                                                             className="menu-item menu-item-type-custom menu-item-object-custom menu-item-105 item-level-1 wd-event-hover"
                                                         >
-                                                            <a href="#" className="woodmart-nav-link">
+                                                            <a className="woodmart-nav-link">
                                                                 EUR
                                                             </a>
                                                         </li>
@@ -394,7 +495,7 @@ const Navbar = () => {
                                                             id="menu-item-106"
                                                             className="menu-item menu-item-type-custom menu-item-object-custom menu-item-106 item-level-1 wd-event-hover"
                                                         >
-                                                            <a href="#" className="woodmart-nav-link">
+                                                            <a className="woodmart-nav-link">
                                                                 GBP
                                                             </a>
                                                         </li>
@@ -402,11 +503,11 @@ const Navbar = () => {
                                                 </div>
                                             </div>
                                         </li>
-                                    </ul>
+                                    </ul> */}
                                 </div>
                                 <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-7 wd-account-style-icon login-side-opener whb-7qrb5r43fmh57lkx4dry" onClick={openModal}>
                                     <a
-                                        href="/"
+
                                         title="My account"
                                     >
                                         <span className="wd-tools-icon"></span>
@@ -415,7 +516,7 @@ const Navbar = () => {
                                 </div>
                                 <div className="wd-header-compare wd-tools-element wd-style-icon wd-with-count wd-design-7 whb-efvne7ivyjilpk6crr69">
                                     <a
-                                        href="/"
+
                                         title="Compare products"
                                     >
                                         <span className="wd-tools-icon">
@@ -440,7 +541,7 @@ const Navbar = () => {
                                 </div>
                                 <div className="wd-header-cart wd-tools-element wd-design-7 cart-widget-opener wd-style-text whb-eyi35wj5v52my2hec8de" onClick={openCart}>
                                     <a
-                                        href="/"
+
                                         title="Shopping cart"
                                     >
                                         <span className="wd-tools-icon">
@@ -512,7 +613,7 @@ const Navbar = () => {
             <div className="wd-heading">
                 <span className="title">Sign in</span>
                 <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
-                    <a href="#" rel="nofollow" onClick={closeModal}>
+                    <a rel="nofollow" onClick={closeModal}>
                         Close
                     </a>
                 </div>
@@ -621,130 +722,14 @@ const Navbar = () => {
                 </a>
             </div>
         </div>
-
-        {/* {isModalOpen && (
-            <div className="login-form-side wd-side-hidden woocommerce wd-right wd-opened" >
-            <div className="wd-heading">
-                <span className="title">Sign in</span>
-                <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
-                    <a href="#" rel="nofollow" onClick={closeModal}>
-                        Close
-                    </a>
-                </div>
-            </div>
-            <div className="woocommerce-notices-wrapper" />
-            <form
-                method="post"
-                className="login woocommerce-form woocommerce-form-login"
-                action="https://woodmart.xtemos.com/mega-electronics/my-account/"
-                style={{ display: 'block' }}
-            >
-                <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-username">
-                    <label htmlFor="username">
-                        Username or email address&nbsp;
-                        <span className="required" aria-hidden="true">
-                            *
-                        </span>
-                        <span className="screen-reader-text">Required</span>
-                    </label>
-                    <input
-                        type="text"
-                        className="woocommerce-Input woocommerce-Input--text input-text"
-                        name="username"
-                        id="username"
-                        defaultValue=""
-                    />{" "}
-                    <input
-                        type="hidden"
-                        name="wfls-email-verification"
-                        id="wfls-email-verification"
-                        defaultValue=""
-                    />
-                </p>
-                <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-password">
-                    <label htmlFor="password">
-                        Password&nbsp;
-                        <span className="required" aria-hidden="true">
-                            *
-                        </span>
-                        <span className="screen-reader-text">Required</span>
-                    </label>
-                    <span className="password-input">
-                        <input
-                            className="woocommerce-Input woocommerce-Input--text input-text"
-                            type="password"
-                            name="password"
-                            id="password"
-                            autoComplete="current-password"
-                        />
-                        <span className="show-password-input" />
-                    </span>
-                </p>
-                <p className="form-row">
-                    <input
-                        type="hidden"
-                        id="woocommerce-login-nonce"
-                        name="woocommerce-login-nonce"
-                        defaultValue="fb5f3b2126"
-                    />
-                    <input
-                        type="hidden"
-                        name="_wp_http_referer"
-                        defaultValue="/mega-electronics/"
-                    />{" "}
-                    <input
-                        type="hidden"
-                        name="redirect"
-                        defaultValue="https://woodmart.xtemos.com/mega-electronics/"
-                    />
-                    <button
-                        type="submit"
-                        className="button woocommerce-button woocommerce-form-login__submit"
-                        name="login"
-                        value="Log in"
-                    >
-                        Log in
-                    </button>
-                </p>
-                <p className="login-form-footer">
-                    <a
-                        href="https://woodmart.xtemos.com/mega-electronics/my-account/lost-password/"
-                        className="woocommerce-LostPassword lost_password"
-                    >
-                        Lost your password?
-                    </a>
-                    <label className="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme">
-                        <input
-                            className="woocommerce-form__input woocommerce-form__input-checkbox"
-                            name="rememberme"
-                            type="checkbox"
-                            defaultValue="forever"
-                            title="Remember me"
-                            aria-label="Remember me"
-                        />{" "}
-                        <span>Remember me</span>
-                    </label>
-                </p>
-            </form>
-            <div className="create-account-question">
-                <p>No account yet?</p>
-                <a
-                    href="https://woodmart.xtemos.com/mega-electronics/my-account/?action=register"
-                    className="btn create-account-button"
-                >
-                    Create an Account
-                </a>
-            </div>
-        </div>
-        )} */}
 
         {/* Cart Modal */}
 
-        {isCartOpen && (<div className="cart-widget-side wd-side-hidden wd-right wd-opened">
+        <div className={`cart-widget-side wd-side-hidden wd-right ${isCartOpen ? 'wd-opened' : ''}`}>
             <div className="wd-heading">
                 <span className="title">Shopping cart</span>
                 <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
-                    <a href="#" rel="nofollow" onClick={closeCart}>
+                    <a rel="nofollow" onClick={closeCart}>
                         Close
                     </a>
                 </div>
@@ -950,7 +935,7 @@ const Navbar = () => {
                     </div>
                 </div>
             </div>{" "}
-        </div>)}
+        </div>
 
         {/* Mobile Menu Bar */}
 
@@ -961,7 +946,7 @@ const Navbar = () => {
                 {menuItems.map((item) => (
                     <li
                         key={item.id}
-                        className={`mobile-tab-title mobile-${item.id}-title ${activeMenu === item.id ? "wd-active" : ""
+                        className={`mobile-tab-title mobile-${item.id}-title ${activeSection === item.id ? "wd-active" : ""
                             }`}
                         data-menu={item.id}
                     >
@@ -979,8 +964,9 @@ const Navbar = () => {
                 ))}
             </ul>
             <ul
-                id="menu-mobile-categories-mega-electronics"
-                className="mobile-categories-menu menu wd-nav wd-nav-mobile wd-layout-drilldown wd-drilldown-slide wd-active"
+                id="menu-mobile-menu-mega-electronics"
+                className={`mobile-pages-menu menu wd-nav wd-nav-mobile wd-layout-drilldown wd-drilldown-slide ${activeSection === "menu-mobile-menu-mega-electronics" ? "wd-active" : "wd-hidden"
+                    }`}
             >
                 <li
                     id="menu-item-112"
@@ -1003,7 +989,7 @@ const Navbar = () => {
                     <ul className="wd-sub-menu">
                         <li className="wd-drilldown-back">
                             <span className="wd-nav-opener" />
-                            <a href="#">Back </a>
+                            <a >Back </a>
                         </li>
                         <li
                             id="menu-item-4684"
@@ -1018,7 +1004,7 @@ const Navbar = () => {
                             <ul className="sub-sub-menu">
                                 <li className="wd-drilldown-back">
                                     <span className="wd-nav-opener" />
-                                    <a href="#">Back </a>
+                                    <a >Back </a>
                                 </li>
                                 <li
                                     id="menu-item-4685"
@@ -1080,7 +1066,7 @@ const Navbar = () => {
                             <ul className="sub-sub-menu">
                                 <li className="wd-drilldown-back">
                                     <span className="wd-nav-opener" />
-                                    <a href="#">Back </a>
+                                    <a >Back </a>
                                 </li>
                                 <li
                                     id="menu-item-4690"
@@ -1131,7 +1117,7 @@ const Navbar = () => {
                             <ul className="sub-sub-menu">
                                 <li className="wd-drilldown-back">
                                     <span className="wd-nav-opener" />
-                                    <a href="#">Back </a>
+                                    <a >Back </a>
                                 </li>
                                 <li
                                     id="menu-item-4694"
@@ -1193,7 +1179,7 @@ const Navbar = () => {
                     <ul className="wd-sub-menu">
                         <li className="wd-drilldown-back">
                             <span className="wd-nav-opener" />
-                            <a href="#">Back </a>
+                            <a >Back </a>
                         </li>
                         <li
                             id="menu-item-4697"
@@ -1252,7 +1238,7 @@ const Navbar = () => {
                     <ul className="wd-sub-menu">
                         <li className="wd-drilldown-back">
                             <span className="wd-nav-opener" />
-                            <a href="#">Back </a>
+                            <a >Back </a>
                         </li>
                         <li
                             id="menu-item-4700"
@@ -1387,14 +1373,15 @@ const Navbar = () => {
                 </li>
             </ul>
             <ul
-                id="menu-mobile-menu-mega-electronics"
-                className="mobile-pages-menu menu wd-nav wd-nav-mobile wd-layout-drilldown wd-drilldown-slide"
+                id="menu-mobile-categories-mega-electronics"
+                className={`mobile-categories-menu menu wd-nav wd-nav-mobile wd-layout-drilldown wd-drilldown-slide ${activeSection === "menu-mobile-categories-mega-electronics" ? "wd-active" : "wd-hidden"
+                    }`}
             >
                 <li
                     id="menu-item-4628"
                     className="xtemos-show-demos menu-item menu-item-type-custom menu-item-object-custom menu-item-4628 item-level-0"
                 >
-                    <a href="#" className="woodmart-nav-link">
+                    <a className="woodmart-nav-link">
                         <span className="nav-link-text">Demos</span>
                     </a>
                 </li>
@@ -1432,15 +1419,194 @@ const Navbar = () => {
                     </a>
                 </li>
                 <li
-                    id="menu-item-4626"
-                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4626 item-level-0"
+                    id="menu-item-112"
+                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-112 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/delivery-return/"
+                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/"
                         className="woodmart-nav-link"
                     >
-                        <span className="nav-link-text">Delivery &amp; Return</span>
+                        {/* <img
+                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Laptops-Tablets-PC.svg"
+                            title="Laptops, Tablets & PC"
+                            loading="lazy"
+                            className="wd-nav-img"
+                            width={18}
+                            height={18}
+                        /> */}
+                        <span className="nav-link-text">Products</span>
                     </a>
+                    <ul className="wd-sub-menu">
+                        <li className="wd-drilldown-back">
+                            <span className="wd-nav-opener" />
+                            <a >Back </a>
+                        </li>
+                        <li
+                            id="menu-item-4684"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4684 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/"
+                                className="woodmart-nav-link"
+                            >
+                                Laptops
+                            </a>
+                            <ul className="sub-sub-menu">
+                                <li className="wd-drilldown-back">
+                                    <span className="wd-nav-opener" />
+                                    <a >Back </a>
+                                </li>
+                                <li
+                                    id="menu-item-4685"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4685 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/apple-macbook/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Apple MacBook
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4686"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4686 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/business-laptop/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Business Laptop
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4687"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4687 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/gaming-laptop/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Gaming Laptop
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4688"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4688 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/ultrabook/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Ultrabook
+                                    </a>
+                                </li>
+                            </ul>
+                            <span className="wd-nav-opener" />
+                        </li>
+                        {/* <li
+                            id="menu-item-4689"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4689 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/"
+                                className="woodmart-nav-link"
+                            >
+                                Tablets
+                            </a>
+                            <ul className="sub-sub-menu">
+                                <li className="wd-drilldown-back">
+                                    <span className="wd-nav-opener" />
+                                    <a >Back </a>
+                                </li>
+                                <li
+                                    id="menu-item-4690"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4690 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/apple-ipad/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Apple Ipad
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4691"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4691 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/android-tablets/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Android Tablets
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4692"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4692 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/windows-tablets/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Windows Tablets
+                                    </a>
+                                </li>
+                            </ul>
+                            <span className="wd-nav-opener" />
+                        </li>
+                        <li
+                            id="menu-item-4693"
+                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4693 item-level-1"
+                        >
+                            <a
+                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/"
+                                className="woodmart-nav-link"
+                            >
+                                PCs
+                            </a>
+                            <ul className="sub-sub-menu">
+                                <li className="wd-drilldown-back">
+                                    <span className="wd-nav-opener" />
+                                    <a >Back </a>
+                                </li>
+                                <li
+                                    id="menu-item-4694"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4694 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/gaming-pcs/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Gaming PCs
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4695"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4695 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/office-pcs/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        Office PCs
+                                    </a>
+                                </li>
+                                <li
+                                    id="menu-item-4696"
+                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4696 item-level-2"
+                                >
+                                    <a
+                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/all-in-one/"
+                                        className="woodmart-nav-link"
+                                    >
+                                        All in one
+                                    </a>
+                                </li>
+                            </ul>
+                            <span className="wd-nav-opener" />
+                        </li> */}
+                    </ul>
+                    <span className="wd-nav-opener" />
                 </li>
                 <li
                     id="menu-item-4627"
@@ -1472,6 +1638,11 @@ const Navbar = () => {
                 </li>
             </ul>
         </div>
+
+        <div className={`wd-close-side wd-fill ${isCartOpen ? 'wd-close-side-opened' : ''}`} />
+        <div className={`wd-close-side wd-fill ${isModalOpen ? 'wd-close-side-opened' : ''}`} />
+        <div className={`wd-close-side wd-fill ${isMenuOpen ? 'wd-close-side-opened' : ''}`} onClick={closeMobileMenu} />
+
     </>
 }
 

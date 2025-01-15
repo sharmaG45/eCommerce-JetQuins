@@ -1,0 +1,223 @@
+.woocommerce-PaymentMethods,
+.woocommerce-PaymentMethods ul,
+.woocommerce-PaymentMethods ol,
+.woocommerce-SavedPaymentMethods {
+    list-style: none;
+    --li-pl: 0
+}
+
+.wd-sticky-btn #wc-stripe-payment-request-wrapper,
+.wd-sticky-btn #wc-stripe-payment-request-button-separator {
+    display: none !important
+}
+
+.payment_methods li .stripe-icon {
+    max-width: 40px
+}
+
+.payment_methods li .stripe-bancontact-icon {
+    max-height: 65px;
+    max-width: 45px
+}
+
+.payment_methods li .stripe-p24-icon {
+    max-width: 65px
+}
+
+.payment_methods li .stripe-sofort-icon {
+    max-width: 55px
+}
+
+.payment_methods li .stripe-ideal-icon {
+    max-height: 35px
+}
+
+.payment_methods li :is(.stripe-alipay-icon, .stripe-sepa-icon, .stripe-giropay-icon) {
+    max-width: 50px
+}
+
+.payment_methods li :is(.stripe-multibanco-icon, .stripe-eps-icon) {
+    max-height: 30px
+}
+
+.wc-payment-form .woocommerce-error {
+    margin-top: 20px;
+    margin-bottom: 0
+}
+
+.woocommerce-SavedPaymentMethods:empty {
+    display: none
+}
+
+.wc-stripe-elements-field,
+.wc-stripe-iban-element-field {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 15px;
+    margin: 5px 0;
+    height: 42px;
+    border: var(--wd-form-brd-width) solid var(--wd-form-brd-color);
+    border-radius: var(--wd-form-brd-radius);
+    background-color: var(--wd-form-bg);
+    cursor: text
+}
+
+.stripe-card-group {
+    position: relative
+}
+
+.stripe-card-brand {
+    position: absolute;
+    top: 50%;
+    inset-inline-end: 10px;
+    margin-top: -10px;
+    display: block;
+    width: 30px;
+    height: 24px
+}
+
+.stripe-credit-card-brand {
+    background: no-repeat var(--wpr-bg-0bd6dd4a-9d1d-4fb1-a050-a6838ead05f0)
+}
+
+.stripe-visa-brand {
+    background: no-repeat var(--wpr-bg-e59d8453-454c-40aa-86bc-085419763397)
+}
+
+.stripe-amex-brand {
+    background: no-repeat var(--wpr-bg-5a84ce2d-6aa6-43d3-836b-b5c781ffd1a6)
+}
+
+.stripe-diners-brand {
+    background: no-repeat var(--wpr-bg-b523caaf-5660-4310-8314-e0f8832760f4)
+}
+
+.stripe-discover-brand {
+    background: no-repeat var(--wpr-bg-fc5a4441-6c07-47b5-8421-cd6f6ef329dd)
+}
+
+.stripe-jcb-brand {
+    background: no-repeat var(--wpr-bg-9ff567db-60ae-43fd-9dab-447a67dd7e4e)
+}
+
+.stripe-maestro-brand {
+    background: no-repeat var(--wpr-bg-43f8465e-261a-4cb5-9c8a-df8aaaea5cb9)
+}
+
+.stripe-mastercard-brand {
+    background: no-repeat var(--wpr-bg-f8c2b87d-3dad-4a6a-87fa-d25426280d12)
+}
+
+#wc-stripe-custom-button {
+    display: block;
+    width: 100%
+}
+
+#stripe_boleto_tax_id {
+    width: 100%
+}
+
+#wc-stripe-payment-request-button-separator {
+    margin: 10px 0 !important;
+    font-weight: 600;
+    color: var(--color-gray-800)
+}
+
+#wc-stripe-payment-request-wrapper {
+    padding-top: 0 !important
+}
+
+.wc-proceed-to-checkout #wc-stripe-payment-request-wrapper {
+    margin-top: 0 !important
+}
+
+form.woocommerce-checkout:has(.wc-upe-form) input.input-text {
+    padding-top: 8px;
+    padding-bottom: 8px
+}
+
+form.woocommerce-checkout #wc-stripe-express-checkout-button-separator {
+    margin: 0 !important
+}
+
+td.woocommerce-PaymentMethod--method {
+    font-weight: 600;
+    color: var(--color-gray-800)
+}
+
+td.woocommerce-PaymentMethod--actions>* {
+    margin: 2px 0
+}
+
+td.woocommerce-PaymentMethod--actions .button.delete {
+    float: right;
+    margin-inline-start: 5px;
+    background-color: #E01020;
+    color: #fff
+}
+
+td.woocommerce-PaymentMethod--actions .button.delete:hover {
+    background-color: #c60f1d;
+    color: #fff
+}
+
+.rtl td.woocommerce-PaymentMethod--actions .button.delete {
+    float: left
+}
+
+td.woocommerce-PaymentMethod--actions:after {
+    content: "";
+    display: block;
+    clear: both
+}
+
+#add_payment_method #place_order {
+    padding: 12px 20px;
+    width: auto;
+    font-size: 13px
+}
+
+#add_payment_method .payment_methods .payment_box {
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none
+}
+
+#add_payment_method .payment_methods .payment_box:before {
+    content: none
+}
+
+#add_payment_method .wc-payment-form {
+    max-width: 330px
+}
+
+.single-product-page #wc-stripe-express-checkout-element {
+    margin-bottom: var(--wd-mb)
+}
+
+form.cart div.quantity {
+    order: 5
+}
+
+form.cart .single_add_to_cart_button {
+    order: 10
+}
+
+form.cart .wd-buy-now-btn {
+    order: 15
+}
+
+form.cart #wc-stripe-payment-request-button-separator {
+    order: 20;
+    margin: 5px 0 !important;
+    text-align: var(--text-align) !important
+}
+
+form.cart #wc-stripe-payment-request-wrapper {
+    order: 25
+}
+
+:is(.wc-proceed-to-checkout, form.woocommerce-checkout) #wc-stripe-express-checkout-element {
+    margin: 0 !important
+}

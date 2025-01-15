@@ -12,6 +12,8 @@ export default function RootLayout({ children }) {
     <html lang="en" className="browser-Chrome platform-Windows wd-scrollbar js_active  vc_desktop  vc_transform  vc_transform ">
       <head>
         <link href="/assets/wp-content/themes/woodmart/css/parts/all.min.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/css.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/player.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/v4-shims.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/selects2.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/mega-electronics.css" rel="stylesheet" />
@@ -143,7 +145,7 @@ export default function RootLayout({ children }) {
         <div className="wd-page-wrapper website-wrapper">
           <Navbar />
           {children}
-          <a href="#" className="scrollToTop" aria-label="Scroll to top button" />
+          <a  className="scrollToTop" aria-label="Scroll to top button" />
           <Footer />
 
         </div>

@@ -1,4 +1,14 @@
+"use client";
+
+import React, { useState } from "react";
+
 const productDetails = () => {
+    const [selectedOption, setSelectedOption] = useState("default");
+
+    const handleChange = (event) => {
+        setSelectedOption(event.target.value);
+    };
+
     return (
         <>
             <div className="wd-page-content main-page-wrapper">
@@ -22,7 +32,7 @@ const productDetails = () => {
                                         <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-637cfccdccfdd">
                                             <div className="vc_column-inner vc_custom_1669135567733">
                                                 <div className="wpb_wrapper">
-                                                    <div className="wd-el-breadcrumbs wd-wpb wd-rs-6336f520a769d wd-enabled-width vc_custom_1664546082340 wd-nowrap-md text-left">
+                                                    {/* <div className="wd-el-breadcrumbs wd-wpb wd-rs-6336f520a769d wd-enabled-width vc_custom_1664546082340 wd-nowrap-md text-left">
                                                         <nav
                                                             aria-label="Breadcrumb"
                                                             className="wd-breadcrumbs woocommerce-breadcrumb">
@@ -64,7 +74,7 @@ const productDetails = () => {
                                                             <span className="wd-delimiter" />
                                                             <span className="wd-last">Oculus Quest 2</span>
                                                         </nav>
-                                                    </div>
+                                                    </div> */}
                                                     <div className="wd-single-nav wd-wpb wd-rs-620fa22eda02d hidden-xs wd-enabled-width vc_custom_1645191733973 text-left">
                                                         <div className="wd-products-nav">
                                                             <div className="wd-event-hover">
@@ -195,9 +205,9 @@ const productDetails = () => {
                                                             }}>
                                                             <div className="wd-carousel-container wd-gallery-images">
                                                                 <div className="wd-carousel-inner">
-                                                                    <div className="product-labels labels-rounded-sm">
+                                                                    {/* <div className="product-labels labels-rounded-sm">
                                                                         <span className="onsale product-label">-10%</span>
-                                                                    </div>
+                                                                    </div> */}
                                                                     <figure
                                                                         className="woocommerce-product-gallery__wrapper wd-carousel wd-grid wd-initialized wd-horizontal wd-backface-hidden"
                                                                         style={{
@@ -366,7 +376,7 @@ const productDetails = () => {
                                                                         <div className="wd-show-product-gallery-wrap wd-action-btn wd-style-icon-bg-text wd-gallery-btn">
                                                                             <a
                                                                                 className="woodmart-show-product-gallery"
-                                                                                href="#"
+                                                                                
                                                                                 rel="nofollow">
                                                                                 <span>Click to enlarge</span>
                                                                             </a>
@@ -1022,7 +1032,7 @@ const productDetails = () => {
                                                                                                     }}>
                                                                                                     <em>
                                                                                                         <a
-                                                                                                            href="#"
+                                                                                                            
                                                                                                             style={{
                                                                                                                 color: "#1877f2",
                                                                                                             }}>
@@ -1087,7 +1097,7 @@ const productDetails = () => {
                                                                                                     }}>
                                                                                                     <em>
                                                                                                         <a
-                                                                                                            href="#"
+                                                                                                            
                                                                                                             style={{
                                                                                                                 color: "#1877f2",
                                                                                                             }}>
@@ -2065,7 +2075,8 @@ const productDetails = () => {
                                                                     <select
                                                                         aria-label="Select reviews sorting"
                                                                         className="wd-reviews-sorting-select"
-                                                                        name="woodmart_reviews_sorting_select">
+                                                                        name="woodmart_reviews_sorting_select" value={selectedOption}
+                                                                        onChange={handleChange}>
                                                                         <option selected value="default">
                                                                             Default
                                                                         </option>
@@ -2137,12 +2148,12 @@ const productDetails = () => {
                                                                                 </div>
                                                                                 <div className="wd-review-likes">
                                                                                     <div className="wd-action-btn wd-style-text wd-like wd-like-icon">
-                                                                                        <a href="#">
+                                                                                        <a >
                                                                                             <span>2</span>
                                                                                         </a>
                                                                                     </div>
                                                                                     <div className="wd-action-btn wd-style-text wd-dislike wd-dislike-icon">
-                                                                                        <a href="#">
+                                                                                        <a >
                                                                                             <span>0</span>
                                                                                         </a>
                                                                                     </div>
@@ -2236,12 +2247,12 @@ const productDetails = () => {
                                                                                 </div>
                                                                                 <div className="wd-review-likes">
                                                                                     <div className="wd-action-btn wd-style-text wd-like wd-like-icon">
-                                                                                        <a href="#">
+                                                                                        <a >
                                                                                             <span>3</span>
                                                                                         </a>
                                                                                     </div>
                                                                                     <div className="wd-action-btn wd-style-text wd-dislike wd-dislike-icon">
-                                                                                        <a href="#">
+                                                                                        <a >
                                                                                             <span>0</span>
                                                                                         </a>
                                                                                     </div>
@@ -2336,19 +2347,19 @@ const productDetails = () => {
                                                                                 </label>
                                                                                 <p className="stars">
                                                                                     <span>
-                                                                                        <a className="star-1" href="#">
+                                                                                        <a className="star-1" >
                                                                                             1
                                                                                         </a>
-                                                                                        <a className="star-2" href="#">
+                                                                                        <a className="star-2" >
                                                                                             2
                                                                                         </a>
-                                                                                        <a className="star-3" href="#">
+                                                                                        <a className="star-3" >
                                                                                             3
                                                                                         </a>
-                                                                                        <a className="star-4" href="#">
+                                                                                        <a className="star-4" >
                                                                                             4
                                                                                         </a>
-                                                                                        <a className="star-5" href="#">
+                                                                                        <a className="star-5" >
                                                                                             5
                                                                                         </a>
                                                                                     </span>
@@ -2356,6 +2367,8 @@ const productDetails = () => {
                                                                                 <select
                                                                                     id="rating"
                                                                                     name="rating"
+                                                                                    value={selectedOption}
+                                                                                    onChange={handleChange}
                                                                                     required
                                                                                     style={{
                                                                                         display: "none",
@@ -2376,19 +2389,19 @@ const productDetails = () => {
                                                                                 </label>
                                                                                 <div className="stars">
                                                                                     <span>
-                                                                                        <a className="star-1" href="#">
+                                                                                        <a className="star-1" >
                                                                                             1
                                                                                         </a>
-                                                                                        <a className="star-2" href="#">
+                                                                                        <a className="star-2" >
                                                                                             2
                                                                                         </a>
-                                                                                        <a className="star-3" href="#">
+                                                                                        <a className="star-3" >
                                                                                             3
                                                                                         </a>
-                                                                                        <a className="star-4" href="#">
+                                                                                        <a className="star-4" >
                                                                                             4
                                                                                         </a>
-                                                                                        <a className="star-5" href="#">
+                                                                                        <a className="star-5" >
                                                                                             5
                                                                                         </a>
                                                                                     </span>
@@ -2396,6 +2409,8 @@ const productDetails = () => {
                                                                                 <select
                                                                                     id="value_for_money"
                                                                                     name="value_for_money"
+                                                                                    value={selectedOption}
+                                                                                    onChange={handleChange}
                                                                                     required>
                                                                                     <option value="">Rate…</option>
                                                                                     <option value="5">Perfect</option>
@@ -2411,19 +2426,19 @@ const productDetails = () => {
                                                                                 <label htmlFor="durability">Durability</label>
                                                                                 <div className="stars">
                                                                                     <span>
-                                                                                        <a className="star-1" href="#">
+                                                                                        <a className="star-1" >
                                                                                             1
                                                                                         </a>
-                                                                                        <a className="star-2" href="#">
+                                                                                        <a className="star-2" >
                                                                                             2
                                                                                         </a>
-                                                                                        <a className="star-3" href="#">
+                                                                                        <a className="star-3" >
                                                                                             3
                                                                                         </a>
-                                                                                        <a className="star-4" href="#">
+                                                                                        <a className="star-4" >
                                                                                             4
                                                                                         </a>
-                                                                                        <a className="star-5" href="#">
+                                                                                        <a className="star-5" >
                                                                                             5
                                                                                         </a>
                                                                                     </span>
@@ -2431,6 +2446,8 @@ const productDetails = () => {
                                                                                 <select
                                                                                     id="durability"
                                                                                     name="durability"
+                                                                                    value={selectedOption}
+                                                                                    onChange={handleChange}
                                                                                     required>
                                                                                     <option value="">Rate…</option>
                                                                                     <option value="5">Perfect</option>
@@ -2448,19 +2465,19 @@ const productDetails = () => {
                                                                                 </label>
                                                                                 <div className="stars">
                                                                                     <span>
-                                                                                        <a className="star-1" href="#">
+                                                                                        <a className="star-1" >
                                                                                             1
                                                                                         </a>
-                                                                                        <a className="star-2" href="#">
+                                                                                        <a className="star-2" >
                                                                                             2
                                                                                         </a>
-                                                                                        <a className="star-3" href="#">
+                                                                                        <a className="star-3" >
                                                                                             3
                                                                                         </a>
-                                                                                        <a className="star-4" href="#">
+                                                                                        <a className="star-4" >
                                                                                             4
                                                                                         </a>
-                                                                                        <a className="star-5" href="#">
+                                                                                        <a className="star-5" >
                                                                                             5
                                                                                         </a>
                                                                                     </span>
@@ -2468,6 +2485,8 @@ const productDetails = () => {
                                                                                 <select
                                                                                     id="delivery_speed"
                                                                                     name="delivery_speed"
+                                                                                    value={selectedOption}
+                                                                                    onChange={handleChange}
                                                                                     required>
                                                                                     <option value="">Rate…</option>
                                                                                     <option value="5">Perfect</option>
@@ -2914,7 +2933,7 @@ const productDetails = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -3220,7 +3239,7 @@ const productDetails = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -3526,7 +3545,7 @@ const productDetails = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -3836,7 +3855,7 @@ const productDetails = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -4142,7 +4161,7 @@ const productDetails = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -4448,7 +4467,7 @@ const productDetails = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -4742,8 +4761,6 @@ const productDetails = () => {
                     </div>
                 </main>
             </div>
-
-
         </>
     )
 }

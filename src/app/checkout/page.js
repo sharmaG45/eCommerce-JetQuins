@@ -57,7 +57,7 @@ const checkout = () => {
                                                     <div className="woocommerce-form-login-toggle">
                                                         <div className="woocommerce-info">
                                                             Returning customer?{" "}
-                                                            <a className="showlogin" href="#">
+                                                            <a className="showlogin" >
                                                                 Click here to login
                                                             </a>
                                                         </div>
@@ -157,7 +157,7 @@ const checkout = () => {
                                                     <div className="woocommerce-form-coupon-toggle">
                                                         <div className="woocommerce-info">
                                                             Have a coupon?{" "}
-                                                            <a className="showcoupon" href="#">
+                                                            <a className="showcoupon" >
                                                                 Click here to enter your code
                                                             </a>
                                                         </div>
@@ -3057,7 +3057,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -3354,7 +3354,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -3708,7 +3708,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -4040,7 +4040,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -4376,7 +4376,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -5298,7 +5298,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -5932,7 +5932,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -6760,7 +6760,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -7267,7 +7267,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -8169,7 +8169,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -8480,7 +8480,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -8791,7 +8791,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -9107,7 +9107,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -9418,7 +9418,7 @@ const checkout = () => {
                                                                                                                         <a
                                                                                                                             aria-label="Read more description"
                                                                                                                             className="wd-more-desc-btn"
-                                                                                                                            href="#"
+                                                                                                                            
                                                                                                                             rel="nofollow"
                                                                                                                         />
                                                                                                                     </div>
@@ -10530,7 +10530,7 @@ const checkout = () => {
                                                                                                                                     <a
                                                                                                                                         aria-label="Read more description"
                                                                                                                                         className="wd-more-desc-btn"
-                                                                                                                                        href="#"
+                                                                                                                                        
                                                                                                                                         rel="nofollow"
                                                                                                                                     />
                                                                                                                                 </div>
@@ -11209,7 +11209,7 @@ const checkout = () => {
                                                                                                                                     <a
                                                                                                                                         aria-label="Read more description"
                                                                                                                                         className="wd-more-desc-btn"
-                                                                                                                                        href="#"
+                                                                                                                                        
                                                                                                                                         rel="nofollow"
                                                                                                                                     />
                                                                                                                                 </div>

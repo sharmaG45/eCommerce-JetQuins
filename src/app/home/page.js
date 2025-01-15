@@ -1,7 +1,7 @@
 'use client'
 
-import bestOffer from "@/app/assets/scraped_products.json";
-import categories from "@/app/assets/product_categories.json";
+import bestOffer from "../../app/assets/scraped_products.json";
+import categories from "../../app/assets/product_categories.json";
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -27,14 +27,14 @@ const HomePage = () => {
     };
 
     const handleCategoryClick = (category) => {
-        console.log(category.title,"Category");
-        
+        console.log(category.title, "Category");
+
         const encodedTitle = encodeURIComponent(category.title);
         router.push(`/productCategory?title=${encodedTitle}`);
     };
 
     const handleProductDetails = (brandDetails) => {
-        router.push(`/productDetails/${brandDetails}`);
+        router.push(`/productDetails?brand=${brandDetails}`);
     }
 
     return (
@@ -343,7 +343,7 @@ const HomePage = () => {
                                                                         <div className="category-grid-item wd-cat cat-design-alt wd-with-subcat product-category product first" data-loop={1}>
                                                                             <div className="wrapp-category">
                                                                                 <div className="category-image-wrapp">
-                                                                                    <a href="#" className="category-image" aria-label="Category image">
+                                                                                    <a className="category-image" aria-label="Category image">
                                                                                         <picture decoding="async" className="attachment-200 size-200">
                                                                                             <source
                                                                                                 type="image/webp"
@@ -367,13 +367,13 @@ const HomePage = () => {
                                                                                         {category.title} <mark className="count">({category.productsCount})</mark>
                                                                                     </h3>
                                                                                     <div className="more-products">
-                                                                                        <a href="#">
+                                                                                        <a >
                                                                                             {category.productsCount} products
                                                                                         </a>
                                                                                     </div>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+
                                                                                     className="category-link wd-fill"
                                                                                     aria-label={`Product category ${category.title}`}
                                                                                 />
@@ -434,12 +434,12 @@ const HomePage = () => {
                                                                 data-ll-status="loaded"
                                                                 className="entered lazyloaded"
                                                             />
-                                                            <noscript>
+                                                            {/* <noscript>
                                                                 &lt;img decoding="async"
                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
                                                                 title="chevron-right-primary" loading="lazy"
                                                                 width="14" height="14"&gt;
-                                                            </noscript>
+                                                            </noscript> */}
                                                         </span>
                                                     </a>
                                                 </div>{" "}
@@ -475,7 +475,7 @@ const HomePage = () => {
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
                                                                     <div className="product-element-top wd-quick-shop">
-                                                                        <a href="#" className="product-image-link" >
+                                                                        <a className="product-image-link" >
                                                                             <div className="wd-product-grid-slider wd-fill">
                                                                                 {offer.image_urls.map((url, imageIndex) => (
                                                                                     <div
@@ -511,7 +511,7 @@ const HomePage = () => {
                                                                                     width={700}
                                                                                     height={800}
                                                                                     src={offer.image_urls[0]}
-                                                                                    alt=""
+
                                                                                     data-lazy-srcset={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
@@ -533,7 +533,7 @@ const HomePage = () => {
                                                                             </div>
                                                                             <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
                                                                                 <a
-                                                                                    href="#"
+
                                                                                     className="open-quick-view quick-view-button"
                                                                                     rel="nofollow"
                                                                                     data-id={offer.product_id}
@@ -737,7 +737,7 @@ const HomePage = () => {
                                                                                         </table>
                                                                                     </div>
                                                                                     <a
-                                                                                        href="#"
+
                                                                                         rel="nofollow"
                                                                                         className="wd-more-desc-btn wd-shown"
                                                                                         aria-label="Read more description"
@@ -776,11 +776,11 @@ const HomePage = () => {
                                                                     data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/nothing-phone-1-600x720.jpg"
                                                                     data-ll-status="loaded"
                                                                 />
-                                                                <noscript>
+                                                                {/* <noscript>
                                                                     &lt;img decoding="async" width="600" height="720"
                                                                     src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/nothing-phone-1-600x720.jpg"
-                                                                    class="attachment-600x720 size-600x720" alt="" /&gt;
-                                                                </noscript>{" "}
+                                                                    class="attachment-600x720 size-600x720"  /&gt;
+                                                                </noscript>{" "} */}
                                                             </div>
                                                         </div>
                                                         <div className="wrapper-content-banner wd-fill  wd-items-top wd-justify-center">
@@ -842,12 +842,12 @@ const HomePage = () => {
                                                                 data-ll-status="loaded"
                                                                 className="entered lazyloaded"
                                                             />
-                                                            <noscript>
+                                                            {/* <noscript>
                                                                 &lt;img decoding="async"
                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
                                                                 title="chevron-right-primary" loading="lazy"
                                                                 width="14" height="14"&gt;
-                                                            </noscript>
+                                                            </noscript> */}
                                                         </span>
                                                     </a>
                                                 </div>{" "}
@@ -882,7 +882,7 @@ const HomePage = () => {
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
                                                                     <div className="product-element-top wd-quick-shop">
-                                                                        <a href="#" className="product-image-link">
+                                                                        <a className="product-image-link">
                                                                             <div className="wd-product-grid-slider wd-fill">
                                                                                 {offer.image_urls.map((url, imageIndex) => (
                                                                                     <div
@@ -918,7 +918,7 @@ const HomePage = () => {
                                                                                     width={700}
                                                                                     height={800}
                                                                                     src={offer.image_urls[0]}
-                                                                                    alt=""
+
                                                                                     data-lazy-srcset={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
@@ -940,7 +940,7 @@ const HomePage = () => {
                                                                             </div>
                                                                             <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
                                                                                 <a
-                                                                                    href="#"
+
                                                                                     className="open-quick-view quick-view-button"
                                                                                     rel="nofollow"
                                                                                     data-id={offer.product_id}
@@ -1144,7 +1144,7 @@ const HomePage = () => {
                                                                                         </table>
                                                                                     </div>
                                                                                     <a
-                                                                                        href="#"
+
                                                                                         rel="nofollow"
                                                                                         className="wd-more-desc-btn wd-shown"
                                                                                         aria-label="Read more description"
@@ -1258,7 +1258,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1-263x300.jpg
@@ -1983,7 +1983,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn"
                                                                                     aria-label="Read more description"
@@ -2102,7 +2102,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1-263x300.jpg
@@ -2627,7 +2627,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn"
                                                                                     aria-label="Read more description"
@@ -2741,7 +2741,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-predator-helios-300-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-predator-helios-300-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-predator-helios-300-1-263x300.jpg
@@ -3466,7 +3466,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn"
                                                                                     aria-label="Read more description"
@@ -3580,7 +3580,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-prodesigner-pe320qk-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-prodesigner-pe320qk-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-prodesigner-pe320qk-1-263x300.jpg
@@ -4004,7 +4004,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn"
                                                                                     aria-label="Read more description"
@@ -4051,10 +4051,10 @@ const HomePage = () => {
                                                                         sizes="(max-width: 580px) 100vw, 580px"
                                                                         srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img.png 580w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-400x252.png 400w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-100x63.png 100w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-430x271.png 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-180x113.png 180w"
                                                                     />
-                                                                    <noscript>
+                                                                    {/* <noscript>
                                                                         &lt;img decoding="async" width="580" height="365"
                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-580x365.png"
-                                                                        class="attachment-580x365 size-580x365" alt=""
+                                                                        class="attachment-580x365 size-580x365" 
                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img.png
                                                                         580w,
                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-400x252.png
@@ -4066,7 +4066,7 @@ const HomePage = () => {
                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-180x113.png
                                                                         180w" sizes="(max-width: 580px) 100vw, 580px"
                                                                         /&gt;
-                                                                    </noscript>
+                                                                    </noscript> */}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -4134,12 +4134,12 @@ const HomePage = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
+                                                                            {/* <noscript>
                                                                                 &lt;img decoding="async"
                                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-white.svg"
                                                                                 title="chevron-right-white" loading="lazy"
                                                                                 width="14" height="14"&gt;
-                                                                            </noscript>
+                                                                            </noscript> */}
                                                                         </span>
                                                                     </a>
                                                                 </div>
@@ -4192,13 +4192,13 @@ const HomePage = () => {
                                                                                         data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-ipad-mini-starlight-1-80x80.jpg"
                                                                                         data-ll-status="loaded"
                                                                                     />
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;img decoding="async" width="80"
                                                                                         height="80"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-ipad-mini-starlight-1-80x80.jpg"
-                                                                                        class="attachment-80x80 size-80x80" alt=""
+                                                                                        class="attachment-80x80 size-80x80" 
                                                                                         /&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                             </div>
                                                                             <div className="product-element-bottom">
@@ -4266,13 +4266,13 @@ const HomePage = () => {
                                                                                         data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-watch-ultra-1-80x80.jpg"
                                                                                         data-ll-status="loaded"
                                                                                     />
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;img decoding="async" width="80"
                                                                                         height="80"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-watch-ultra-1-80x80.jpg"
-                                                                                        class="attachment-80x80 size-80x80" alt=""
+                                                                                        class="attachment-80x80 size-80x80" 
                                                                                         /&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                             </div>
                                                                             <div className="product-element-bottom">
@@ -4331,13 +4331,13 @@ const HomePage = () => {
                                                                                         data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-macbook-air-13-space-gray-1-2-80x80.jpg"
                                                                                         data-ll-status="loaded"
                                                                                     />
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;img decoding="async" width="80"
                                                                                         height="80"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-macbook-air-13-space-gray-1-2-80x80.jpg"
-                                                                                        class="attachment-80x80 size-80x80" alt=""
+                                                                                        class="attachment-80x80 size-80x80" 
                                                                                         /&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                             </div>
                                                                             <div className="product-element-bottom">
@@ -4405,13 +4405,13 @@ const HomePage = () => {
                                                                                         data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-iphone-14-plus-blue-1-80x80.jpg"
                                                                                         data-ll-status="loaded"
                                                                                     />
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;img decoding="async" width="80"
                                                                                         height="80"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-iphone-14-plus-blue-1-80x80.jpg"
-                                                                                        class="attachment-80x80 size-80x80" alt=""
+                                                                                        class="attachment-80x80 size-80x80" 
                                                                                         /&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                             </div>
                                                                             <div className="product-element-bottom">
@@ -4479,13 +4479,13 @@ const HomePage = () => {
                                                                                         data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-imac-24-M1-blue-1-80x80.jpg"
                                                                                         data-ll-status="loaded"
                                                                                     />
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;img decoding="async" width="80"
                                                                                         height="80"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-imac-24-M1-blue-1-80x80.jpg"
-                                                                                        class="attachment-80x80 size-80x80" alt=""
+                                                                                        class="attachment-80x80 size-80x80" 
                                                                                         /&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                             </div>
                                                                             <div className="product-element-bottom">
@@ -4543,13 +4543,13 @@ const HomePage = () => {
                                                                                         alt
                                                                                         data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-magic-keyboard-with-touch-id-1-80x80.jpg"
                                                                                     />
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;img decoding="async" width="80"
                                                                                         height="80"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-magic-keyboard-with-touch-id-1-80x80.jpg"
-                                                                                        class="attachment-80x80 size-80x80" alt=""
+                                                                                        class="attachment-80x80 size-80x80" 
                                                                                         /&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                             </div>
                                                                             <div className="product-element-bottom">
@@ -4607,13 +4607,13 @@ const HomePage = () => {
                                                                                         alt
                                                                                         data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-magsafe-clear-case-1-80x80.jpg"
                                                                                     />
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;img decoding="async" width="80"
                                                                                         height="80"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-magsafe-clear-case-1-80x80.jpg"
-                                                                                        class="attachment-80x80 size-80x80" alt=""
+                                                                                        class="attachment-80x80 size-80x80" 
                                                                                         /&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                             </div>
                                                                             <div className="product-element-bottom">
@@ -4698,12 +4698,12 @@ const HomePage = () => {
                                                                 data-ll-status="loaded"
                                                                 className="entered lazyloaded"
                                                             />
-                                                            <noscript>
+                                                            {/* <noscript>
                                                                 &lt;img decoding="async"
                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
                                                                 title="chevron-right-primary" loading="lazy"
                                                                 width="14" height="14"&gt;
-                                                            </noscript>
+                                                            </noscript> */}
                                                         </span>
                                                     </a>
                                                 </div>{" "}
@@ -4731,14 +4731,14 @@ const HomePage = () => {
                                                                 className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
                                                                 data-loop={index}
                                                                 data-id={offer.product_id} // Assuming you have unique IDs for each product
-                                                                key={offer.product_id} // Use a unique key for each product
+                                                                key={index} // Use a unique key for each product
                                                                 onClick={() => handleProductDetails(offer.brand)}
                                                             >
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
                                                                     <div className="product-element-top wd-quick-shop">
-                                                                        <a href="#" className="product-image-link">
+                                                                        <a className="product-image-link">
                                                                             <div className="wd-product-grid-slider wd-fill">
                                                                                 {offer.image_urls.map((url, imageIndex) => (
                                                                                     <div
@@ -4747,6 +4747,7 @@ const HomePage = () => {
                                                                                         data-image-url={url}
                                                                                         data-image-srcset={`${url} 700w, ${url.replace(".jpg", "-263x300.jpg")} 263w, ${url.replace(".jpg", "-88x100.jpg")} 88w, ${url.replace(".jpg", "-430x491.jpg")} 430w, ${url.replace(".jpg", "-180x206.jpg")} 180w`}
                                                                                         data-image-id={imageIndex}
+
                                                                                     />
                                                                                 ))}
                                                                             </div>
@@ -4774,7 +4775,7 @@ const HomePage = () => {
                                                                                     width={700}
                                                                                     height={800}
                                                                                     src={offer.image_urls[0]}
-                                                                                    alt=""
+
                                                                                     data-lazy-srcset={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
@@ -4796,7 +4797,7 @@ const HomePage = () => {
                                                                             </div>
                                                                             <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
                                                                                 <a
-                                                                                    href="#"
+
                                                                                     className="open-quick-view quick-view-button"
                                                                                     rel="nofollow"
                                                                                     data-id={offer.product_id}
@@ -5000,7 +5001,7 @@ const HomePage = () => {
                                                                                         </table>
                                                                                     </div>
                                                                                     <a
-                                                                                        href="#"
+
                                                                                         rel="nofollow"
                                                                                         className="wd-more-desc-btn wd-shown"
                                                                                         aria-label="Read more description"
@@ -5117,7 +5118,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/ariete-0979-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/ariete-0979-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/ariete-0979-1-263x300.jpg
@@ -5359,7 +5360,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn"
                                                                                     aria-label="Read more description"
@@ -5473,7 +5474,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/ariete-986-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/ariete-986-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/ariete-986-1-263x300.jpg
@@ -5715,7 +5716,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn"
                                                                                     aria-label="Read more description"
@@ -5832,7 +5833,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bamix-deluxe-m200-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bamix-deluxe-m200-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bamix-deluxe-m200-1-263x300.jpg
@@ -6074,7 +6075,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn wd-shown"
                                                                                     aria-label="Read more description"
@@ -6191,7 +6192,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bamix-luxurylin-m200-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bamix-luxurylin-m200-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bamix-luxurylin-m200-1-263x300.jpg
@@ -6433,7 +6434,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn"
                                                                                     aria-label="Read more description"
@@ -6547,7 +6548,7 @@ const HomePage = () => {
                                                                             700px"/&gt; &lt;img decoding="async" width="700"
                                                                             height="800"
                                                                             src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bosch-kuw20vhf0g-1.jpg"
-                                                                            alt=""
+                                                                            
                                                                             srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bosch-kuw20vhf0g-1.jpg
                                                                             700w,
                                                                             https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/bosch-kuw20vhf0g-1-263x300.jpg
@@ -6789,7 +6790,7 @@ const HomePage = () => {
                                                                                     </table>
                                                                                 </div>
                                                                                 <a
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                     className="wd-more-desc-btn"
                                                                                     aria-label="Read more description"
@@ -6845,7 +6846,7 @@ const HomePage = () => {
                                                                             srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories.jpg 440w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories-400x232.jpg 400w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories-100x58.jpg 100w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories-430x249.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories-180x104.jpg 180w"
                                                                         />
                                                                     </picture>
-                                                                    <noscript>
+                                                                    {/* <noscript>
                                                                         &lt;picture decoding="async"
                                                                         class="attachment-440x265 size-440x265"&gt;
                                                                         &lt;source type="image/webp"
@@ -6861,7 +6862,7 @@ const HomePage = () => {
                                                                         180w" sizes="(max-width: 440px) 100vw, 440px"/&gt;
                                                                         &lt;img decoding="async" width="440" height="255"
                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories.jpg"
-                                                                        alt=""
+                                                                        
                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories.jpg
                                                                         440w,
                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories-400x232.jpg
@@ -6873,7 +6874,7 @@ const HomePage = () => {
                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/microsoft-accessories-180x104.jpg
                                                                         180w" sizes="(max-width: 440px) 100vw, 440px"/&gt;
                                                                         &lt;/picture&gt;
-                                                                    </noscript>
+                                                                    </noscript> */}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -6913,12 +6914,12 @@ const HomePage = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
+                                                                            {/* <noscript>
                                                                                 &lt;img decoding="async"
                                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/keyboard.svg"
                                                                                 title="keyboard" loading="lazy" width="14"
                                                                                 height="14"&gt;
-                                                                            </noscript>
+                                                                            </noscript> */}
                                                                         </span>
                                                                     </a>
                                                                 </div>
@@ -6939,12 +6940,12 @@ const HomePage = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
+                                                                            {/* <noscript>
                                                                                 &lt;img decoding="async"
                                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/pen.svg"
                                                                                 title="pen" loading="lazy" width="14"
                                                                                 height="14"&gt;
-                                                                            </noscript>
+                                                                            </noscript> */}
                                                                         </span>
                                                                     </a>
                                                                 </div>
@@ -6965,12 +6966,12 @@ const HomePage = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
+                                                                            {/* <noscript>
                                                                                 &lt;img decoding="async"
                                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/wirelss-mouse.svg"
                                                                                 title="wirelss-mouse" loading="lazy"
                                                                                 width="14" height="14"&gt;
-                                                                            </noscript>
+                                                                            </noscript> */}
                                                                         </span>
                                                                     </a>
                                                                 </div>
@@ -6991,12 +6992,12 @@ const HomePage = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
+                                                                            {/* <noscript>
                                                                                 &lt;img decoding="async"
                                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/headphone.svg"
                                                                                 title="headphone" loading="lazy" width="14"
                                                                                 height="14"&gt;
-                                                                            </noscript>
+                                                                            </noscript> */}
                                                                         </span>
                                                                     </a>
                                                                 </div>
@@ -7026,13 +7027,13 @@ const HomePage = () => {
                                                                                     data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/xiaomi-mi-11-920x560.jpg"
                                                                                     data-ll-status="loaded"
                                                                                 />
-                                                                                <noscript>
+                                                                                {/* <noscript>
                                                                                     &lt;img decoding="async" width="920"
                                                                                     height="560"
                                                                                     src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/xiaomi-mi-11-920x560.jpg"
                                                                                     class="attachment-920x560 size-920x560"
-                                                                                    alt="" /&gt;
-                                                                                </noscript>{" "}
+                                                                                     /&gt;
+                                                                                </noscript>{" "} */}
                                                                             </div>
                                                                         </div>
                                                                         <div className="wrapper-content-banner wd-fill  wd-items-middle wd-justify-left">
@@ -7081,13 +7082,13 @@ const HomePage = () => {
                                                                                     data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/hp-laser-jet-920x560.jpg"
                                                                                     data-ll-status="loaded"
                                                                                 />
-                                                                                <noscript>
+                                                                                {/* <noscript>
                                                                                     &lt;img decoding="async" width="920"
                                                                                     height="560"
                                                                                     src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/hp-laser-jet-920x560.jpg"
                                                                                     class="attachment-920x560 size-920x560"
-                                                                                    alt="" /&gt;
-                                                                                </noscript>{" "}
+                                                                                     /&gt;
+                                                                                </noscript>{" "} */}
                                                                             </div>
                                                                         </div>
                                                                         <div className="wrapper-content-banner wd-fill  wd-items-middle wd-justify-left">
@@ -7136,13 +7137,13 @@ const HomePage = () => {
                                                                                     data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/white-joy-cons-920x560.jpg"
                                                                                     data-ll-status="loaded"
                                                                                 />
-                                                                                <noscript>
+                                                                                {/* <noscript>
                                                                                     &lt;img decoding="async" width="920"
                                                                                     height="560"
                                                                                     src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/white-joy-cons-920x560.jpg"
                                                                                     class="attachment-920x560 size-920x560"
-                                                                                    alt="" /&gt;
-                                                                                </noscript>{" "}
+                                                                                     /&gt;
+                                                                                </noscript>{" "} */}
                                                                             </div>
                                                                         </div>
                                                                         <div className="wrapper-content-banner wd-fill  wd-items-middle wd-justify-left">
@@ -7289,7 +7290,7 @@ const HomePage = () => {
                                                                                             srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1-180x206.jpg 180w"
                                                                                         />
                                                                                     </picture>
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;picture decoding="async"
                                                                                         class="attachment-large size-large"&gt;
                                                                                         &lt;source type="image/webp"
@@ -7306,7 +7307,7 @@ const HomePage = () => {
                                                                                         700px"/&gt; &lt;img decoding="async"
                                                                                         width="700" height="800"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1.jpg"
-                                                                                        alt=""
+                                                                                        
                                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1.jpg
                                                                                         700w,
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1-263x300.jpg
@@ -7318,7 +7319,7 @@ const HomePage = () => {
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-7-ezel-1-180x206.jpg
                                                                                         180w" sizes="(max-width: 700px) 100vw,
                                                                                         700px"/&gt; &lt;/picture&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                                 <div className="wd-buttons wd-pos-r-t">
                                                                                     <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
@@ -8036,7 +8037,7 @@ const HomePage = () => {
                                                                                                 </table>
                                                                                             </div>
                                                                                             <a
-                                                                                                href="#"
+
                                                                                                 rel="nofollow"
                                                                                                 className="wd-more-desc-btn"
                                                                                                 aria-label="Read more description"
@@ -8138,7 +8139,7 @@ const HomePage = () => {
                                                                                             data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1.jpg"
                                                                                         />
                                                                                     </picture>
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;picture decoding="async"
                                                                                         class="attachment-large size-large"&gt;
                                                                                         &lt;source type="image/webp"
@@ -8155,7 +8156,7 @@ const HomePage = () => {
                                                                                         700px"/&gt; &lt;img decoding="async"
                                                                                         width="700" height="800"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1.jpg"
-                                                                                        alt=""
+                                                                                        
                                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1.jpg
                                                                                         700w,
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1-263x300.jpg
@@ -8167,7 +8168,7 @@ const HomePage = () => {
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1-180x206.jpg
                                                                                         180w" sizes="(max-width: 700px) 100vw,
                                                                                         700px"/&gt; &lt;/picture&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </a>
                                                                                 <div className="wd-buttons wd-pos-r-t">
                                                                                     <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
@@ -8681,7 +8682,7 @@ const HomePage = () => {
                                                                                                 </table>
                                                                                             </div>
                                                                                             <a
-                                                                                                href="#"
+
                                                                                                 rel="nofollow"
                                                                                                 className="wd-more-desc-btn"
                                                                                                 aria-label="Read more description"
@@ -8879,7 +8880,7 @@ const HomePage = () => {
                                                                                             srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header.jpg 1200w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-400x247.jpg 400w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-768x475.jpg 768w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-100x62.jpg 100w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-860x532.jpg 860w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-430x266.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-700x433.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-180x111.jpg 180w"
                                                                                         />
                                                                                     </picture>
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;picture decoding="async"
                                                                                         class="attachment-large size-large"&gt;
                                                                                         &lt;source type="image/webp"
@@ -8902,7 +8903,7 @@ const HomePage = () => {
                                                                                         1200px"/&gt; &lt;img decoding="async"
                                                                                         width="1200" height="742"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header.jpg"
-                                                                                        alt=""
+                                                                                        
                                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header.jpg
                                                                                         1200w,
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-400x247.jpg
@@ -8920,7 +8921,7 @@ const HomePage = () => {
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/best-gaming-laptop-model-entry-header-180x111.jpg
                                                                                         180w" sizes="(max-width: 1200px) 100vw,
                                                                                         1200px"/&gt; &lt;/picture&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </div>
                                                                                 <a
                                                                                     className="wd-post-link wd-fill"
@@ -8949,7 +8950,7 @@ const HomePage = () => {
                                                                                                 data-ll-status="loaded"
                                                                                             />
                                                                                         </picture>
-                                                                                        <noscript>
+                                                                                        {/* <noscript>
                                                                                             &lt;picture decoding="async"
                                                                                             class="avatar avatar-18 photo"&gt;
                                                                                             &lt;source type="image/webp"
@@ -8958,7 +8959,7 @@ const HomePage = () => {
                                                                                             src="https://woodmart.xtemos.com/wp-content/uploads/2018/10/avatar-home.jpg"
                                                                                             height="18" width="18"/&gt;
                                                                                             &lt;/picture&gt;
-                                                                                        </noscript>
+                                                                                        </noscript> */}
                                                                                         <a
                                                                                             href="https://woodmart.xtemos.com/mega-electronics/author/zakhar/"
                                                                                             rel="author"
@@ -9133,7 +9134,7 @@ const HomePage = () => {
                                                                                             srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header.jpg 1200w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-400x247.jpg 400w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-768x475.jpg 768w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-100x62.jpg 100w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-860x532.jpg 860w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-430x266.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-700x433.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-180x111.jpg 180w"
                                                                                         />
                                                                                     </picture>
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;picture decoding="async"
                                                                                         class="attachment-large size-large"&gt;
                                                                                         &lt;source type="image/webp"
@@ -9156,7 +9157,7 @@ const HomePage = () => {
                                                                                         1200px"/&gt; &lt;img decoding="async"
                                                                                         width="1200" height="742"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header.jpg"
-                                                                                        alt=""
+                                                                                        
                                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header.jpg
                                                                                         1200w,
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-400x247.jpg
@@ -9174,7 +9175,7 @@ const HomePage = () => {
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/how-to-choose-a-hi-fi-stereo-system-entry-header-180x111.jpg
                                                                                         180w" sizes="(max-width: 1200px) 100vw,
                                                                                         1200px"/&gt; &lt;/picture&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </div>
                                                                                 <a
                                                                                     className="wd-post-link wd-fill"
@@ -9203,7 +9204,7 @@ const HomePage = () => {
                                                                                                 data-ll-status="loaded"
                                                                                             />
                                                                                         </picture>
-                                                                                        <noscript>
+                                                                                        {/* <noscript>
                                                                                             &lt;picture decoding="async"
                                                                                             class="avatar avatar-18 photo"&gt;
                                                                                             &lt;source type="image/webp"
@@ -9212,7 +9213,7 @@ const HomePage = () => {
                                                                                             src="https://woodmart.xtemos.com/wp-content/uploads/2018/10/avatar-home.jpg"
                                                                                             height="18" width="18"/&gt;
                                                                                             &lt;/picture&gt;
-                                                                                        </noscript>
+                                                                                        </noscript> */}
                                                                                         <a
                                                                                             href="https://woodmart.xtemos.com/mega-electronics/author/zakhar/"
                                                                                             rel="author"
@@ -9386,7 +9387,7 @@ const HomePage = () => {
                                                                                             srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header.jpg 1200w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-400x247.jpg 400w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-768x475.jpg 768w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-100x62.jpg 100w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-860x532.jpg 860w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-430x266.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-700x433.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-180x111.jpg 180w"
                                                                                         />
                                                                                     </picture>
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;picture decoding="async"
                                                                                         class="attachment-large size-large"&gt;
                                                                                         &lt;source type="image/webp"
@@ -9409,7 +9410,7 @@ const HomePage = () => {
                                                                                         1200px"/&gt; &lt;img decoding="async"
                                                                                         width="1200" height="742"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header.jpg"
-                                                                                        alt=""
+                                                                                        
                                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header.jpg
                                                                                         1200w,
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-400x247.jpg
@@ -9427,7 +9428,7 @@ const HomePage = () => {
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/logitech-pop-keys-entry-header-180x111.jpg
                                                                                         180w" sizes="(max-width: 1200px) 100vw,
                                                                                         1200px"/&gt; &lt;/picture&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </div>
                                                                                 <a
                                                                                     className="wd-post-link wd-fill"
@@ -9456,7 +9457,7 @@ const HomePage = () => {
                                                                                                 data-ll-status="loaded"
                                                                                             />
                                                                                         </picture>
-                                                                                        <noscript>
+                                                                                        {/* <noscript>
                                                                                             &lt;picture decoding="async"
                                                                                             class="avatar avatar-18 photo"&gt;
                                                                                             &lt;source type="image/webp"
@@ -9465,7 +9466,7 @@ const HomePage = () => {
                                                                                             src="https://woodmart.xtemos.com/wp-content/uploads/2018/10/avatar-home.jpg"
                                                                                             height="18" width="18"/&gt;
                                                                                             &lt;/picture&gt;
-                                                                                        </noscript>
+                                                                                        </noscript> */}
                                                                                         <a
                                                                                             href="https://woodmart.xtemos.com/mega-electronics/author/zakhar/"
                                                                                             rel="author"
@@ -9633,7 +9634,7 @@ const HomePage = () => {
                                                                                             srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header.jpg 1200w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-400x247.jpg 400w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-768x475.jpg 768w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-100x62.jpg 100w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-860x532.jpg 860w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-430x266.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-700x433.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-180x111.jpg 180w"
                                                                                         />
                                                                                     </picture>
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;picture decoding="async"
                                                                                         class="attachment-large size-large"&gt;
                                                                                         &lt;source type="image/webp"
@@ -9656,7 +9657,7 @@ const HomePage = () => {
                                                                                         1200px"/&gt; &lt;img decoding="async"
                                                                                         width="1200" height="742"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header.jpg"
-                                                                                        alt=""
+                                                                                        
                                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header.jpg
                                                                                         1200w,
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-400x247.jpg
@@ -9674,7 +9675,7 @@ const HomePage = () => {
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/cameras-for-street-photography-entry-header-180x111.jpg
                                                                                         180w" sizes="(max-width: 1200px) 100vw,
                                                                                         1200px"/&gt; &lt;/picture&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </div>
                                                                                 <a
                                                                                     className="wd-post-link wd-fill"
@@ -9703,7 +9704,7 @@ const HomePage = () => {
                                                                                                 data-ll-status="loaded"
                                                                                             />
                                                                                         </picture>
-                                                                                        <noscript>
+                                                                                        {/* <noscript>
                                                                                             &lt;picture decoding="async"
                                                                                             class="avatar avatar-18 photo"&gt;
                                                                                             &lt;source type="image/webp"
@@ -9712,7 +9713,7 @@ const HomePage = () => {
                                                                                             src="https://woodmart.xtemos.com/wp-content/uploads/2018/10/avatar-home.jpg"
                                                                                             height="18" width="18"/&gt;
                                                                                             &lt;/picture&gt;
-                                                                                        </noscript>
+                                                                                        </noscript> */}
                                                                                         <a
                                                                                             href="https://woodmart.xtemos.com/mega-electronics/author/zakhar/"
                                                                                             rel="author"
@@ -9872,7 +9873,7 @@ const HomePage = () => {
                                                                                             data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/3-minimalist-desk-setups-entry-header.jpg"
                                                                                         />
                                                                                     </picture>
-                                                                                    <noscript>
+                                                                                    {/* <noscript>
                                                                                         &lt;picture decoding="async"
                                                                                         class="attachment-large size-large"&gt;
                                                                                         &lt;source type="image/webp"
@@ -9895,7 +9896,7 @@ const HomePage = () => {
                                                                                         1200px"/&gt; &lt;img decoding="async"
                                                                                         width="1200" height="742"
                                                                                         src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/3-minimalist-desk-setups-entry-header.jpg"
-                                                                                        alt=""
+                                                                                        
                                                                                         srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/3-minimalist-desk-setups-entry-header.jpg
                                                                                         1200w,
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/3-minimalist-desk-setups-entry-header-400x247.jpg
@@ -9913,7 +9914,7 @@ const HomePage = () => {
                                                                                         https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/3-minimalist-desk-setups-entry-header-180x111.jpg
                                                                                         180w" sizes="(max-width: 1200px) 100vw,
                                                                                         1200px"/&gt; &lt;/picture&gt;
-                                                                                    </noscript>{" "}
+                                                                                    </noscript>{" "} */}
                                                                                 </div>
                                                                                 <a
                                                                                     className="wd-post-link wd-fill"
@@ -9940,7 +9941,7 @@ const HomePage = () => {
                                                                                                 data-lazy-src="https://woodmart.xtemos.com/wp-content/uploads/2018/10/avatar-home.jpg"
                                                                                             />
                                                                                         </picture>
-                                                                                        <noscript>
+                                                                                        {/* <noscript>
                                                                                             &lt;picture decoding="async"
                                                                                             class="avatar avatar-18 photo"&gt;
                                                                                             &lt;source type="image/webp"
@@ -9949,7 +9950,7 @@ const HomePage = () => {
                                                                                             src="https://woodmart.xtemos.com/wp-content/uploads/2018/10/avatar-home.jpg"
                                                                                             height="18" width="18"/&gt;
                                                                                             &lt;/picture&gt;
-                                                                                        </noscript>
+                                                                                        </noscript> */}
                                                                                         <a
                                                                                             href="https://woodmart.xtemos.com/mega-electronics/author/zakhar/"
                                                                                             rel="author"
@@ -10157,12 +10158,12 @@ const HomePage = () => {
                                                                 data-ll-status="loaded"
                                                                 className="entered lazyloaded"
                                                             />
-                                                            <noscript>
+                                                            {/* <noscript>
                                                                 &lt;img decoding="async"
                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-down-black.svg"
                                                                 title="chevron-down-black" loading="lazy" width="14"
                                                                 height="14"&gt;
-                                                            </noscript>
+                                                            </noscript> */}
                                                         </span>
                                                     </a>
                                                 </div>

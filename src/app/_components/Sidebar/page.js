@@ -26,7 +26,7 @@ const Sidebar = () => {
                                 title="Laptops, Tablets & PC"
                                 width="18"
                             />
-                            <noscript>
+                            {/* <noscript>
                                 <img
                                     className="wd-nav-img"
                                     height="18"
@@ -35,7 +35,7 @@ const Sidebar = () => {
                                     title="Laptops, Tablets & PC"
                                     width="18"
                                 />
-                            </noscript>
+                            </noscript> */}
                             <span className="nav-link-text">Laptops, Tablets & PCs</span>
                         </a>
                         <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
@@ -1743,7 +1743,7 @@ const Sidebar = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>

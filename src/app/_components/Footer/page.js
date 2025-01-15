@@ -510,7 +510,7 @@ const Footer = () => {
                                                     </a>
                                                 </li>
                                                 <li className="true">
-                                                    <a href="#" title="true">
+                                                    <a  title="true">
                                                         Stores{" "}
                                                     </a>
                                                 </li>
@@ -548,7 +548,7 @@ const Footer = () => {
                                         id="wd-63501c7aafa28"
                                         className="wd-image wd-wpb wd-rs-63501c7aafa28 text-left vc_custom_1666194559103 inline-element"
                                     >
-                                        <a href="#">
+                                        <a >
                                             <img
                                                 src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20135%2040'%3E%3C/svg%3E"
                                                 title="google-play"
@@ -568,7 +568,7 @@ const Footer = () => {
                                         id="wd-63501c7f1bd96"
                                         className="wd-image wd-wpb wd-rs-63501c7f1bd96 text-left vc_custom_1666194562939 inline-element"
                                     >
-                                        <a href="#">
+                                        <a >
                                             <img
                                                 src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20120%2040'%3E%3C/svg%3E"
                                                 title="app-store"

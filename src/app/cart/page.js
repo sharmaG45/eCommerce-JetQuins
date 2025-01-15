@@ -1043,7 +1043,7 @@ const cart = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -1631,7 +1631,7 @@ const cart = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -2405,7 +2405,7 @@ const cart = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -2890,7 +2890,7 @@ const cart = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -3218,7 +3218,7 @@ const cart = () => {
                                                                                             <a
                                                                                                 aria-label="Read more description"
                                                                                                 className="wd-more-desc-btn"
-                                                                                                href="#"
+                                                                                                
                                                                                                 rel="nofollow"
                                                                                             />
                                                                                         </div>
@@ -3351,7 +3351,7 @@ const cart = () => {
                                                                                                 method="post">
                                                                                                 <a
                                                                                                     className="shipping-calculator-button"
-                                                                                                    href="#">
+                                                                                                    >
                                                                                                     Calculate shipping
                                                                                                 </a>
                                                                                                 <section

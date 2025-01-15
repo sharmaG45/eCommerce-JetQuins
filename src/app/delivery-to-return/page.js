@@ -888,7 +888,7 @@ const deliveryToRetur = () => {
                                                                         <a
                                                                             aria-label="List link"
                                                                             className="wd-fill"
-                                                                            href="#"
+                                                                            
                                                                             title=""
                                                                         />
                                                                     </li>
@@ -908,7 +908,7 @@ const deliveryToRetur = () => {
                                                                         <a
                                                                             aria-label="List link"
                                                                             className="wd-fill"
-                                                                            href="#"
+                                                                            
                                                                             title=""
                                                                         />
                                                                     </li>
@@ -928,7 +928,7 @@ const deliveryToRetur = () => {
                                                                         <a
                                                                             aria-label="List link"
                                                                             className="wd-fill"
-                                                                            href="#"
+                                                                            
                                                                             title=""
                                                                         />
                                                                     </li>
@@ -961,7 +961,7 @@ const deliveryToRetur = () => {
                                                                         <a
                                                                             aria-label="List link"
                                                                             className="wd-fill"
-                                                                            href="#"
+                                                                            
                                                                             title=""
                                                                         />
                                                                     </li>

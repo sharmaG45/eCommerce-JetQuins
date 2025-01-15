@@ -67,12 +67,12 @@ const wishlist = () => {
                                         </div>
                                         <div className="wd-wishlist-bulk-action">
                                             <div className="wd-wishlist-remove-action wd-action-btn wd-style-text wd-cross-icon">
-                                                <a href="#" onClick={(e) => handleRemoveFromWishlist(offer.product_id)}>
+                                                <a  onClick={(e) => handleRemoveFromWishlist(offer.product_id)}>
                                                     Remove
                                                 </a>
                                             </div>
                                             <div className="wd-wishlist-select-all wd-action-btn wd-style-text">
-                                                <a href="#">
+                                                <a >
                                                     <span className="wd-wishlist-text-select">
                                                         Select all
                                                     </span>
@@ -118,7 +118,7 @@ const wishlist = () => {
                                                             <a
                                                                 className="wd-wishlist-remove"
                                                                 data-product-id="872"
-                                                                href="#"
+                                                                
                                                                 onClick={(e) => handleRemoveFromWishlist(offer.product_id)}
                                                             >
                                                                 Remove
@@ -793,7 +793,7 @@ const wishlist = () => {
                                                                         <a
                                                                             aria-label="Read more description"
                                                                             className="wd-more-desc-btn"
-                                                                            href="#"
+                                                                            
                                                                             rel="nofollow"
                                                                         />
                                                                     </div>
@@ -820,7 +820,7 @@ const wishlist = () => {
                 <div className="wd-heading">
                     <span className="title">Shopping cart</span>
                     <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
-                        <a href="#" rel="nofollow" onClick={closeCart}>
+                        <a  rel="nofollow" onClick={closeCart}>
                             Close
                         </a>
                     </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import bestOffer from "@/app/assets/scraped_products.json";
+import bestOffer from "../../app/assets/scraped_products.json";
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -124,7 +124,7 @@ const smartPhone = () => {
                                                         <div className="wpb_wrapper">
                                                             <div className="wd-wpb wd-rs-625583ff5f76a hidden-lg wd-enabled-width vc_custom_1649771534702">
                                                                 <div className="wd-off-canvas-btn wd-action-btn wd-style-text wd-burger-icon">
-                                                                    <a href="#" rel="nofollow">
+                                                                    <a  rel="nofollow">
                                                                         Show sidebar
                                                                     </a>
                                                                 </div>
@@ -853,7 +853,7 @@ const smartPhone = () => {
                                                                                 <a
                                                                                     aria-label="Read more description"
                                                                                     className="wd-more-desc-btn wd-shown"
-                                                                                    href="#"
+                                                                                    
                                                                                     rel="nofollow"
                                                                                 />
                                                                             </div>

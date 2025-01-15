@@ -131,7 +131,7 @@ const Stores = () => {
                                                         <a
                                                             className="wd-info-box-link wd-fill"
                                                             aria-label="Infobox link"
-                                                            href="#"
+                                                            
                                                             title=""
                                                         />
                                                     </div>

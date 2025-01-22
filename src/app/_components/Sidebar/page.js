@@ -1128,7 +1128,7 @@ const Sidebar = () => {
                                                                                         style={{
                                                                                             width: "0%",
                                                                                         }}>
-                                                                                        Rated{" "}
+                                                                                        Rated
                                                                                         <strong className="rating">0</strong> out
                                                                                         of 5
                                                                                     </span>
@@ -1179,7 +1179,7 @@ const Sidebar = () => {
                                                                                         style={{
                                                                                             width: "0%",
                                                                                         }}>
-                                                                                        Rated{" "}
+                                                                                        Rated
                                                                                         <strong className="rating">0</strong> out
                                                                                         of 5
                                                                                     </span>
@@ -1230,7 +1230,7 @@ const Sidebar = () => {
                                                                                         style={{
                                                                                             width: "0%",
                                                                                         }}>
-                                                                                        Rated{" "}
+                                                                                        Rated
                                                                                         <strong className="rating">0</strong> out
                                                                                         of 5
                                                                                     </span>
@@ -1533,7 +1533,7 @@ const Sidebar = () => {
                                                                                             data-added-text="Browse Wishlist"
                                                                                             data-key="b676ea8e9b"
                                                                                             data-product-id="2564"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wishlist/"
+                                                                                            href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
                                                                                             rel="nofollow">
                                                                                             <span>Add to wishlist</span>
                                                                                         </a>
@@ -1561,8 +1561,8 @@ const Sidebar = () => {
                                                                                         style={{
                                                                                             width: "100%",
                                                                                         }}>
-                                                                                        Rated{" "}
-                                                                                        <strong className="rating">5.00</strong>{" "}
+                                                                                        Rated
+                                                                                        <strong className="rating">5.00</strong>
                                                                                         out of 5
                                                                                     </span>
                                                                                 </div>
@@ -1981,7 +1981,7 @@ const Sidebar = () => {
                                                                                         style={{
                                                                                             width: "0%",
                                                                                         }}>
-                                                                                        Rated{" "}
+                                                                                        Rated
                                                                                         <strong className="rating">0</strong> out
                                                                                         of 5
                                                                                     </span>
@@ -2043,8 +2043,8 @@ const Sidebar = () => {
                                                                                         style={{
                                                                                             width: "100%",
                                                                                         }}>
-                                                                                        Rated{" "}
-                                                                                        <strong className="rating">5.00</strong>{" "}
+                                                                                        Rated
+                                                                                        <strong className="rating">5.00</strong>
                                                                                         out of 5
                                                                                     </span>
                                                                                 </div>
@@ -2105,7 +2105,7 @@ const Sidebar = () => {
                                                                                         style={{
                                                                                             width: "0%",
                                                                                         }}>
-                                                                                        Rated{" "}
+                                                                                        Rated
                                                                                         <strong className="rating">0</strong> out
                                                                                         of 5
                                                                                     </span>

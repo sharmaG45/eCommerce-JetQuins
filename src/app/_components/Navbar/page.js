@@ -1,26 +1,37 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import SignIn from '../SignIn/page';
+import { doc, getDoc, arrayRemove, updateDoc } from 'firebase/firestore';
+import { fireStore } from '../../_components/firebase/config';
 
 const Navbar = () => {
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isCartOpen, setIsCartOpen] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
 
     const menuItems = [
         { id: "menu-mobile-categories-mega-electronics", label: "Menu", link: "#" },
         { id: "menu-mobile-menu-mega-electronics", label: "Categories", link: "#" },
     ];
 
-    const [activeSection, setActiveSection] = useState(menuItems[0]?.id);
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
+    const [isShopOpen, setShopOpen] = useState(false);
+    const [cartItems, setCartItems] = useState([]);
+    const [activeSection, setActiveSection] = useState(menuItems[0]?.id);
+    
+    const [wishlistCount, setWishlistCount] = useState(0);
+    const [cartCount, setCartCount] = useState(0);
+    const [cartTotal, setCartTotal] = useState(0.0);
+    const router = useRouter();
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
     };
 
+    const shopDropdown = () => {
+        setShopOpen(!isShopOpen);
+    };
 
     // Function to open the My Account Modal
     const openModal = (e) => {
@@ -56,6 +67,149 @@ const Navbar = () => {
         setActiveSection((prev) => (prev === id ? null : id));
     };
 
+    const handleCheckout = (e) => {
+        e.preventDefault();
+        router.push('/home/checkout');
+        setIsCartOpen(false);
+    };
+
+    const handleViewCart = (e) => {
+        e.preventDefault();
+        router.push('/home/cart');
+        setIsCartOpen(false);
+    }
+
+    useEffect(() => {
+        // Fetch the current user's cart items
+        const fetchCart = async () => {
+            const userData = localStorage.getItem('currentUser');
+
+            if (!userData) {
+                alert("Please log in first.");
+                return; // Exit if no user is logged in
+            }
+
+            const user = JSON.parse(userData); // Parse the user data from localStorage
+
+            try {
+                // Get the user's cart data from Firestore
+                const userRef = doc(fireStore, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const cartData = userDoc.data().cart || []; // Retrieve the cart data from the user document
+                    setCartItems(cartData); // Set the cart items to state
+                } else {
+                    console.log("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error fetching cart data:", error);
+            }
+        };
+
+        fetchCart(); // Call the fetchCart function to retrieve cart items
+    }, []);
+
+    const removeFromCart = async (productId) => {
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
+
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
+        try {
+            // Get user document reference
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Remove item from cart array in Firestore
+            await updateDoc(userRef, {
+                cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+            });
+
+            // Update local state
+            setCartItems(cartItems.filter(item => item.productId !== productId));
+
+            console.log(`Removed item with productId: ${productId}`);
+        } catch (error) {
+            console.error("Error removing item from cart:", error);
+        }
+    };
+
+    const changeQuantity = async (productId, newQuantity) => {
+        if (newQuantity < 1) {
+            alert("Quantity cannot be less than 1.");
+            return;
+        }
+
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
+
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
+        try {
+            // Get user document reference
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Find the item to update
+            const updatedCart = cartItems.map(item =>
+                item.productId === productId ? { ...item, quantity: newQuantity } : item
+            );
+
+            // Update Firestore with new quantity
+            await updateDoc(userRef, {
+                cart: updatedCart
+            });
+
+            // Update local state
+            setCartItems(updatedCart);
+
+            console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
+        } catch (error) {
+            console.error("Error updating quantity in cart:", error);
+        }
+    };
+
+    // Header wishlist count and cart count
+
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("currentUser"));
+        if (user && user.uid) {
+            const userId = user.uid;
+
+            const fetchUserData = async () => {
+                try {
+                    // Fetch user data from Firestore
+                    const userRef = doc(fireStore, "users", userId);
+                    const userDoc = await getDoc(userRef);
+
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+
+                        // Set the wishlist count
+                        const wishlistItems = userData.wishlist || [];
+                        setWishlistCount(wishlistItems.length);
+
+                        // Set the cart count and total price
+                        const cartItems = userData.cart || [];
+                        setCartCount(cartItems.length);
+
+                        const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+                        setCartTotal(total);
+                    }
+                } catch (error) {
+                    console.error("Error fetching user data:", error);
+                }
+            };
+
+            fetchUserData();
+        }
+    }, []); 
+
     return <>
         <header className="whb-header whb-header_469459 whb-sticky-shadow whb-scroll-stick whb-sticky-real whb-hide-on-scroll whb-sticky-prepared">
             <div className="whb-main-header">
@@ -65,6 +219,7 @@ const Navbar = () => {
                             <div className="whb-column whb-col-left whb-visible-lg">
                                 <div className="site-logo">
                                     <a
+                                        href='/home'
 
                                         className="wd-logo wd-main-logo"
                                         rel="home"
@@ -76,12 +231,12 @@ const Navbar = () => {
                                             alt=""
                                             style={{ maxWidth: 200 }}
                                             decoding="async"
-                                        />{" "}
+                                        />
                                     </a>
                                 </div>
                             </div>
                             <div className="whb-column whb-col-center whb-visible-lg">
-                                <div className="whb-space-element " style={{ width: 20 }} />{" "}
+                                <div className="whb-space-element " style={{ width: 20 }} />
                                 <div className="wd-search-form wd-header-search-form wd-display-form whb-1yjd6g8pvqgh79uo6oce">
                                     <form
                                         role="search"
@@ -139,12 +294,7 @@ const Navbar = () => {
                                                         data-ll-status="loaded"
                                                         className="entered lazyloaded"
                                                     />
-                                                    <noscript>
-                                                        &lt;img
-                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/02/support.svg"
-                                                        title="support" loading="lazy" width="35"
-                                                        height="35"&gt;
-                                                    </noscript>
+                                                    
                                                 </div>
                                             </div>
                                         </div>
@@ -162,7 +312,7 @@ const Navbar = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="whb-space-element " style={{ width: 20 }} />{" "}
+                                <div className="whb-space-element " style={{ width: 20 }} />
                                 <div className="info-box-wrapper  whb-qb4njeyuiye2my4ln8v6">
                                     <div
                                         id="wd-6780f8eb9178a"
@@ -183,12 +333,7 @@ const Navbar = () => {
                                                         data-ll-status="loaded"
                                                         className="entered lazyloaded"
                                                     />
-                                                    <noscript>
-                                                        &lt;img
-                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/02/worldwide.svg"
-                                                        title="worldwide" loading="lazy" width="35"
-                                                        height="35"&gt;
-                                                    </noscript>
+
                                                 </div>
                                             </div>
                                         </div>
@@ -227,7 +372,7 @@ const Navbar = () => {
                                             alt=""
                                             style={{ maxWidth: 180 }}
                                             decoding="async"
-                                        />{" "}
+                                        />
                                     </a>
                                 </div>
                             </div>
@@ -238,7 +383,7 @@ const Navbar = () => {
                                     href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-mod-login-form.min.css?ver=8.0.4"
                                     type="text/css"
                                     media="all"
-                                />{" "}
+                                />
                                 <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-1 wd-account-style-icon login-side-opener whb-hehq7b9i6crxiw1rjzt3" onClick={openModal}>
                                     <a
 
@@ -276,6 +421,19 @@ const Navbar = () => {
                                         id="menu-main-menu-mega-electronics"
                                         className="menu wd-nav wd-nav-main wd-style-bg wd-gap-s wd-offsets-calculated"
                                     >
+
+                                        <li
+                                            id="menu-item-87"
+                                            className="menu-item menu-item-type-post_type menu-item-object-page menu-item-87 item-level-0 menu-simple-dropdown wd-event-hover"
+                                        >
+                                            <a
+                                                href="/home/stores"
+
+                                                className="woodmart-nav-link"
+                                            >
+                                                <span className="nav-link-text">About Us</span>
+                                            </a>
+                                        </li>
 
                                         <li
                                             id="menu-item-88"
@@ -328,7 +486,7 @@ const Navbar = () => {
                                                 >
                                                     <li style={{ padding: "10px 20px" }}>
                                                         <a
-                                                            href="/terms"
+                                                            href="/home/terms"
                                                             style={{
                                                                 textDecoration: "none",
                                                                 color: "#333",
@@ -340,7 +498,7 @@ const Navbar = () => {
                                                     </li>
                                                     <li style={{ padding: "10px 20px" }}>
                                                         <a
-                                                            href="/privacy"
+                                                            href="/home/privacy"
                                                             style={{
                                                                 textDecoration: "none",
                                                                 color: "#333",
@@ -352,7 +510,7 @@ const Navbar = () => {
                                                     </li>
                                                     <li style={{ padding: "10px 20px" }}>
                                                         <a
-                                                            href="/return"
+                                                            href="/home/return"
                                                             style={{
                                                                 textDecoration: "none",
                                                                 color: "#333",
@@ -365,63 +523,129 @@ const Navbar = () => {
                                                 </ul>
                                             )}
                                         </li>
-                                        <li
-                                            id="menu-item-87"
-                                            className="menu-item menu-item-type-post_type menu-item-object-page menu-item-87 item-level-0 menu-simple-dropdown wd-event-hover"
-                                        >
-                                            <a
 
-                                                className="woodmart-nav-link"
-                                            >
-                                                <span className="nav-link-text">About Us</span>
-                                            </a>
-                                        </li>
                                         <li
                                             id="menu-item-88"
                                             className="menu-item menu-item-type-post_type menu-item-object-page menu-item-88 item-level-0 menu-simple-dropdown wd-event-hover"
+                                            style={{
+                                                position: "relative",
+                                                display: "inline-block",
+                                                margin: "0 10px",
+                                            }}
                                         >
+                                            {/* Dropdown Toggle */}
                                             <a
-                                                href="/stores"
+                                                href="#"
                                                 className="woodmart-nav-link"
+                                                onClick={(e) => {
+                                                    e.preventDefault(); // Prevent default anchor behavior
+                                                    shopDropdown();
+                                                }}
+                                                style={{
+                                                    textDecoration: "none",
+                                                    color: "#333",
+                                                    fontSize: "16px",
+                                                    padding: "10px 15px",
+                                                    background: "#f8f9fa",
+                                                    borderRadius: "5px",
+                                                    display: "inline-block",
+                                                    cursor: "pointer",
+                                                }}
                                             >
-                                                <span className="nav-link-text">Site Policies</span>
+                                                <span className="nav-link-text">Shop</span>
                                             </a>
+
+                                            {/* Dropdown Menu */}
+                                            {isShopOpen && (
+                                                <ul
+                                                    className="dropdown-menu"
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: "100%",
+                                                        left: "0",
+                                                        background: "#fff",
+                                                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                                                        borderRadius: "5px",
+                                                        listStyleType: "none",
+                                                        margin: "5px 0 0 0",
+                                                        padding: "10px 0",
+                                                        minWidth: "150px",
+                                                        zIndex: 1000,
+                                                    }}
+                                                >
+                                                    <li style={{ padding: "10px 20px" }}>
+                                                        <a
+                                                            href="/home/terms"
+                                                            style={{
+                                                                textDecoration: "none",
+                                                                color: "#333",
+                                                                display: "block",
+                                                            }}
+                                                        >
+                                                            Bitdefender Antivirus
+                                                        </a>
+                                                    </li>
+                                                    <li style={{ padding: "10px 20px" }}>
+                                                        <a
+                                                            href="/home/privacy"
+                                                            style={{
+                                                                textDecoration: "none",
+                                                                color: "#333",
+                                                                display: "block",
+                                                            }}
+                                                        >
+                                                            Mcafee Antivirus
+                                                        </a>
+                                                    </li>
+                                                    <li style={{ padding: "10px 20px" }}>
+                                                        <a
+                                                            href="/home/return"
+                                                            style={{
+                                                                textDecoration: "none",
+                                                                color: "#333",
+                                                                display: "block",
+                                                            }}
+                                                        >
+                                                            Trend Micro
+                                                        </a>
+                                                    </li>
+                                                    <li style={{ padding: "10px 20px" }}>
+                                                        <a
+                                                            href="/home/return"
+                                                            style={{
+                                                                textDecoration: "none",
+                                                                color: "#333",
+                                                                display: "block",
+                                                            }}
+                                                        >
+                                                            Norton Antivirus
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            )}
                                         </li>
-
-
-
 
                                         <li
                                             id="menu-item-89"
                                             className="menu-item menu-item-type-post_type menu-item-object-page menu-item-89 item-level-0 menu-simple-dropdown wd-event-hover"
                                         >
                                             <a
-                                                href="/ourContact"
+                                                href="/home/ourContact"
                                                 className="woodmart-nav-link"
                                             >
                                                 <span className="nav-link-text">Our Contacts</span>
                                             </a>
                                         </li>
-                                        {/* <li
-                                            id="menu-item-90"
-                                            className="menu-item menu-item-type-post_type menu-item-object-page menu-item-90 item-level-0 menu-simple-dropdown wd-event-hover"
-                                        >
-                                            <a
-                                                href="/delivery-to-return"
-                                                className="woodmart-nav-link"
-                                            >
-                                                <span className="nav-link-text">Delivery &amp; Return</span>
-                                            </a>
-                                        </li> */}
+
                                         <li
                                             id="menu-item-91"
                                             className="menu-item menu-item-type-post_type menu-item-object-page menu-item-91 item-level-0 menu-simple-dropdown wd-event-hover"
                                         >
                                             <a
-                                                href="/Outlet"
+                                                href="/home/FAQ"
                                                 className="woodmart-nav-link"
                                             >
-                                                <span className="nav-link-text">Products</span>
+                                                <span className="nav-link-text">FAQ</span>
                                             </a>
                                         </li>
                                     </ul>
@@ -433,77 +657,7 @@ const Navbar = () => {
                                     role="navigation"
                                     aria-label="Secondary navigation"
                                 >
-                                    {/* <ul
-                                        id="menu-header-right-menu"
-                                        className="menu wd-nav wd-nav-secondary wd-style-bg wd-gap-s"
-                                    >
-                                        <li
-                                            id="menu-item-101"
-                                            className="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-101 item-level-0 menu-simple-dropdown wd-event-hover"
-                                        >
-                                            <a className="woodmart-nav-link">
-                                                <span className="nav-link-text">USA</span>
-                                            </a>
-                                            <div
-                                                className="color-scheme-dark wd-design-default wd-dropdown-menu wd-dropdown"
-                                                style={{}}
-                                            >
-                                                <div className="container wd-entry-content">
-                                                    <ul className="wd-sub-menu color-scheme-dark">
-                                                        <li
-                                                            id="menu-item-102"
-                                                            className="menu-item menu-item-type-custom menu-item-object-custom menu-item-102 item-level-1 wd-event-hover"
-                                                        >
-                                                            <a className="woodmart-nav-link">
-                                                                Deutschland
-                                                            </a>
-                                                        </li>
-                                                        <li
-                                                            id="menu-item-103"
-                                                            className="menu-item menu-item-type-custom menu-item-object-custom menu-item-103 item-level-1 wd-event-hover"
-                                                        >
-                                                            <a className="woodmart-nav-link">
-                                                                United Kingdom
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </li>
-                                        <li
-                                            id="menu-item-104"
-                                            className="menu-item menu-item-type-custom menu-item-object-custom menu-item-has-children menu-item-104 item-level-0 menu-simple-dropdown wd-event-hover"
-                                        >
-                                            <a className="woodmart-nav-link">
-                                                <span className="nav-link-text">USD</span>
-                                            </a>
-                                            <div
-                                                className="color-scheme-dark wd-design-default wd-dropdown-menu wd-dropdown"
-                                                style={{}}
-                                            >
-                                                <div className="container wd-entry-content">
-                                                    <ul className="wd-sub-menu color-scheme-dark">
-                                                        <li
-                                                            id="menu-item-105"
-                                                            className="menu-item menu-item-type-custom menu-item-object-custom menu-item-105 item-level-1 wd-event-hover"
-                                                        >
-                                                            <a className="woodmart-nav-link">
-                                                                EUR
-                                                            </a>
-                                                        </li>
-                                                        <li
-                                                            id="menu-item-106"
-                                                            className="menu-item menu-item-type-custom menu-item-object-custom menu-item-106 item-level-1 wd-event-hover"
-                                                        >
-                                                            <a className="woodmart-nav-link">
-                                                                GBP
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </li>
-                                    </ul> */}
+                                    
                                 </div>
                                 <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-7 wd-account-style-icon login-side-opener whb-7qrb5r43fmh57lkx4dry" onClick={openModal}>
                                     <a
@@ -530,11 +684,11 @@ const Navbar = () => {
                                     title="My Wishlist"
                                 >
                                     <a
-                                        href="/wishlist"
+                                        href="/home/wishlist"
                                         title="Wishlist products"
                                     >
                                         <span className="wd-tools-icon">
-                                            <span className="wd-tools-count">0</span>
+                                            <span className="wd-tools-count">{wishlistCount}</span>
                                         </span>
                                         <span className="wd-tools-text">Wishlist </span>
                                     </a>
@@ -546,7 +700,7 @@ const Navbar = () => {
                                     >
                                         <span className="wd-tools-icon">
                                             <span className="wd-cart-number wd-tools-count">
-                                                0 <span>items</span>
+                                                {cartCount} <span>items</span>
                                             </span>
                                         </span>
                                         <span className="wd-tools-text">
@@ -606,122 +760,13 @@ const Navbar = () => {
             </div>
         </header>
 
-
         {/* My-Account  Modal */}
 
-        <div className={`login-form-side wd-side-hidden woocommerce wd-right ${isModalOpen ? 'wd-opened' : ''}`}  >
-            <div className="wd-heading">
-                <span className="title">Sign in</span>
-                <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
-                    <a rel="nofollow" onClick={closeModal}>
-                        Close
-                    </a>
-                </div>
-            </div>
-            <div className="woocommerce-notices-wrapper" />
-            <form
-                method="post"
-                className="login woocommerce-form woocommerce-form-login"
-                action="https://woodmart.xtemos.com/mega-electronics/my-account/"
-                style={{ display: 'block' }}
-            >
-                <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-username">
-                    <label htmlFor="username">
-                        Username or email address&nbsp;
-                        <span className="required" aria-hidden="true">
-                            *
-                        </span>
-                        <span className="screen-reader-text">Required</span>
-                    </label>
-                    <input
-                        type="text"
-                        className="woocommerce-Input woocommerce-Input--text input-text"
-                        name="username"
-                        id="username"
-                        defaultValue=""
-                    />{" "}
-                    <input
-                        type="hidden"
-                        name="wfls-email-verification"
-                        id="wfls-email-verification"
-                        defaultValue=""
-                    />
-                </p>
-                <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-password">
-                    <label htmlFor="password">
-                        Password&nbsp;
-                        <span className="required" aria-hidden="true">
-                            *
-                        </span>
-                        <span className="screen-reader-text">Required</span>
-                    </label>
-                    <span className="password-input">
-                        <input
-                            className="woocommerce-Input woocommerce-Input--text input-text"
-                            type="password"
-                            name="password"
-                            id="password"
-                            autoComplete="current-password"
-                        />
-                        <span className="show-password-input" />
-                    </span>
-                </p>
-                <p className="form-row">
-                    <input
-                        type="hidden"
-                        id="woocommerce-login-nonce"
-                        name="woocommerce-login-nonce"
-                        defaultValue="fb5f3b2126"
-                    />
-                    <input
-                        type="hidden"
-                        name="_wp_http_referer"
-                        defaultValue="/mega-electronics/"
-                    />{" "}
-                    <input
-                        type="hidden"
-                        name="redirect"
-                        defaultValue="https://woodmart.xtemos.com/mega-electronics/"
-                    />
-                    <button
-                        type="submit"
-                        className="button woocommerce-button woocommerce-form-login__submit"
-                        name="login"
-                        value="Log in"
-                    >
-                        Log in
-                    </button>
-                </p>
-                <p className="login-form-footer">
-                    <a
-                        href="https://woodmart.xtemos.com/mega-electronics/my-account/lost-password/"
-                        className="woocommerce-LostPassword lost_password"
-                    >
-                        Lost your password?
-                    </a>
-                    <label className="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme">
-                        <input
-                            className="woocommerce-form__input woocommerce-form__input-checkbox"
-                            name="rememberme"
-                            type="checkbox"
-                            defaultValue="forever"
-                            title="Remember me"
-                            aria-label="Remember me"
-                        />{" "}
-                        <span>Remember me</span>
-                    </label>
-                </p>
-            </form>
-            <div className="create-account-question">
-                <p>No account yet?</p>
-                <a
-                    href="https://woodmart.xtemos.com/mega-electronics/my-account/?action=register"
-                    className="btn create-account-button"
-                >
-                    Create an Account
-                </a>
-            </div>
-        </div>
+        <SignIn
+            isModalOpen={isModalOpen}
+            closeModal={closeModal}
+            setIsModalOpen={setIsModalOpen}
+        />
 
         {/* Cart Modal */}
 
@@ -739,180 +784,97 @@ const Navbar = () => {
                     <div className="shopping-cart-widget-body wd-scroll">
                         <div className="wd-scroll-content">
                             <ul className="cart_list product_list_widget woocommerce-mini-cart ">
-                                <li
-                                    className="woocommerce-mini-cart-item mini_cart_item"
-                                    data-key="b1301141feffabac455e1f90a7de2054"
-                                >
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                        className="cart-item-link wd-fill"
-                                    >
-                                        Show
-                                    </a>
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/cart/?remove_item=b1301141feffabac455e1f90a7de2054&_wpnonce=ee462b7815"
-                                        className="remove remove_from_cart_button"
-                                        aria-label="Remove Oculus Quest 2 from cart"
-                                        data-product_id={2435}
-                                        data-cart_item_key="b1301141feffabac455e1f90a7de2054"
-                                        data-product_sku={608069}
-                                        data-success_message="“Oculus Quest 2” has been removed from your cart"
-                                    >
-                                        ×
-                                    </a>{" "}
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                        className="cart-item-image"
-                                    >
-                                        <img
-                                            width={430}
-                                            height={491}
-                                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg"
-                                            className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                            alt=""
-                                            decoding="async"
-                                            srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg 180w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg 700w"
-                                            sizes="(max-width: 430px) 100vw, 430px"
-                                        />{" "}
-                                    </a>
-                                    <div className="cart-info">
-                                        <span className="wd-entities-title">Oculus Quest 2 </span>
-                                        <div className="wd-product-detail wd-product-sku">
-                                            <span className="wd-label">SKU: </span>
-                                            <span>608069 </span>
-                                        </div>
-                                        <div className="quantity">
-                                            <input type="button" defaultValue="-" className="minus btn" />
-                                            <label
-                                                className="screen-reader-text"
-                                                htmlFor="quantity_6784e22dca593"
+                                {cartItems.length > 0 ? (
+                                    cartItems.map((item, index) => (
+                                        <li key={index} className="woocommerce-mini-cart-item mini_cart_item">
+                                            <a href={item.product_url} className="cart-item-link wd-fill">
+                                                Show
+                                            </a>
+                                            <a
+                                                href="#"
+                                                className="remove remove_from_cart_button"
+                                                aria-label={`Remove ${item.productName} from cart`}
+                                                onClick={() => removeFromCart(item.productId)} // Implement remove functionality
                                             >
-                                                Oculus Quest 2 quantity
-                                            </label>
-                                            <input
-                                                type="number"
-                                                id="quantity_6784e22dca593"
-                                                className="input-text qty text"
-                                                defaultValue={5}
-                                                aria-label="Product quantity"
-                                                min={0}
-                                                max=""
-                                                name="cart[b1301141feffabac455e1f90a7de2054][qty]"
-                                                step={1}
-                                                placeholder=""
-                                                inputMode="numeric"
-                                                autoComplete="off"
-                                            />
-                                            <input type="button" defaultValue="+" className="plus btn" />
-                                        </div>
-                                        <span className="quantity">
-                                            5 ×{" "}
-                                            <span className="woocommerce-Price-amount amount">
-                                                <bdi>
-                                                    <span className="woocommerce-Price-currencySymbol">
-                                                        $
+                                                ×
+                                            </a>
+                                            <a href={item.product_url} className="cart-item-image">
+                                                {/* Safe access to image_urls, with fallback to placeholder */}
+                                                <img
+                                                    width={430}
+                                                    height={491}
+                                                    src={item.image_urls && item.image_urls.length > 0 ? item.image_urls[0] : 'https://via.placeholder.com/430x491?text=No+Image'}
+                                                    className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
+                                                    alt={item.productName}
+                                                    decoding="async"
+                                                />
+                                            </a>
+                                            <div className="cart-info">
+                                                <span className="wd-entities-title">{item.productName}</span>
+                                                <div className="wd-product-detail wd-product-sku">
+                                                    <span className="wd-label">SKU: </span>
+                                                    <span>{item.productSku}</span>
+                                                </div>
+                                                <div className="quantity">
+                                                    <input
+                                                        type="button"
+                                                        defaultValue="-"
+                                                        className="minus btn"
+                                                        onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Implement quantity change
+                                                    />
+                                                    <label
+                                                        className="screen-reader-text"
+                                                        htmlFor={`quantity_${item.productId}`}
+                                                    >
+                                                        {item.productName} quantity
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        id={`quantity_${item.productId}`}
+                                                        className="input-text qty text"
+                                                        value={item.quantity}
+                                                        aria-label="Product quantity"
+                                                        min={0}
+                                                        onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))}
+                                                    />
+                                                    <input
+                                                        type="button"
+                                                        defaultValue="+"
+                                                        className="plus btn"
+                                                        onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Implement quantity change
+                                                    />
+                                                </div>
+                                                <span className="quantity">
+                                                    {item.quantity} ×
+                                                    <span className="woocommerce-Price-amount amount">
+                                                        <bdi>
+                                                            <span className="woocommerce-Price-currencySymbol">$</span>
+                                                            {item.price * item.quantity}
+                                                        </bdi>
                                                     </span>
-                                                    449.00
-                                                </bdi>
-                                            </span>
-                                        </span>{" "}
-                                    </div>
-                                </li>
-                                <li
-                                    className="woocommerce-mini-cart-item mini_cart_item"
-                                    data-key="26e359e83860db1d11b6acca57d8ea88"
-                                >
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
-                                        className="cart-item-link wd-fill"
-                                    >
-                                        Show
-                                    </a>
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/cart/?remove_item=26e359e83860db1d11b6acca57d8ea88&_wpnonce=ee462b7815"
-                                        className="remove remove_from_cart_button"
-                                        aria-label="Remove ASUS ZenBook OLED 13 from cart"
-                                        data-product_id={298}
-                                        data-cart_item_key="26e359e83860db1d11b6acca57d8ea88"
-                                        data-product_sku={30884}
-                                        data-success_message="“ASUS ZenBook OLED 13” has been removed from your cart"
-                                    >
-                                        ×
-                                    </a>{" "}
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
-                                        className="cart-item-image"
-                                    >
-                                        <img
-                                            width={430}
-                                            height={491}
-                                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-430x491.jpg"
-                                            className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                            alt=""
-                                            decoding="async"
-                                            srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-180x206.jpg 180w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1.jpg 700w"
-                                            sizes="(max-width: 430px) 100vw, 430px"
-                                        />{" "}
-                                    </a>
-                                    <div className="cart-info">
-                                        <span className="wd-entities-title">ASUS ZenBook OLED 13 </span>
-                                        <div className="wd-product-detail wd-product-sku">
-                                            <span className="wd-label">SKU: </span>
-                                            <span>30884 </span>
-                                        </div>
-                                        <div className="quantity">
-                                            <input type="button" defaultValue="-" className="minus btn" />
-                                            <label
-                                                className="screen-reader-text"
-                                                htmlFor="quantity_6784e22dcaabe"
-                                            >
-                                                ASUS ZenBook OLED 13 quantity
-                                            </label>
-                                            <input
-                                                type="number"
-                                                id="quantity_6784e22dcaabe"
-                                                className="input-text qty text"
-                                                defaultValue={2}
-                                                aria-label="Product quantity"
-                                                min={0}
-                                                max=""
-                                                name="cart[26e359e83860db1d11b6acca57d8ea88][qty]"
-                                                step={1}
-                                                placeholder=""
-                                                inputMode="numeric"
-                                                autoComplete="off"
-                                            />
-                                            <input type="button" defaultValue="+" className="plus btn" />
-                                        </div>
-                                        <span className="quantity">
-                                            2 ×{" "}
-                                            <span className="woocommerce-Price-amount amount">
-                                                <bdi>
-                                                    <span className="woocommerce-Price-currencySymbol">
-                                                        $
-                                                    </span>
-                                                    1,600.00
-                                                </bdi>
-                                            </span>
-                                        </span>{" "}
-                                    </div>
-                                </li>
+                                                </span>
+                                            </div>
+                                        </li>
+                                    ))
+                                ) : (
+                                    <li>No items in your cart</li>
+                                )}
                             </ul>
                         </div>
                     </div>
                     <div className="shopping-cart-widget-footer">
                         <p className="woocommerce-mini-cart__total total">
-                            <strong>Subtotal:</strong>{" "}
+                            <strong>Subtotal:</strong>
                             <span className="woocommerce-Price-amount amount">
                                 <bdi>
                                     <span className="woocommerce-Price-currencySymbol">$</span>
                                     5,445.00
                                 </bdi>
-                            </span>{" "}
+                            </span>
                         </p>
                         <div className="wd-progress-bar wd-free-progress-bar">
                             <div className="progress-msg">
-                                Your order qualifies for free shipping!{" "}
+                                Your order qualifies for free shipping!
                             </div>
                             <div className="progress-area">
                                 <div className="progress-bar" style={{ width: "100%" }} />
@@ -920,28 +882,30 @@ const Navbar = () => {
                         </div>
                         <p className="woocommerce-mini-cart__buttons buttons">
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/cart/"
+                                href="#"
                                 className="button btn-cart wc-forward"
+                                onClick={handleViewCart}
                             >
                                 View cart
                             </a>
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/checkout/"
+                                href="#"
                                 className="button checkout wc-forward"
+                                onClick={handleCheckout}
                             >
                                 Checkout
                             </a>
                         </p>
                     </div>
                 </div>
-            </div>{" "}
+            </div>
         </div>
 
         {/* Mobile Menu Bar */}
 
         <div className={isMenuOpen ? "mobile-nav wd-side-hidden wd-side-hidden-nav wd-left wd-opener-arrow wd-opened" : "mobile-nav wd-side-hidden wd-side-hidden-nav wd-left wd-opener-arrow"}
         >
-            {" "}
+
             <ul className="wd-nav wd-nav-mob-tab wd-style-underline wd-swap">
                 {menuItems.map((item) => (
                     <li
@@ -1620,9 +1584,9 @@ const Navbar = () => {
                     </a>
                 </li>
                 <li className="menu-item menu-item-wishlist wd-with-icon item-level-0">
-                    {" "}
+
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/wishlist/"
+                        href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Wishlist</span>

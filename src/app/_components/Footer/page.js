@@ -17,7 +17,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-lg-3 vc_col-md-3 wd-rs-63778ce5a2174">
                             <div className="vc_column-inner vc_custom_1668779245150">
                                 <div className="wpb_wrapper">
-                                    {" "}
+                                    
                                     <div className="info-box-wrapper inline-element">
                                         <div
                                             id="wd-6388b350c4846"
@@ -36,19 +36,14 @@ const Footer = () => {
                                                             height={24}
                                                             data-lazy-src="/assets/wp-content/uploads/sites/9/2022/10/arrow-on-primary-circle.svg"
                                                         />
-                                                        {/* <noscript>
-                                                            &lt;img
-                                                            src="/assets/mega-electronics/wp-content/uploads/sites/9/2022/10/arrow-on-primary-circle.svg"
-                                                            title="arrow-on-primary-circle" loading="lazy"
-                                                            width="24" height="24"&gt;
-                                                        </noscript> */}
+
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="info-box-content">
                                                 <h4 className="info-box-title title box-title-style-default wd-fontsize-m">
                                                     Broadway Store
-                                                </h4>{" "}
+                                                </h4>
                                                 <div className="info-box-inner reset-last-child" />
                                             </div>
                                             <a
@@ -71,7 +66,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-lg-3 vc_col-md-3 wd-rs-63778cefd2df2">
                             <div className="vc_column-inner vc_custom_1668779255112">
                                 <div className="wpb_wrapper">
-                                    {" "}
+                                    
                                     <div className="info-box-wrapper inline-element">
                                         <div
                                             id="wd-6380d4af0732d"
@@ -90,19 +85,14 @@ const Footer = () => {
                                                             height={24}
                                                             data-lazy-src="/assets/wp-content/uploads/sites/9/2022/10/arrow-on-primary-circle.svg"
                                                         />
-                                                        {/* <noscript>
-                                                            &lt;img
-                                                            src="/assets/wp-content/uploads/sites/9/2022/10/arrow-on-primary-circle.svg"
-                                                            title="arrow-on-primary-circle" loading="lazy"
-                                                            width="24" height="24"&gt;
-                                                        </noscript> */}
+
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="info-box-content">
                                                 <h4 className="info-box-title title box-title-style-default wd-fontsize-m">
                                                     Valencia Store
-                                                </h4>{" "}
+                                                </h4>
                                                 <div className="info-box-inner reset-last-child" />
                                             </div>
                                             <a
@@ -125,7 +115,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-lg-3 vc_col-md-3 wd-rs-63778cf8a58b3">
                             <div className="vc_column-inner vc_custom_1668779264766">
                                 <div className="wpb_wrapper">
-                                    {" "}
+                                    
                                     <div className="info-box-wrapper inline-element">
                                         <div
                                             id="wd-6380d4b93e561"
@@ -144,19 +134,14 @@ const Footer = () => {
                                                             height={24}
                                                             data-lazy-src="art.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/arrow-on-primary-circle.svg"
                                                         />
-                                                        {/* <noscript>
-                                                            &lt;img
-                                                            src="/assets/wp-content/uploads/sites/9/2022/10/arrow-on-primary-circle.svg"
-                                                            title="arrow-on-primary-circle" loading="lazy"
-                                                            width="24" height="24"&gt;
-                                                        </noscript> */}
+
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="info-box-content">
                                                 <h4 className="info-box-title title box-title-style-default wd-fontsize-m">
                                                     Emeryville Store
-                                                </h4>{" "}
+                                                </h4>
                                                 <div className="info-box-inner reset-last-child" />
                                             </div>
                                             <a
@@ -179,7 +164,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-lg-3 vc_col-md-3 wd-rs-63778d01f4178">
                             <div className="vc_column-inner vc_custom_1668779274593">
                                 <div className="wpb_wrapper">
-                                    {" "}
+                                    
                                     <div className="info-box-wrapper inline-element">
                                         <div
                                             id="wd-6380d4c2b2d46"
@@ -198,19 +183,14 @@ const Footer = () => {
                                                             height={24}
                                                             data-lazy-src="/assets/wp-content/uploads/sites/9/2022/10/arrow-on-primary-circle.svg"
                                                         />
-                                                        {/* <noscript>
-                                                            &lt;img
-                                                            src="/assets/wp-content/uploads/sites/9/2022/10/arrow-on-primary-circle.svg"
-                                                            title="arrow-on-primary-circle" loading="lazy"
-                                                            width="24" height="24"&gt;
-                                                        </noscript> */}
+
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="info-box-content">
                                                 <h4 className="info-box-title title box-title-style-default wd-fontsize-m">
                                                     Alameda Store
-                                                </h4>{" "}
+                                                </h4>
                                                 <div className="info-box-inner reset-last-child" />
                                             </div>
                                             <a
@@ -255,7 +235,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-8 vc_col-lg-3 vc_col-md-3 wd-rs-63778d71e35d0">
                             <div className="vc_column-inner vc_custom_1668779382032">
                                 <div className="wpb_wrapper">
-                                    {" "}
+                                    
                                     <div
                                         id="wd-6388ba0e775af"
                                         className="wd-image wd-wpb wd-rs-6388ba0e775af text-left vc_custom_1669904956863"
@@ -340,7 +320,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-4 vc_col-lg-2 vc_col-md-2 wd-rs-63778d6c0f98c">
                             <div className="vc_column-inner vc_custom_1668779376777">
                                 <div className="wpb_wrapper">
-                                    {" "}
+                                    
                                     <div
                                         id="wd-63501cef7f4b2"
                                         className="wd-text-block wd-wpb reset-last-child wd-rs-63501cef7f4b2 text-left wd-font-weight-500 color-title wd-fontsize-m font-primary vc_custom_1666194678735"
@@ -355,52 +335,37 @@ const Footer = () => {
                                             <ul className="sub-sub-menu">
                                                 <li className="true">
                                                     <a
-                                                        href="/assets/product-category/smartphones/"
+                                                        href="#"
                                                         title="true"
                                                     >
-                                                        Smartphones{" "}
+                                                        Mcafee
                                                     </a>
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/"
+                                                        href="#"
                                                         title="true"
                                                     >
-                                                        Laptops{" "}
+                                                        Bitdefender
                                                     </a>
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/hardware-other/"
+                                                        href="#"
                                                         title="true"
                                                     >
-                                                        Hardware{" "}
+                                                        Webroot
                                                     </a>
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/photo-video/photo-video-cameras/"
+                                                        href="#"
                                                         title="true"
                                                     >
-                                                        Cameras{" "}
+                                                        Trend Micro
                                                     </a>
                                                 </li>
-                                                <li className="true">
-                                                    <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/input-devices/headsets/"
-                                                        title="true"
-                                                    >
-                                                        Headphones{" "}
-                                                    </a>
-                                                </li>
-                                                <li className="true">
-                                                    <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/bathroom/"
-                                                        title="true"
-                                                    >
-                                                        Bathroom{" "}
-                                                    </a>
-                                                </li>
+
                                             </ul>
                                         </li>
                                     </ul>
@@ -410,7 +375,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-4 vc_col-lg-2 vc_col-md-2 wd-rs-63778d598935d">
                             <div className="vc_column-inner vc_custom_1668779356225">
                                 <div className="wpb_wrapper">
-                                    {" "}
+                                    
                                     <div
                                         id="wd-63501cff3c4b0"
                                         className="wd-text-block wd-wpb reset-last-child wd-rs-63501cff3c4b0 text-left wd-font-weight-500 color-title wd-fontsize-m font-primary vc_custom_1666194692241"
@@ -425,44 +390,45 @@ const Footer = () => {
                                             <ul className="sub-sub-menu">
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/promotions/"
-                                                        title="Promotions"
+                                                        href="#"
+                                                        title="About Us"
                                                     >
-                                                        Promotions{" "}
+                                                        About Us
                                                     </a>
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/stores/"
-                                                        title="true"
+                                                        href="#"
+                                                        title="Terms & Condition"
                                                     >
-                                                        Stores{" "}
+                                                        Terms & Condition
                                                     </a>
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/our-contacts/"
-                                                        title="Our Contacts"
+                                                        href="#"
+                                                        title="Privacy Policy"
                                                     >
-                                                        Our contacts{" "}
+                                                        Privacy Policy
                                                     </a>
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/delivery-return/"
-                                                        title="Delivery & Return"
+                                                        href="#"
+                                                        title="Refund & Cancellation Policy"
                                                     >
-                                                        Delivery &amp; Return{" "}
+                                                        Refund & Cancellation Policy
                                                     </a>
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/outlet/"
-                                                        title="Outlet"
+                                                        href="#"
+                                                        title="FAQ"
                                                     >
-                                                        Outlet{" "}
+                                                        FAQ
                                                     </a>
                                                 </li>
+
                                             </ul>
                                         </li>
                                     </ul>
@@ -472,12 +438,12 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-4 vc_col-lg-2 vc_col-md-2 wd-rs-63778d53277cd">
                             <div className="vc_column-inner vc_custom_1668779351601">
                                 <div className="wpb_wrapper">
-                                    {" "}
+                                    
                                     <div
                                         id="wd-63501d0614f13"
                                         className="wd-text-block wd-wpb reset-last-child wd-rs-63501d0614f13 text-left wd-font-weight-500 color-title wd-fontsize-m font-primary vc_custom_1666194698611"
                                     >
-                                        <p>Useful Links</p>
+                                        <p>Contact Us</p>
                                     </div>
                                     <ul className="wd-sub-menu wd-rs-63501cfb2e16d mega-menu-list wd-sub-accented wd-wpb">
                                         <li className="true">
@@ -490,7 +456,7 @@ const Footer = () => {
                                                         href="https://woodmart.xtemos.com/mega-electronics/blog/"
                                                         title="Blog"
                                                     >
-                                                        Blog{" "}
+                                                        Blog
                                                     </a>
                                                 </li>
                                                 <li className="true">
@@ -498,7 +464,7 @@ const Footer = () => {
                                                         href="https://woodmart.xtemos.com/mega-electronics/our-contacts/"
                                                         title="Our Contacts"
                                                     >
-                                                        Our contacts{" "}
+                                                        Our contacts
                                                     </a>
                                                 </li>
                                                 <li className="true">
@@ -506,12 +472,12 @@ const Footer = () => {
                                                         href="https://woodmart.xtemos.com/mega-electronics/promotions/"
                                                         title="Promotions"
                                                     >
-                                                        Promotions{" "}
+                                                        Promotions
                                                     </a>
                                                 </li>
                                                 <li className="true">
-                                                    <a  title="true">
-                                                        Stores{" "}
+                                                    <a title="true">
+                                                        Stores
                                                     </a>
                                                 </li>
                                                 <li className="true">
@@ -519,7 +485,7 @@ const Footer = () => {
                                                         href="https://woodmart.xtemos.com/mega-electronics/delivery-return/"
                                                         title="Delivery & Return"
                                                     >
-                                                        Delivery &amp; Return{" "}
+                                                        Delivery &amp; Return
                                                     </a>
                                                 </li>
                                             </ul>
@@ -587,7 +553,7 @@ const Footer = () => {
                             </div>
                         </div>
                     </div>
-                </div>{" "}
+                </div>
             </div>
             <div className="wd-copyrights copyrights-wrapper wd-layout-two-columns">
                 <div className="container wd-grid-g">
@@ -595,25 +561,16 @@ const Footer = () => {
                         <small>
                             <a href="https://woodmart.xtemos.com">
                                 <strong>WOODMART</strong>
-                            </a>{" "}
-                            © 2025 CREATED BY{" "}
+                            </a>
+                            © 2025 CREATED BY
                             <a href="http://xtemos.com">
                                 <strong>XTEMOS STUDIO</strong>
                             </a>
                             . PREMIUM E-COMMERCE SOLUTIONS.
-                        </small>{" "}
+                        </small>
                     </div>
                     <div className="wd-col-end reset-last-child">
-                        {/* <img
-                            src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%200%200'%3E%3C/svg%3E"
-                            alt="payments"
-                            data-lazy-src="/assets/wp-content/themes/woodmart-dev/images/payments.png"
-                        /> */}
-                        {/* <noscript>
-                            &lt;img
-                            src="/assets/wp-content/themes/woodmart-dev/images/payments.png"
-                            alt="payments"&gt;
-                        </noscript>{" "} */}
+
                     </div>
                 </div>
             </div>

@@ -1,11 +1,17 @@
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./_components/Navbar/page";
 import Footer from "./_components/Footer/page";
 import Sidebar from "./_components/Sidebar/page";
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
-
-
+export const metadata = {
+  title: "Cheap Flights, Compare Flights & Airline Deals - onlineflightreservations.com",
+  description: "Find the cheapest flight tickets with OnlineFlightReservations ! Compare prices effortlessly and book the best deals on flights through our advanced algorithm. Start saving on your next trip today",
+  icons: {
+    icon: '/favicon.ico'
+  }
+};
 
 export default function RootLayout({ children }) {
   return (
@@ -112,14 +118,35 @@ export default function RootLayout({ children }) {
         <link href="/assets/wp-content/themes/woodmart/css/parts/lib-swiper.min.css" rel="stylesheet" />
 
 
+        <link rel='stylesheet' id='wd-woo-single-prod-el-navigation-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-single-prod-el-navigation.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-woo-single-prod-el-gallery-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-single-prod-el-gallery.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-woo-single-prod-el-gallery-opt-thumb-left-desktop-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-single-prod-el-gallery-opt-thumb-left-desktop.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-swiper-css' href='/assets/wp-content/themes/woodmart/css/parts/lib-swiper.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-swiper-arrows-css' href='/assets/wp-content/themes/woodmart/css/parts/lib-swiper-arrows.min.css?ver=8.0.4' type='text/css' media='all' />
+        {/* <link rel='stylesheet' id='wd-photoswipe-css' href='/assets/wp-content/cache/background-css/woodmart.b-cdn.net/mega-electronics/wp-content/themes/woodmart/css/parts/lib-photoswipe.min.css?ver=8.0.4&wpr_t=1737408789' type='text/css' media='all' /> */}
+
         <link href="/assets/wp-content/themes/woodmart/css/parts/opt-bottom-toolbar.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/opt-scrolltotop.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/opt-sticky-nav.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/opt-widget-collapse.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/uploads/sites/9/2023/02/js_composer-1675763874.css" rel="stylesheet" />
         <link href="/assets/wp-content/plugins/xz-system/css/demos_preview_style.css" rel="stylesheet" />
+        <link rel='stylesheet' id='wd-woo-page-login-register-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-page-login-register.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-woo-page-login-register-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-page-lost-password.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-woo-single-prod-el-reviews-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-single-prod-el-reviews.css' type='text/css' media='all' />
 
+        <link rel='stylesheet' id='wd-page-title-css' href='/assets/wp-content/themes/woodmart/css/parts/page-404-min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-woo-mod-shop-table-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-mod-shop-table.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-page-cart-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-page-cart.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-page-title-css' href='/assets/wp-content/themes/woodmart/css/parts/page-title.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-woo-mod-checkout-steps-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-mod-checkout-steps.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-page-checkout-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-page-checkout.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-page-checkout-payment-methods-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-page-checkout-el-payment-methods.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-woo-page-checkout-builder-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-page-checkout-builder.min.css?ver=8.0.4' type='text/css' media='all' />
+        <link rel='stylesheet' id='wd-woo-opt-manage-checkout-prod-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-opt-manage-checkout-prod.min.css?ver=8.0.4' type='text/css' media='all' />
 
+        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/swiperInit.min.js?ver=8.0.4" id="wd-swiper-carousel-js"></script>
+        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/swiper.min.js?ver=8.0.4" id="wd-swiper-library-js"></script>
         <script src="/assets/wp-includes/js/jquery/jquery.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/autocomplete.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/countdown-bundle.min.js"></script>
@@ -135,7 +162,7 @@ export default function RootLayout({ children }) {
         <script data-minify="1" type="text/javascript" src="/assets/wp-content/plugins/js_composer/assets/js/vendors/woocommerce-add-to-cart.js?ver=1734449562" id="vc_woocommerce-add-to-cart-js-js" data-rocket-defer defer></script>
         <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/device.min.js?ver=8.0.4" id="wd-device-library-js" data-rocket-defer defer></script>
         <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/scrollBar.min.js?ver=8.0.4" id="wd-scrollbar-js" data-rocket-defer defer></script>
-        <script type="text/javascript" src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/single-product.min.js?ver=9.1.4" id="wc-single-product-js" defer="defer" data-wp-strategy="defer"></script>
+        {/* <script type="text/javascript" src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/single-product.min.js?ver=9.1.4" id="wc-single-product-js" defer="defer" data-wp-strategy="defer"></script> */}
       </head>
       <body
         className="home page-template-default page page-id-15 theme-woodmart woocommerce-js wrapper-custom  categories-accordion-on woodmart-ajax-shop-on sticky-toolbar-on hide-larger-price wd-sticky-nav-enabled wpb-js-composer js-comp-ver-7.8 vc_responsiv"
@@ -145,7 +172,7 @@ export default function RootLayout({ children }) {
         <div className="wd-page-wrapper website-wrapper">
           <Navbar />
           {children}
-          <a  className="scrollToTop" aria-label="Scroll to top button" />
+          <a className="scrollToTop" aria-label="Scroll to top button" />
           <Footer />
 
         </div>

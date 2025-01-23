@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { auth, fireStore } from "../../_components/firebase/config";
+import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 
 const productDetails = () => {
     const [selectedOption, setSelectedOption] = useState("default");
+    const [cartItems, setCartItems] = useState([]);
     const [quantity, setQuantity] = useState(1);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const router = useRouter();
@@ -31,10 +34,108 @@ const productDetails = () => {
     const incrementQuantity = () => setQuantity(prev => Math.min(99, prev + 1)); // Max 99
     const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1)); // Min 1
 
+    const removeFromCart = async (productId, e) => {
+        e.preventDefault()
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
+
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
+        try {
+            // Get user document reference
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Remove item from cart array in Firestore
+            await updateDoc(userRef, {
+                cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+            });
+
+            // Update local state
+            setCartItems(cartItems.filter(item => item.productId !== productId));
+
+            console.log(`Removed item with productId: ${productId}`);
+        } catch (error) {
+            console.error("Error removing item from cart:", error);
+        }
+    };
+
+    const changeQuantity = async (productId, newQuantity, e) => {
+        e.preventDefault()
+        if (newQuantity < 1) {
+            alert("Quantity cannot be less than 1.");
+            return;
+        }
+
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
+
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
+        try {
+            // Get user document reference
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Find the item to update
+            const updatedCart = cartItems.map(item =>
+                item.productId === productId ? { ...item, quantity: newQuantity } : item
+            );
+
+            // Update Firestore with new quantity
+            await updateDoc(userRef, {
+                cart: updatedCart
+            });
+
+            // Update local state
+            setCartItems(updatedCart);
+
+            console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
+        } catch (error) {
+            console.error("Error updating quantity in cart:", error);
+        }
+    };
+
     const handleCheckout = (e) => {
         e.preventDefault();
         router.push('/home/checkout');
     };
+
+    useEffect(() => {
+        // Fetch the current user's cart items
+        const fetchCart = async () => {
+            // Retrieve user data from localStorage
+            const userData = localStorage.getItem('currentUser');
+
+            if (!userData) {
+                alert("Please log in first.");
+                return; // Exit if no user is logged in
+            }
+
+            const user = JSON.parse(userData); // Parse the user data from localStorage
+
+            try {
+                // Get the user's cart data from Firestore
+                const userRef = doc(fireStore, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const cartData = userDoc.data().cart || []; // Retrieve the cart data from the user document
+                    setCartItems(cartData); // Set the cart items to state
+                } else {
+                    console.log("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error fetching cart data:", error);
+            }
+        };
+
+        fetchCart(); // Call the fetchCart function to retrieve cart items
+    }, [])
 
     const handleAddToCart = (e) => {
         e.preventDefault();
@@ -70,148 +171,16 @@ const productDetails = () => {
                                         <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-637cfccdccfdd">
                                             <div className="vc_column-inner vc_custom_1669135567733">
                                                 <div className="wpb_wrapper">
-                                                    {/* <div className="wd-el-breadcrumbs wd-wpb wd-rs-6336f520a769d wd-enabled-width vc_custom_1664546082340 wd-nowrap-md text-left">
-                                                        <nav
-                                                            aria-label="Breadcrumb"
-                                                            className="wd-breadcrumbs woocommerce-breadcrumb">
-                                                            <span className="" typeof="v:Breadcrumb">
-                                                                <a
-                                                                    href="https://woodmart.xtemos.com/mega-electronics"
-                                                                    property="v:title"
-                                                                    rel="v:url">
-                                                                    Home
-                                                                </a>
-                                                            </span>
-                                                            <span className="wd-delimiter" />
-                                                            <span className="" typeof="v:Breadcrumb">
-                                                                <a
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/"
-                                                                    property="v:title"
-                                                                    rel="v:url">
-                                                                    Games & Entertainment
-                                                                </a>
-                                                            </span>
-                                                            <span className="wd-delimiter" />
-                                                            <span className="" typeof="v:Breadcrumb">
-                                                                <a
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/"
-                                                                    property="v:title"
-                                                                    rel="v:url">
-                                                                    PC Gaming
-                                                                </a>
-                                                            </span>
-                                                            <span className="wd-delimiter" />
-                                                            <span className=" wd-last-link" typeof="v:Breadcrumb">
-                                                                <a
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                    property="v:title"
-                                                                    rel="v:url">
-                                                                    VR Headsets
-                                                                </a>
-                                                            </span>
-                                                            <span className="wd-delimiter" />
-                                                            <span className="wd-last">Oculus Quest 2</span>
-                                                        </nav>
-                                                    </div> */}
+
                                                     <div className="wd-single-nav wd-wpb wd-rs-620fa22eda02d hidden-xs wd-enabled-width vc_custom_1645191733973 text-left">
                                                         <div className="wd-products-nav">
-                                                            <div className="wd-event-hover">
-                                                                <a
-                                                                    aria-label="Previous product"
-                                                                    className="wd-product-nav-btn wd-btn-prev"
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/cobra-rally-gt900/"
-                                                                />
-                                                                <div className="wd-dropdown">
-                                                                    <a
-                                                                        className="wd-product-nav-thumb"
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product/cobra-rally-gt900/">
-                                                                        <picture
-                                                                            className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                                            decoding="async">
-                                                                            <source
-                                                                                sizes="(max-width: 430px) 100vw, 430px"
-                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-180x206.jpg.webp 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1.jpg.webp 700w"
-                                                                                type="image/webp"
-                                                                            />
-                                                                            <img
-                                                                                alt=""
-                                                                                decoding="async"
-                                                                                height="491"
-                                                                                sizes="(max-width: 430px) 100vw, 430px"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-430x491.jpg"
-                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1-180x206.jpg 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/cobra-rally-gt900-1.jpg 700w"
-                                                                                width="430"
-                                                                            />
-                                                                        </picture>
-                                                                    </a>
-                                                                    <div className="wd-product-nav-desc">
-                                                                        <a
-                                                                            className="wd-entities-title"
-                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/cobra-rally-gt900/">
-                                                                            Cobra Rally GT900
-                                                                        </a>
-                                                                        <span className="price">
-                                                                            <span className="woocommerce-Price-amount amount">
-                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                    $
-                                                                                </span>
-                                                                                180.00
-                                                                            </span>
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+
                                                             <a
                                                                 className="wd-product-nav-btn wd-btn-back wd-tooltip"
-                                                                href="https://woodmart.xtemos.com/mega-electronics/shop/">
+                                                                href="/home/productCategoary">
                                                                 <span>Back to products</span>
                                                             </a>
-                                                            <div className="wd-event-hover">
-                                                                <a
-                                                                    aria-label="Next product"
-                                                                    className="wd-product-nav-btn wd-btn-next"
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/pico-neo-3-pro/"
-                                                                />
-                                                                <div className="wd-dropdown">
-                                                                    <a
-                                                                        className="wd-product-nav-thumb"
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product/pico-neo-3-pro/">
-                                                                        <picture
-                                                                            className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                                            decoding="async">
-                                                                            <source
-                                                                                sizes="(max-width: 430px) 100vw, 430px"
-                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg.webp 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg.webp 700w"
-                                                                                type="image/webp"
-                                                                            />
-                                                                            <img
-                                                                                alt=""
-                                                                                decoding="async"
-                                                                                height="491"
-                                                                                sizes="(max-width: 430px) 100vw, 430px"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg"
-                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg 700w"
-                                                                                width="430"
-                                                                            />
-                                                                        </picture>
-                                                                    </a>
-                                                                    <div className="wd-product-nav-desc">
-                                                                        <a
-                                                                            className="wd-entities-title"
-                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/pico-neo-3-pro/">
-                                                                            Pico Neo 3 Pro
-                                                                        </a>
-                                                                        <span className="price">
-                                                                            <span className="woocommerce-Price-amount amount">
-                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                    $
-                                                                                </span>
-                                                                                1,300.00
-                                                                            </span>
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+
                                                         </div>
                                                     </div>
                                                     <div className="wd-wc-notices wd-wpb wd-rs-6203c27ca93ae">
@@ -243,9 +212,7 @@ const productDetails = () => {
                                                             }}>
                                                             <div className="wd-carousel-container wd-gallery-images">
                                                                 <div className="wd-carousel-inner">
-                                                                    {/* <div className="product-labels labels-rounded-sm">
-                                                                        <span className="onsale product-label">-10%</span>
-                                                                    </div> */}
+
                                                                     <figure
                                                                         className="woocommerce-product-gallery__wrapper wd-carousel wd-grid wd-initialized wd-horizontal wd-backface-hidden"
                                                                         style={{
@@ -258,158 +225,46 @@ const productDetails = () => {
                                                                             style={{
                                                                                 cursor: "grab",
                                                                             }}>
-                                                                            <div
-                                                                                className="wd-carousel-item wd-active"
-                                                                                style={{
-                                                                                    width: "431px",
-                                                                                }}>
-                                                                                <figure
-                                                                                    className="woocommerce-product-gallery__image"
-                                                                                    data-thumb="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg"
+                                                                            {cartItems.map((item, index) => (
+                                                                                <div
+                                                                                    className={`wd-carousel-item ${index === 0 ? "wd-active" : ""}`}
+                                                                                    key={item.productId}
                                                                                     style={{
-                                                                                        overflow: "hidden",
-                                                                                        position: "relative",
-                                                                                    }}>
-                                                                                    <a
-                                                                                        data-elementor-open-lightbox="no"
-                                                                                        href="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg">
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className="wp-post-image imagify-no-webp wp-post-image"
-                                                                                            data-caption=""
-                                                                                            data-large_image="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg"
-                                                                                            data-large_image_height="800"
-                                                                                            data-large_image_width="700"
-                                                                                            data-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg"
-                                                                                            decoding="async"
-                                                                                            fetchPriority="high"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg 180w"
-                                                                                            title="oculus-quest-2-1"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </a>
-                                                                                    <img
-                                                                                        alt=""
-                                                                                        className="zoomImg"
-                                                                                        role="presentation"
-                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg"
+                                                                                        width: "431px",
+                                                                                    }}
+                                                                                >
+                                                                                    <figure
+                                                                                        className="woocommerce-product-gallery__image"
+                                                                                        data-thumb={item.imageUrls} // Dynamically set thumbnail URL
                                                                                         style={{
-                                                                                            border: "none",
-                                                                                            height: "800px",
-                                                                                            left: "0px",
-                                                                                            maxHeight: "none",
-                                                                                            maxWidth: "none",
-                                                                                            opacity: "0",
-                                                                                            position: "absolute",
-                                                                                            top: "0px",
-                                                                                            width: "700px",
+                                                                                            overflow: "hidden",
+                                                                                            position: "relative",
                                                                                         }}
-                                                                                    />
-                                                                                </figure>
-                                                                            </div>
-                                                                            <div
-                                                                                className="wd-carousel-item wd-slide-next"
-                                                                                style={{
-                                                                                    width: "431px",
-                                                                                }}>
-                                                                                <figure
-                                                                                    className="woocommerce-product-gallery__image"
-                                                                                    data-thumb="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-180x206.jpg">
-                                                                                    <a
-                                                                                        data-elementor-open-lightbox="no"
-                                                                                        href="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2.jpg">
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className=" imagify-no-webp"
-                                                                                            data-caption=""
-                                                                                            data-large_image="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2.jpg"
-                                                                                            data-large_image_height="800"
-                                                                                            data-large_image_width="700"
-                                                                                            data-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2.jpg"
-                                                                                            decoding="async"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-180x206.jpg 180w"
-                                                                                            title="oculus-quest-2-2"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </a>
-                                                                                </figure>
-                                                                            </div>
-                                                                            <div
-                                                                                className="wd-carousel-item"
-                                                                                style={{
-                                                                                    width: "431px",
-                                                                                }}>
-                                                                                <figure
-                                                                                    className="woocommerce-product-gallery__image"
-                                                                                    data-thumb="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-180x206.jpg">
-                                                                                    <a
-                                                                                        data-elementor-open-lightbox="no"
-                                                                                        href="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3.jpg">
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className=" imagify-no-webp"
-                                                                                            data-caption=""
-                                                                                            data-large_image="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3.jpg"
-                                                                                            data-large_image_height="800"
-                                                                                            data-large_image_width="700"
-                                                                                            data-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3.jpg"
-                                                                                            decoding="async"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-180x206.jpg 180w"
-                                                                                            title="oculus-quest-2-3"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </a>
-                                                                                </figure>
-                                                                            </div>
-                                                                            <div
-                                                                                className="wd-carousel-item"
-                                                                                style={{
-                                                                                    width: "431px",
-                                                                                }}>
-                                                                                <figure
-                                                                                    className="woocommerce-product-gallery__image"
-                                                                                    data-thumb="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg">
-                                                                                    <a
-                                                                                        data-elementor-open-lightbox="no"
-                                                                                        href="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg">
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className=" imagify-no-webp"
-                                                                                            data-caption=""
-                                                                                            data-large_image="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg"
-                                                                                            data-large_image_height="800"
-                                                                                            data-large_image_width="700"
-                                                                                            data-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg"
-                                                                                            decoding="async"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg 180w"
-                                                                                            title="oculus-quest-2-1"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </a>
-                                                                                </figure>
-                                                                            </div>
+                                                                                    >
+                                                                                        <a
+                                                                                            data-elementor-open-lightbox="no"
+                                                                                            href={item.imageUrls} // Link to the image URL
+                                                                                        >
+                                                                                            <img
+                                                                                                alt={item.title || "Product Image"} // Dynamically set alt text
+                                                                                                className="wp-post-image imagify-no-webp wp-post-image"
+                                                                                                decoding="async"
+                                                                                                fetchPriority="high"
+                                                                                                height="800"
+                                                                                                sizes="(max-width: 700px) 100vw, 700px"
+                                                                                                src={item.imageUrls} // Use first image URL
+                                                                                                title={item.title || "Product Image"} // Dynamically set title
+                                                                                                width="700"
+                                                                                            />
+                                                                                        </a>
+
+                                                                                    </figure>
+                                                                                </div>
+                                                                            ))}
+
                                                                         </div>
                                                                     </figure>
-                                                                    <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-custom-style wd-icon-1">
-                                                                        <div className="wd-btn-arrow wd-prev wd-disabled">
-                                                                            <div className="wd-arrow-inner" />
-                                                                        </div>
-                                                                        <div className="wd-btn-arrow wd-next">
-                                                                            <div className="wd-arrow-inner" />
-                                                                        </div>
-                                                                    </div>
+
                                                                     <div className="product-additional-galleries">
                                                                         <div className="wd-show-product-gallery-wrap wd-action-btn wd-style-icon-bg-text wd-gallery-btn">
                                                                             <a
@@ -418,129 +273,6 @@ const productDetails = () => {
                                                                                 rel="nofollow">
                                                                                 <span>Click to enlarge</span>
                                                                             </a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div className="wd-carousel-container wd-gallery-thumb">
-                                                                <div className="wd-carousel-inner">
-                                                                    <div
-                                                                        className="wd-carousel wd-grid wd-initialized wd-watch-progress wd-backface-hidden wd-thumbs wd-horizontal"
-                                                                        style={{
-                                                                            "--wd-col-lg": "3",
-                                                                            "--wd-col-md": "4",
-                                                                            "--wd-col-sm": "3",
-                                                                        }}>
-                                                                        <div
-                                                                            className="wd-carousel-wrap"
-                                                                            style={{
-                                                                                cursor: "grab",
-                                                                                transform: "translate3d(0px, 0px, 0px)",
-                                                                            }}>
-                                                                            <div
-                                                                                className="wd-carousel-item wd-slide-visible wd-full-visible wd-active wd-thumb-active"
-                                                                                style={{
-                                                                                    width: "107.75px",
-                                                                                }}>
-                                                                                <picture
-                                                                                    className="attachment-150x0 size-150x0"
-                                                                                    decoding="async">
-                                                                                    <source
-                                                                                        sizes="(max-width: 150px) 100vw, 150px"
-                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg.webp 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg.webp 700w"
-                                                                                        type="image/webp"
-                                                                                    />
-                                                                                    <img
-                                                                                        alt=""
-                                                                                        decoding="async"
-                                                                                        height="172"
-                                                                                        sizes="(max-width: 150px) 100vw, 150px"
-                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg"
-                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg 700w"
-                                                                                        width="150"
-                                                                                    />
-                                                                                </picture>
-                                                                            </div>
-                                                                            <div
-                                                                                className="wd-carousel-item wd-slide-visible wd-full-visible wd-slide-next"
-                                                                                style={{
-                                                                                    width: "107.75px",
-                                                                                }}>
-                                                                                <picture
-                                                                                    className="attachment-150x0 size-150x0"
-                                                                                    decoding="async">
-                                                                                    <source
-                                                                                        sizes="(max-width: 150px) 100vw, 150px"
-                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-180x206.jpg.webp 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2.jpg.webp 700w"
-                                                                                        type="image/webp"
-                                                                                    />
-                                                                                    <img
-                                                                                        alt=""
-                                                                                        decoding="async"
-                                                                                        height="172"
-                                                                                        sizes="(max-width: 150px) 100vw, 150px"
-                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-180x206.jpg"
-                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-180x206.jpg 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-2.jpg 700w"
-                                                                                        width="150"
-                                                                                    />
-                                                                                </picture>
-                                                                            </div>
-                                                                            <div
-                                                                                className="wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                                style={{
-                                                                                    width: "107.75px",
-                                                                                }}>
-                                                                                <picture
-                                                                                    className="attachment-150x0 size-150x0"
-                                                                                    decoding="async">
-                                                                                    <source
-                                                                                        sizes="(max-width: 150px) 100vw, 150px"
-                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-180x206.jpg.webp 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3.jpg.webp 700w"
-                                                                                        type="image/webp"
-                                                                                    />
-                                                                                    <img
-                                                                                        alt=""
-                                                                                        decoding="async"
-                                                                                        height="172"
-                                                                                        sizes="(max-width: 150px) 100vw, 150px"
-                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-180x206.jpg"
-                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-180x206.jpg 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-3.jpg 700w"
-                                                                                        width="150"
-                                                                                    />
-                                                                                </picture>
-                                                                            </div>
-                                                                            <div
-                                                                                className="wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                                style={{
-                                                                                    width: "107.75px",
-                                                                                }}>
-                                                                                <picture
-                                                                                    className="attachment-150x0 size-150x0"
-                                                                                    decoding="async">
-                                                                                    <source
-                                                                                        sizes="(max-width: 150px) 100vw, 150px"
-                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg.webp 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg.webp 700w"
-                                                                                        type="image/webp"
-                                                                                    />
-                                                                                    <img
-                                                                                        alt=""
-                                                                                        decoding="async"
-                                                                                        height="172"
-                                                                                        sizes="(max-width: 150px) 100vw, 150px"
-                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg"
-                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg 180w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg 700w"
-                                                                                        width="150"
-                                                                                    />
-                                                                                </picture>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="wd-nav-arrows wd-thumb-nav wd-custom-style wd-pos-sep wd-icon-1">
-                                                                        <div className="wd-btn-arrow wd-prev wd-disabled wd-lock">
-                                                                            <div className="wd-arrow-inner" />
-                                                                        </div>
-                                                                        <div className="wd-btn-arrow wd-next wd-lock wd-disabled">
-                                                                            <div className="wd-arrow-inner" />
                                                                         </div>
                                                                     </div>
                                                                 </div>

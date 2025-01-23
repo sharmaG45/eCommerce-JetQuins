@@ -522,7 +522,7 @@ const HomePage = () => {
                                                                     <div className="product-element-top wd-quick-shop">
                                                                         <a className="product-image-link" >
                                                                             <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.brand)}>
-                                                                                {offer.image_urls.map((url, imageIndex) => (
+                                                                                {/* {offer.image_urls.map((url, imageIndex) => (
                                                                                     <div
                                                                                         className="wd-product-grid-slide"
                                                                                         key={imageIndex}
@@ -531,16 +531,16 @@ const HomePage = () => {
                                                                                         data-image-id={imageIndex}
 
                                                                                     />
-                                                                                ))}
+                                                                                ))} */}
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
                                                                                 <div className="wd-prev" />
                                                                                 <div className="wd-next" />
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-pagin">
-                                                                                {offer.image_urls.map((_, imageIndex) => (
+                                                                                {/* {offer.image_urls.map((_, imageIndex) => (
                                                                                     <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
-                                                                                ))}
+                                                                                ))} */}
                                                                             </div>
                                                                             <div className="product-labels labels-rounded-sm">
                                                                                 <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
@@ -548,21 +548,21 @@ const HomePage = () => {
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
                                                                                     type="image/webp"
-                                                                                    data-lazy-srcset={`${offer.image_urls[0]}.webp 700w, ${offer.image_urls[1]}.webp 263w`}
-                                                                                    srcSet={`${offer.image_urls[0]}.webp 700w, ${offer.image_urls[1]}.webp 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
+                                                                                    srcSet={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
                                                                                 />
                                                                                 <img
                                                                                     decoding="async"
                                                                                     width={700}
                                                                                     height={800}
-                                                                                    src={offer.image_urls[0]}
+                                                                                    src={offer.image_urls}
 
-                                                                                    data-lazy-srcset={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
-                                                                                    srcSet={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
+                                                                                    srcSet={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
                                                                                 />
                                                                             </picture>
                                                                         </a>
@@ -605,30 +605,22 @@ const HomePage = () => {
 
                                                                     <div className="product-element-bottom">
                                                                         <h3 className="wd-entities-title">
-                                                                            <a href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/">
-                                                                                Oculus Quest 2
+                                                                            <a href={offer.product_url}>
+                                                                                {offer.productName}
                                                                             </a>
                                                                         </h3>
                                                                         <div className="wd-product-cats">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                rel="tag"
-                                                                            >
-                                                                                VR Headsets
+                                                                            <a href={offer.category_url} rel="tag">
+                                                                                {offer.category}
                                                                             </a>
                                                                         </div>
-                                                                        <div
-                                                                            className="star-rating"
-                                                                            role="img"
-                                                                            aria-label="Rated 5.00 out of 5"
-                                                                        >
-                                                                            <span style={{ width: "100%" }}>
-                                                                                Rated <strong className="rating">5.00</strong>
-                                                                                out of 5
+                                                                        <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
+                                                                            <span style={{ width: `${(offer.rating / 5) * 100}%` }}>
+                                                                                Rated <strong className="rating">{offer.rating}</strong> out of 5
                                                                             </span>
                                                                         </div>
                                                                         <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                            In stock
+                                                                            {offer.stockStatus}
                                                                         </p>
                                                                         <div className="wrap-price">
                                                                             <span className="price">
@@ -638,12 +630,12 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            499.00
+                                                                                            {offer.price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </del>
                                                                                 <span className="screen-reader-text">
-                                                                                    Original price was: $499.00.
+                                                                                    Original price was:  {offer.originalPrice}.
                                                                                 </span>
                                                                                 <ins aria-hidden="true">
                                                                                     <span className="woocommerce-Price-amount amount">
@@ -651,7 +643,7 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            449.00
+                                                                                            {offer.price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </ins>
@@ -681,7 +673,7 @@ const HomePage = () => {
                                                                         </div>
                                                                         <div className="wd-product-detail wd-product-sku">
                                                                             <span className="wd-label">SKU: </span>
-                                                                            <span>608069 </span>
+                                                                            <span> <span>{offer.productSku}</span> </span>
                                                                         </div>
                                                                         {/* Add new data */}
                                                                     </div>
@@ -800,21 +792,23 @@ const HomePage = () => {
                                                             "--wd-gap-sm": "10px",
                                                         }}
                                                     >
+                                                        {/* Addd */}
+
                                                         {bestOffer.slice(0, 4).map((offer, index) => (
                                                             <div
                                                                 className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
                                                                 data-loop={index}
                                                                 data-id={offer.productId} // Assuming you have unique IDs for each product
                                                                 key={offer.productId} // Use a unique key for each product
-                                                                onClick={() => handleProductDetails(offer.brand)}
+
                                                             >
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
                                                                     <div className="product-element-top wd-quick-shop">
-                                                                        <a className="product-image-link">
-                                                                            <div className="wd-product-grid-slider wd-fill">
-                                                                                {offer.image_urls.map((url, imageIndex) => (
+                                                                        <a className="product-image-link" >
+                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.brand)}>
+                                                                                {/* {offer.image_urls.map((url, imageIndex) => (
                                                                                     <div
                                                                                         className="wd-product-grid-slide"
                                                                                         key={imageIndex}
@@ -823,16 +817,16 @@ const HomePage = () => {
                                                                                         data-image-id={imageIndex}
 
                                                                                     />
-                                                                                ))}
+                                                                                ))} */}
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
                                                                                 <div className="wd-prev" />
                                                                                 <div className="wd-next" />
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-pagin">
-                                                                                {offer.image_urls.map((_, imageIndex) => (
+                                                                                {/* {offer.image_urls.map((_, imageIndex) => (
                                                                                     <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
-                                                                                ))}
+                                                                                ))} */}
                                                                             </div>
                                                                             <div className="product-labels labels-rounded-sm">
                                                                                 <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
@@ -840,21 +834,21 @@ const HomePage = () => {
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
                                                                                     type="image/webp"
-                                                                                    data-lazy-srcset={`${offer.image_urls[0]}.webp 700w, ${offer.image_urls[1]}.webp 263w`}
-                                                                                    srcSet={`${offer.image_urls[0]}.webp 700w, ${offer.image_urls[1]}.webp 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
+                                                                                    srcSet={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
                                                                                 />
                                                                                 <img
                                                                                     decoding="async"
                                                                                     width={700}
                                                                                     height={800}
-                                                                                    src={offer.image_urls[0]}
+                                                                                    src={offer.image_urls}
 
-                                                                                    data-lazy-srcset={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
-                                                                                    srcSet={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
+                                                                                    srcSet={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
                                                                                 />
                                                                             </picture>
                                                                         </a>
@@ -897,30 +891,22 @@ const HomePage = () => {
 
                                                                     <div className="product-element-bottom">
                                                                         <h3 className="wd-entities-title">
-                                                                            <a href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/">
-                                                                                Oculus Quest 2
+                                                                            <a href={offer.product_url}>
+                                                                                {offer.productName}
                                                                             </a>
                                                                         </h3>
                                                                         <div className="wd-product-cats">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                rel="tag"
-                                                                            >
-                                                                                VR Headsets
+                                                                            <a href={offer.category_url} rel="tag">
+                                                                                {offer.category}
                                                                             </a>
                                                                         </div>
-                                                                        <div
-                                                                            className="star-rating"
-                                                                            role="img"
-                                                                            aria-label="Rated 5.00 out of 5"
-                                                                        >
-                                                                            <span style={{ width: "100%" }}>
-                                                                                Rated <strong className="rating">5.00</strong>
-                                                                                out of 5
+                                                                        <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
+                                                                            <span style={{ width: `${(offer.rating / 5) * 100}%` }}>
+                                                                                Rated <strong className="rating">{offer.rating}</strong> out of 5
                                                                             </span>
                                                                         </div>
                                                                         <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                            In stock
+                                                                            {offer.stockStatus}
                                                                         </p>
                                                                         <div className="wrap-price">
                                                                             <span className="price">
@@ -930,12 +916,12 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            499.00
+                                                                                            {offer.price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </del>
                                                                                 <span className="screen-reader-text">
-                                                                                    Original price was: $499.00.
+                                                                                    Original price was:  {offer.originalPrice}.
                                                                                 </span>
                                                                                 <ins aria-hidden="true">
                                                                                     <span className="woocommerce-Price-amount amount">
@@ -943,7 +929,7 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            449.00
+                                                                                            {offer.price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </ins>
@@ -973,114 +959,9 @@ const HomePage = () => {
                                                                         </div>
                                                                         <div className="wd-product-detail wd-product-sku">
                                                                             <span className="wd-label">SKU: </span>
-                                                                            <span>608069 </span>
+                                                                            <span> <span>{offer.productSku}</span> </span>
                                                                         </div>
-                                                                        <div className="fade-in-block wd-scroll">
-                                                                            <div className="hover-content-wrap">
-                                                                                <div className="hover-content wd-more-desc wd-more-desc-calculated">
-                                                                                    <div className="hover-content-inner wd-more-desc-inner">
-                                                                                        <table
-                                                                                            className="woocommerce-product-attributes shop_attributes"
-                                                                                            aria-label="Product Details"
-                                                                                        >
-                                                                                            <tbody>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Brand
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>Oki</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Color
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>White</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Compatibility
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>PC</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Release years
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>2021</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Manufacturer guarantee
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>14 Days</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            </tbody>
-                                                                                        </table>
-                                                                                    </div>
-                                                                                    <a
-
-                                                                                        rel="nofollow"
-                                                                                        className="wd-more-desc-btn wd-shown"
-                                                                                        aria-label="Read more description"
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
+                                                                        {/* Add new data */}
                                                                     </div>
                                                                 </div>
                                                             </div>))}
@@ -1734,16 +1615,16 @@ const HomePage = () => {
                                                                 className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
                                                                 data-loop={index}
                                                                 data-id={offer.productId} // Assuming you have unique IDs for each product
-                                                                key={index} // Use a unique key for each product
-                                                                onClick={() => handleProductDetails(offer.brand)}
+                                                                key={offer.productId} // Use a unique key for each product
+
                                                             >
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
                                                                     <div className="product-element-top wd-quick-shop">
-                                                                        <a className="product-image-link">
-                                                                            <div className="wd-product-grid-slider wd-fill">
-                                                                                {offer.image_urls.map((url, imageIndex) => (
+                                                                        <a className="product-image-link" >
+                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.brand)}>
+                                                                                {/* {offer.image_urls.map((url, imageIndex) => (
                                                                                     <div
                                                                                         className="wd-product-grid-slide"
                                                                                         key={imageIndex}
@@ -1752,16 +1633,16 @@ const HomePage = () => {
                                                                                         data-image-id={imageIndex}
 
                                                                                     />
-                                                                                ))}
+                                                                                ))} */}
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
                                                                                 <div className="wd-prev" />
                                                                                 <div className="wd-next" />
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-pagin">
-                                                                                {offer.image_urls.map((_, imageIndex) => (
+                                                                                {/* {offer.image_urls.map((_, imageIndex) => (
                                                                                     <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
-                                                                                ))}
+                                                                                ))} */}
                                                                             </div>
                                                                             <div className="product-labels labels-rounded-sm">
                                                                                 <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
@@ -1769,21 +1650,21 @@ const HomePage = () => {
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
                                                                                     type="image/webp"
-                                                                                    data-lazy-srcset={`${offer.image_urls[0]}.webp 700w, ${offer.image_urls[1]}.webp 263w`}
-                                                                                    srcSet={`${offer.image_urls[0]}.webp 700w, ${offer.image_urls[1]}.webp 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
+                                                                                    srcSet={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
                                                                                 />
                                                                                 <img
                                                                                     decoding="async"
                                                                                     width={700}
                                                                                     height={800}
-                                                                                    src={offer.image_urls[0]}
+                                                                                    src={offer.image_urls}
 
-                                                                                    data-lazy-srcset={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
-                                                                                    srcSet={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
+                                                                                    srcSet={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
                                                                                 />
                                                                             </picture>
                                                                         </a>
@@ -1826,30 +1707,22 @@ const HomePage = () => {
 
                                                                     <div className="product-element-bottom">
                                                                         <h3 className="wd-entities-title">
-                                                                            <a href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/">
-                                                                                Oculus Quest 2
+                                                                            <a href={offer.product_url}>
+                                                                                {offer.productName}
                                                                             </a>
                                                                         </h3>
                                                                         <div className="wd-product-cats">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                rel="tag"
-                                                                            >
-                                                                                VR Headsets
+                                                                            <a href={offer.category_url} rel="tag">
+                                                                                {offer.category}
                                                                             </a>
                                                                         </div>
-                                                                        <div
-                                                                            className="star-rating"
-                                                                            role="img"
-                                                                            aria-label="Rated 5.00 out of 5"
-                                                                        >
-                                                                            <span style={{ width: "100%" }}>
-                                                                                Rated <strong className="rating">5.00</strong>
-                                                                                out of 5
+                                                                        <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
+                                                                            <span style={{ width: `${(offer.rating / 5) * 100}%` }}>
+                                                                                Rated <strong className="rating">{offer.rating}</strong> out of 5
                                                                             </span>
                                                                         </div>
                                                                         <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                            In stock
+                                                                            {offer.stockStatus}
                                                                         </p>
                                                                         <div className="wrap-price">
                                                                             <span className="price">
@@ -1859,12 +1732,12 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            499.00
+                                                                                            {offer.price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </del>
                                                                                 <span className="screen-reader-text">
-                                                                                    Original price was: $499.00.
+                                                                                    Original price was:  {offer.originalPrice}.
                                                                                 </span>
                                                                                 <ins aria-hidden="true">
                                                                                     <span className="woocommerce-Price-amount amount">
@@ -1872,7 +1745,7 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            449.00
+                                                                                            {offer.price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </ins>
@@ -1883,7 +1756,7 @@ const HomePage = () => {
                                                                         </div>
                                                                         <div className="wd-add-btn wd-add-btn-replace">
                                                                             <a
-                                                                                href="/home/cart"
+                                                                                href="#"
                                                                                 aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2435"
                                                                                 data-quantity={1}
                                                                                 className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
@@ -1902,114 +1775,9 @@ const HomePage = () => {
                                                                         </div>
                                                                         <div className="wd-product-detail wd-product-sku">
                                                                             <span className="wd-label">SKU: </span>
-                                                                            <span>608069 </span>
+                                                                            <span> <span>{offer.productSku}</span> </span>
                                                                         </div>
-                                                                        <div className="fade-in-block wd-scroll">
-                                                                            <div className="hover-content-wrap">
-                                                                                <div className="hover-content wd-more-desc wd-more-desc-calculated">
-                                                                                    <div className="hover-content-inner wd-more-desc-inner">
-                                                                                        <table
-                                                                                            className="woocommerce-product-attributes shop_attributes"
-                                                                                            aria-label="Product Details"
-                                                                                        >
-                                                                                            <tbody>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Brand
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>Oki</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Color
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>White</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Compatibility
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>PC</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Release years
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>2021</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                                    <th
-                                                                                                        className="woocommerce-product-attributes-item__label"
-                                                                                                        scope="row"
-                                                                                                    >
-                                                                                                        <span className="wd-attr-name">
-                                                                                                            <span className="wd-attr-name-label">
-                                                                                                                Manufacturer guarantee
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                    </th>
-                                                                                                    <td className="woocommerce-product-attributes-item__value">
-                                                                                                        <span className="wd-attr-term">
-                                                                                                            <p>14 Days</p>
-                                                                                                        </span>
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            </tbody>
-                                                                                        </table>
-                                                                                    </div>
-                                                                                    <a
-
-                                                                                        rel="nofollow"
-                                                                                        className="wd-more-desc-btn wd-shown"
-                                                                                        aria-label="Read more description"
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
+                                                                        {/* Add new data */}
                                                                     </div>
                                                                 </div>
                                                             </div>))}

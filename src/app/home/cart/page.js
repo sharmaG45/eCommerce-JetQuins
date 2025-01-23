@@ -6,6 +6,8 @@ import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import { useRouter } from "next/navigation";
 
+// Hello
+
 const cart = () => {
 
     const [cartItems, setCartItems] = useState([]);
@@ -565,7 +567,7 @@ const cart = () => {
                                                                                 <div className="product-element-top wd-quick-shop">
                                                                                     <a className="product-image-link" >
                                                                                         <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.brand)}>
-                                                                                            {offer.image_urls.map((url, imageIndex) => (
+                                                                                            {/* {offer.image_urls.map((url, imageIndex) => (
                                                                                                 <div
                                                                                                     className="wd-product-grid-slide"
                                                                                                     key={imageIndex}
@@ -574,38 +576,33 @@ const cart = () => {
                                                                                                     data-image-id={imageIndex}
 
                                                                                                 />
-                                                                                            ))}
+                                                                                            ))} */}
                                                                                         </div>
                                                                                         <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
                                                                                             <div className="wd-prev" />
                                                                                             <div className="wd-next" />
                                                                                         </div>
                                                                                         <div className="wd-product-grid-slider-pagin">
-                                                                                            {offer.image_urls.map((_, imageIndex) => (
+                                                                                            {/* {offer.image_urls.map((_, imageIndex) => (
                                                                                                 <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
-                                                                                            ))}
+                                                                                            ))} */}
                                                                                         </div>
                                                                                         <div className="product-labels labels-rounded-sm">
                                                                                             <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
                                                                                         </div>
                                                                                         <picture decoding="async" className="attachment-large size-large">
-                                                                                            <source
-                                                                                                type="image/webp"
-                                                                                                data-lazy-srcset={`${offer.image_urls[0]}.webp 700w, ${offer.image_urls[1]}.webp 263w`}
-                                                                                                srcSet={`${offer.image_urls[0]}.webp 700w, ${offer.image_urls[1]}.webp 263w`}
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            />
+
                                                                                             <img
                                                                                                 decoding="async"
                                                                                                 width={700}
                                                                                                 height={800}
-                                                                                                src={offer.image_urls[0]}
+                                                                                                src={offer.image_urls}
 
-                                                                                                data-lazy-srcset={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
+                                                                                                data-lazy-srcset={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
                                                                                                 data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                                 className="entered lazyloaded"
                                                                                                 sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet={`${offer.image_urls[0]} 700w, ${offer.image_urls[1]} 263w`}
+                                                                                                srcSet={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
                                                                                             />
                                                                                         </picture>
                                                                                     </a>
@@ -648,59 +645,51 @@ const cart = () => {
 
                                                                                 <div className="product-element-bottom">
                                                                                     <h3 className="wd-entities-title">
-                                                                                        <a href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/">
-                                                                                            Oculus Quest 2
+                                                                                        <a href={offer.product_url}>
+                                                                                            {offer.productName}
                                                                                         </a>
                                                                                     </h3>
                                                                                     <div className="wd-product-cats">
-                                                                                        <a
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                            rel="tag"
-                                                                                        >
-                                                                                            VR Headsets
+                                                                                        <a href={offer.category_url} rel="tag">
+                                                                                            {offer.category}
                                                                                         </a>
                                                                                     </div>
-                                                                                    <div
-                                                                                        className="star-rating"
-                                                                                        role="img"
-                                                                                        aria-label="Rated 5.00 out of 5"
-                                                                                    >
-                                                                                        <span style={{ width: "100%" }}>
-                                                                                            Rated <strong className="rating">5.00</strong>
-                                                                                            out of 5
+                                                                                    <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
+                                                                                        <span style={{ width: `${(offer.rating / 5) * 100}%` }}>
+                                                                                            Rated <strong className="rating">{offer.rating}</strong> out of 5
                                                                                         </span>
                                                                                     </div>
                                                                                     <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                                        In stock
+                                                                                        {offer.stockStatus}
                                                                                     </p>
                                                                                     <div className="wrap-price">
                                                                                         <span className="price">
-                                                                                            <del aria-hidden="true">
-                                                                                                <span className="woocommerce-Price-amount amount">
-                                                                                                    <bdi>
-                                                                                                        <span className="woocommerce-Price-currencySymbol">
-                                                                                                            $
-                                                                                                        </span>
-                                                                                                        499.00
-                                                                                                    </bdi>
-                                                                                                </span>
-                                                                                            </del>
-                                                                                            <span className="screen-reader-text">
+                                                                                            {offer.discount > 0 && (
+                                                                                                <del aria-hidden="true">
+                                                                                                    <span className="woocommerce-Price-amount amount">
+                                                                                                        <bdi>
+                                                                                                            <span className="woocommerce-Price-currencySymbol">$</span>
+                                                                                                            {offer.originalPrice}
+                                                                                                        </bdi>
+                                                                                                    </span>
+                                                                                                </del>
+                                                                                            )}
+                                                                                            {/* <span className="screen-reader-text">
                                                                                                 Original price was: $499.00.
-                                                                                            </span>
+                                                                                            </span> */}
                                                                                             <ins aria-hidden="true">
                                                                                                 <span className="woocommerce-Price-amount amount">
                                                                                                     <bdi>
                                                                                                         <span className="woocommerce-Price-currencySymbol">
                                                                                                             $
                                                                                                         </span>
-                                                                                                        449.00
+                                                                                                        {offer.price}
                                                                                                     </bdi>
                                                                                                 </span>
                                                                                             </ins>
-                                                                                            <span className="screen-reader-text">
+                                                                                            {/* <span className="screen-reader-text">
                                                                                                 Current price is: $449.00.
-                                                                                            </span>
+                                                                                            </span> */}
                                                                                         </span>
                                                                                     </div>
                                                                                     <div className="wd-add-btn wd-add-btn-replace">
@@ -724,7 +713,7 @@ const cart = () => {
                                                                                     </div>
                                                                                     <div className="wd-product-detail wd-product-sku">
                                                                                         <span className="wd-label">SKU: </span>
-                                                                                        <span>608069 </span>
+                                                                                        <span>{offer.productSku}</span>
                                                                                     </div>
                                                                                     {/* Add new data */}
                                                                                 </div>

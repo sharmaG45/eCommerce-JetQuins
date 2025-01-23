@@ -4,11 +4,158 @@ import data from "@/app/assets/faq_question.json"
 import { useEffect, useState } from "react";
 import { auth, fireStore } from "../../_components/firebase/config";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
+import { Country, State, City } from "country-state-city";
 
 const checkout = () => {
     const [cartItems, setCartItems] = useState([]);
     const [accordionData, setAccordionData] = useState([]);
     const [activeIndex, setActiveIndex] = useState(null);
+    const [createAccount, setCreateAccount] = useState(false);
+    const [states, setStates] = useState([]);
+    const [shipToDifferentAddress, setShipToDifferentAddress] = useState(false);
+    const [isLoginFormVisible, setIsLoginFormVisible] = useState(false);
+    const [loginData, setLoginData] = useState({
+        username: '',
+        password: '',
+        rememberMe: false,
+    });
+
+    const handleLoginToggle = () => {
+        setIsLoginFormVisible((prevState) => !prevState);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setLoginData((prevState) => ({
+            ...prevState,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+    };
+
+    const handleLoginSubmit = (e) => {
+        e.preventDefault();
+        // Handle the login action here, like sending the request to your backend
+        console.log('Logging in with:', loginData);
+    };
+
+    const [cardData, setCardData] = useState({
+
+        card_holder_name: "",
+        card_number: "",
+        card_expiry: "",
+        card_cvv: "",
+    });
+
+    const handleCardChange = (e) => {
+        const { name, value } = e.target;
+        setCardData({ ...cardData, [name]: value });
+    };
+
+    const [shippingData, setShippingData] = useState({
+        shipping_first_name: "",
+        shipping_last_name: "",
+        shipping_company: "",
+        shipping_country: "",
+        shipping_address_1: "",
+        shipping_address_2: "",
+        shipping_city: "",
+        shipping_state: "",
+        shipping_postcode: "",
+
+    });
+
+    const handleCheckboxChange = (e) => {
+        setShipToDifferentAddress(e.target.checked);
+    };
+
+    const handleShippingChange = (e) => {
+        const { name, value } = e.target;
+        setShippingData((prevState) => ({
+            ...prevState,
+            [name]: value,
+        }));
+    };
+
+    const handleShippingCountryChange = (e) => {
+        const countryCode = e.target.value;
+        setShippingData((prevState) => ({
+            ...prevState,
+            shipping_country: countryCode,
+        }));
+
+        // Fetch states for the selected country
+        const statesList = State.getStatesOfCountry(countryCode);
+        setStates(statesList);
+        setShippingData((prevState) => ({
+            ...prevState,
+            shipping_state: "", // Reset state when country changes
+        }));
+        setCities([]); // Reset cities as well
+    };
+
+    const handleStateChange = (e) => {
+        const stateCode = e.target.value;
+        setShippingData((prevDetails) => ({
+            ...prevDetails,
+            shipping_state: stateCode, // Update state property
+        }));
+
+        // Fetch cities based on the selected state and country
+        const citiesList = City.getCitiesOfState(shippingData.shipping_country, stateCode);
+        setCities(citiesList);
+    };
+
+    useEffect(() => {
+        if (shippingData.shipping_country) {
+            // Fetch initial states when country is selected
+            const statesList = State.getStatesOfCountry(shippingData.shipping_country);
+            setStates(statesList);
+        }
+    }, [shippingData.shipping_country]);
+
+    // Create User Account
+    const [userData, setUserData] = useState({
+        account_username: "",
+        account_password: "",
+    });
+
+
+    // Billing Information
+    const [formData, setFormData] = useState({
+        billing_first_name: "",
+        billing_last_name: "",
+        billing_phone: "",
+        billing_email: "",
+        billing_country: "",
+        billing_city: "",
+        billing_address_1: "",
+        billing_postcode: "",
+
+    });
+
+    const handleCountryChange = (e) => {
+        setFormData((prevState) => ({
+            ...prevState,
+            billing_country: e.target.value,
+        }));
+    };
+
+    const handleCreateAccountChange = (e) => {
+        setCreateAccount(e.target.checked);
+    };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        console.log("Form Data Submitted:", formData);
+        console.log("Form Shipping Data Submitted:", shippingData);
+        console.log("Form Card Data Submitted:", cardData);
+        // Perform validation or API call here
+    };
 
     useEffect(() => {
         // Fetch the current user's cart items
@@ -130,13 +277,7 @@ const checkout = () => {
                     role="main">
                     <div className="wd-content-area site-content">
                         <div className="woocommerce entry-content">
-                            {/* <style
-                                dangerouslySetInnerHTML={{
-                                    __html:
-                                        ".vc_custom_1668170221487{margin-top: -20px !important;margin-bottom: 30px !important;}.vc_custom_1645456912760{padding-top: 0px !important;}.vc_custom_1674055583243{margin-bottom: 0px !important;border-radius: 10px !important;}.vc_custom_1645456939710{padding-top: 0px !important;}.vc_custom_1691657033730{margin-bottom: 20px !important;}.vc_custom_1691657029664{margin-bottom: 20px !important;}.wd-rs-64d4a3471801a .login.hidden-form{max-width: 470px;background-color: rgb(255,255,255);}.wd-rs-64d4a33fcb558 .checkout_coupon{max-width: 470px;background-color: rgb(255,255,255);}",
-                                }}
-                                data-type="vc_shortcodes-custom-css"
-                            /> */}
+
                             <div className="wpb-content-wrapper">
                                 <div className="vc_row wpb_row vc_row-fluid vc_custom_1668170221487 wd-rs-636e41e822cb4">
                                     <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-6213ae0da5a5b">
@@ -180,102 +321,111 @@ const checkout = () => {
                                                     <div className="woocommerce-form-login-toggle">
                                                         <div className="woocommerce-info">
                                                             Returning customer?
-                                                            <a className="showlogin" >
+                                                            <a className="showlogin" onClick={handleLoginToggle}>
                                                                 Click here to login
                                                             </a>
                                                         </div>
                                                     </div>
-                                                    <form
-                                                        className="login woocommerce-form woocommerce-form-login			hidden-form			"
-                                                        method="post"
-                                                        style={{
-                                                            display: "none",
-                                                        }}>
-                                                        <p>
-                                                            If you have shopped with us before, please enter your
-                                                            details below. If you are a new customer, please proceed
-                                                            to the Billing section.
-                                                        </p>
-                                                        <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-username">
-                                                            <label htmlFor="username">
-                                                                Username or email address
-                                                                <span aria-hidden="true" className="required">
-                                                                    *
-                                                                </span>
-                                                                <span className="screen-reader-text">Required</span>
-                                                            </label>
-                                                            <input
-                                                                className="woocommerce-Input woocommerce-Input--text input-text"
-                                                                defaultValue=""
-                                                                id="username"
-                                                                name="username"
-                                                                type="text"
-                                                            />
-                                                        </p>
-                                                        <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-password">
-                                                            <label htmlFor="password">
-                                                                Password
-                                                                <span aria-hidden="true" className="required">
-                                                                    *
-                                                                </span>
-                                                                <span className="screen-reader-text">Required</span>
-                                                            </label>
-                                                            <span className="password-input">
+
+                                                    {isLoginFormVisible && (
+                                                        <form
+                                                            className="login woocommerce-form woocommerce-form-login hidden-form"
+                                                            method="post"
+                                                            onSubmit={handleLoginSubmit}
+                                                        >
+                                                            <p>
+                                                                If you have shopped with us before, please enter your details below.
+                                                                If you are a new customer, please proceed to the Billing section.
+                                                            </p>
+
+                                                            <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-username">
+                                                                <label htmlFor="username">
+                                                                    Username or email address
+                                                                    <span aria-hidden="true" className="required">*</span>
+                                                                    <span className="screen-reader-text">Required</span>
+                                                                </label>
                                                                 <input
-                                                                    autoComplete="current-password"
                                                                     className="woocommerce-Input woocommerce-Input--text input-text"
-                                                                    id="password"
-                                                                    name="password"
-                                                                    type="password"
+                                                                    id="username"
+                                                                    name="username"
+                                                                    type="text"
+                                                                    value={loginData.username}
+                                                                    onChange={handleInputChange}
+                                                                    required
                                                                 />
-                                                                <span className="show-password-input" />
-                                                            </span>
-                                                        </p>
-                                                        <p className="form-row">
-                                                            <input
-                                                                defaultValue="03d4142090"
-                                                                id="woocommerce-login-nonce"
-                                                                name="woocommerce-login-nonce"
-                                                                type="hidden"
-                                                            />
-                                                            <input
-                                                                defaultValue="/mega-electronics/home/checkout/"
-                                                                name="_wp_http_referer"
-                                                                type="hidden"
-                                                            />
-                                                            <input
-                                                                defaultValue="https://woodmart.xtemos.com/mega-electronics/home/checkout/"
-                                                                name="redirect"
-                                                                type="hidden"
-                                                            />
-                                                            <button
-                                                                className="button woocommerce-button woocommerce-form-login__submit"
-                                                                name="login"
-                                                                type="submit"
-                                                                value="Log in">
-                                                                Log in
-                                                            </button>
-                                                        </p>
-                                                        <p className="login-form-footer">
-                                                            <a
-                                                                className="woocommerce-LostPassword lost_password"
-                                                                href="https://woodmart.xtemos.com/mega-electronics/my-account/lost-password/">
-                                                                Lost your password?
-                                                            </a>
-                                                            <label className="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme">
+                                                            </p>
+
+                                                            <p className="woocommerce-FormRow woocommerce-FormRow--wide form-row form-row-wide form-row-password">
+                                                                <label htmlFor="password">
+                                                                    Password
+                                                                    <span aria-hidden="true" className="required">*</span>
+                                                                    <span className="screen-reader-text">Required</span>
+                                                                </label>
+                                                                <span className="password-input">
+                                                                    <input
+                                                                        autoComplete="current-password"
+                                                                        className="woocommerce-Input woocommerce-Input--text input-text"
+                                                                        id="password"
+                                                                        name="password"
+                                                                        type="password"
+                                                                        value={loginData.password}
+                                                                        onChange={handleInputChange}
+                                                                        required
+                                                                    />
+                                                                    <span className="show-password-input" />
+                                                                </span>
+                                                            </p>
+
+                                                            <p className="form-row">
                                                                 <input
-                                                                    aria-label="Remember me"
-                                                                    className="woocommerce-form__input woocommerce-form__input-checkbox"
-                                                                    defaultValue="forever"
-                                                                    name="rememberme"
-                                                                    title="Remember me"
-                                                                    type="checkbox"
+                                                                    defaultValue="03d4142090"
+                                                                    id="woocommerce-login-nonce"
+                                                                    name="woocommerce-login-nonce"
+                                                                    type="hidden"
                                                                 />
-                                                                <span>Remember me</span>
-                                                            </label>
-                                                        </p>
-                                                    </form>
+                                                                <input
+                                                                    defaultValue="/mega-electronics/home/checkout/"
+                                                                    name="_wp_http_referer"
+                                                                    type="hidden"
+                                                                />
+                                                                <input
+                                                                    defaultValue="https://woodmart.xtemos.com/mega-electronics/home/checkout/"
+                                                                    name="redirect"
+                                                                    type="hidden"
+                                                                />
+                                                                <button
+                                                                    className="button woocommerce-button woocommerce-form-login__submit"
+                                                                    name="login"
+                                                                    type="submit"
+                                                                    value="Log in"
+                                                                >
+                                                                    Log in
+                                                                </button>
+                                                            </p>
+
+                                                            <p className="login-form-footer">
+                                                                <a
+                                                                    className="woocommerce-LostPassword lost_password"
+                                                                    href="https://woodmart.xtemos.com/mega-electronics/my-account/lost-password/"
+                                                                >
+                                                                    Lost your password?
+                                                                </a>
+                                                                <label className="woocommerce-form__label woocommerce-form__label-for-checkbox woocommerce-form-login__rememberme">
+                                                                    <input
+                                                                        aria-label="Remember me"
+                                                                        className="woocommerce-form__input woocommerce-form__input-checkbox"
+                                                                        name="rememberme"
+                                                                        type="checkbox"
+                                                                        checked={loginData.rememberMe}
+                                                                        onChange={handleInputChange}
+                                                                    />
+                                                                    <span>Remember me</span>
+                                                                </label>
+                                                            </p>
+                                                        </form>
+                                                    )}
                                                 </div>
+
                                                 <div className="wd-checkout-coupon wd-wpb wd-rs-64d4a33fcb558 vc_custom_1691657029664">
                                                     <div className="woocommerce-form-coupon-toggle">
                                                         <div className="woocommerce-info">
@@ -300,7 +450,7 @@ const checkout = () => {
                                                             </label>
                                                             <input
                                                                 className="input-text"
-                                                                defaultValue=""
+
                                                                 id="coupon_code"
                                                                 name="coupon_code"
                                                                 placeholder="Coupon code"
@@ -332,13 +482,7 @@ const checkout = () => {
                                 method="post"
                                 name="checkout"
                                 noValidate>
-                                {/* <style
-                                    dangerouslySetInnerHTML={{
-                                        __html:
-                                            ".vc_custom_1668170517479{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: 0px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;background-color: #ffffff !important;border-radius: 10px !important;}.vc_custom_1668170521890{margin-right: 0px !important;margin-left: 0px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;background-color: #ffffff !important;border-radius: 10px !important;}.vc_custom_1654591567385{padding-top: 0px !important;}.vc_custom_1670850398669{margin-bottom: 20px !important;}.vc_custom_1673525826744{margin-bottom: 20px !important;}.vc_custom_1673525820444{margin-bottom: 0px !important;}.vc_custom_1654591567385{padding-top: 0px !important;}.vc_custom_1668170640989{margin-bottom: 20px !important;}.vc_custom_1671021430848{margin-bottom: 0px !important;}.vc_custom_1668170573443{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: -5px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;background-color: #ffffff !important;border-radius: 10px !important;}.vc_custom_1670856733866{margin-right: 0px !important;margin-left: -5px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 0px !important;padding-left: 5px !important;background-color: #ffffff !important;border-radius: 10px !important;}.vc_custom_1645457063140{padding-top: 0px !important;}.vc_custom_1668170630179{margin-bottom: 20px !important;}.vc_custom_1653903122029{margin-bottom: 0px !important;background-color: #ffffff !important;}.vc_custom_1654606356232{margin-bottom: 0px !important;padding-right: 10px !important;padding-left: 10px !important;}.vc_custom_1645456482508{padding-top: 0px !important;}.vc_custom_1670856740311{margin-bottom: 0px !important;}.vc_custom_1674227302057{margin-bottom: 0px !important;}.wd-rs-63e11db794d6c > .vc_column-inner > .wpb_wrapper{align-items: center;}.wd-rs-629f104b4859b > .vc_column-inner > .wpb_wrapper{align-items: center;align-items: center;}.wd-rs-63972756160aa{width: auto !important;max-width: auto !important;}.wd-rs-636e438da46a0{width: auto !important;max-width: auto !important;}.wd-rs-6399c2d9ba463 .payment_box{background-color: #f8f8f8;}.wd-rs-6399c2d9ba463 .payment_box:before{color: #f8f8f8;}.wd-rs-6399c2d9ba463 .woocommerce-terms-and-conditions{background-color: #ffffff;}@media (max-width: 1199px) {.website-wrapper .wd-rs-63974019c1391{margin-left:0px !important;}}@media (max-width: 767px) {.website-wrapper .wd-rs-63e11dd75f8c6 > .vc_column-inner{margin-bottom:20px !important;}.website-wrapper .wd-rs-636e434842df8{margin-bottom:40px !important;}}",
-                                    }}
-                                    data-type="vc_shortcodes-custom-css"
-                                /> */}
+
                                 <div className="wpb-content-wrapper">
                                     <div className="vc_row wpb_row vc_row-fluid row-reverse-mobile wd-rs-62a30ce7c6b49">
                                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-md-7 vc_col-xs-12 wd-enabled-flex wd-rs-63e11db794d6c">
@@ -379,9 +523,11 @@ const checkout = () => {
                                                                                         <input
                                                                                             autoComplete="given-name"
                                                                                             className="input-text "
-                                                                                            defaultValue=""
+
                                                                                             id="billing_first_name"
                                                                                             name="billing_first_name"
+                                                                                            value={formData.billing_first_name}
+                                                                                            onChange={handleChange}
                                                                                             placeholder=""
                                                                                             type="text"
                                                                                         />
@@ -405,9 +551,11 @@ const checkout = () => {
                                                                                         <input
                                                                                             autoComplete="family-name"
                                                                                             className="input-text "
-                                                                                            defaultValue=""
+
                                                                                             id="billing_last_name"
                                                                                             name="billing_last_name"
+                                                                                            value={formData.billing_last_name}
+                                                                                            onChange={handleChange}
                                                                                             placeholder=""
                                                                                             type="text"
                                                                                         />
@@ -429,9 +577,11 @@ const checkout = () => {
                                                                                         <input
                                                                                             autoComplete="tel"
                                                                                             className="input-text "
-                                                                                            defaultValue=""
+
                                                                                             id="billing_phone"
                                                                                             name="billing_phone"
+                                                                                            value={formData.billing_phone}
+                                                                                            onChange={handleChange}
                                                                                             placeholder=""
                                                                                             type="tel"
                                                                                         />
@@ -453,9 +603,11 @@ const checkout = () => {
                                                                                         <input
                                                                                             autoComplete="email"
                                                                                             className="input-text "
-                                                                                            defaultValue=""
+
                                                                                             id="billing_email"
                                                                                             name="billing_email"
+                                                                                            value={formData.billing_email}
+                                                                                            onChange={handleChange}
                                                                                             placeholder=""
                                                                                             type="email"
                                                                                         />
@@ -477,61 +629,21 @@ const checkout = () => {
                                                                                     </label>
                                                                                     <span className="woocommerce-input-wrapper">
                                                                                         <select
-                                                                                            aria-hidden="true"
-                                                                                            autoComplete="country"
-                                                                                            className="country_to_state country_select select2-hidden-accessible"
-                                                                                            data-label="Country / Region"
-                                                                                            data-placeholder="Select a country / region…"
+                                                                                            className="Payment country_to_state country_select"
+                                                                                            data-val="true"
+                                                                                            data-val-required="The Country field is required."
                                                                                             id="billing_country"
                                                                                             name="billing_country"
-                                                                                            tabIndex="-1">
-                                                                                            <option value="">
-                                                                                                Select a country / region…
-                                                                                            </option>
+                                                                                            value={formData.billing_country}
+                                                                                            onChange={handleCountryChange}
+                                                                                        >
+                                                                                            <option value="">Select a country / region…</option>
+                                                                                            {Country.getAllCountries().map((country) => (
+                                                                                                <option key={country.isoCode} value={country.isoCode}>
+                                                                                                    {country.name}
+                                                                                                </option>
+                                                                                            ))}
                                                                                         </select>
-                                                                                        <span
-                                                                                            className="select2 select2-container select2-container--default"
-                                                                                            dir="ltr"
-                                                                                            style={{
-                                                                                                width: "100%",
-                                                                                            }}>
-                                                                                            <span className="selection">
-                                                                                                <span
-                                                                                                    aria-expanded="false"
-                                                                                                    aria-haspopup="true"
-                                                                                                    aria-label="Country / Region"
-                                                                                                    className="select2-selection select2-selection--single"
-                                                                                                    role="combobox"
-                                                                                                    tabIndex="0">
-                                                                                                    <span
-                                                                                                        aria-readonly="true"
-                                                                                                        className="select2-selection__rendered"
-                                                                                                        id="select2-billing_country-container"
-                                                                                                        role="textbox">
-                                                                                                        <span className="select2-selection__placeholder">
-                                                                                                            Select a country / region…
-                                                                                                        </span>
-                                                                                                    </span>
-                                                                                                    <span
-                                                                                                        className="select2-selection__arrow"
-                                                                                                        role="presentation">
-                                                                                                        <b role="presentation" />
-                                                                                                    </span>
-                                                                                                </span>
-                                                                                            </span>
-                                                                                            <span
-                                                                                                aria-hidden="true"
-                                                                                                className="dropdown-wrapper"
-                                                                                            />
-                                                                                        </span>
-                                                                                        <noscript>
-                                                                                            <button
-                                                                                                name="woocommerce_checkout_update_totals"
-                                                                                                type="submit"
-                                                                                                value="Update country / region">
-                                                                                                Update country / region
-                                                                                            </button>
-                                                                                        </noscript>
                                                                                     </span>
                                                                                 </p>
                                                                                 <p
@@ -550,9 +662,11 @@ const checkout = () => {
                                                                                         <input
                                                                                             autoComplete="address-level2"
                                                                                             className="input-text "
-                                                                                            defaultValue=""
+
                                                                                             id="billing_city"
                                                                                             name="billing_city"
+                                                                                            value={formData.billing_city}
+                                                                                            onChange={handleChange}
                                                                                             placeholder=""
                                                                                             type="text"
                                                                                         />
@@ -576,9 +690,11 @@ const checkout = () => {
                                                                                         <input
                                                                                             autoComplete="address-line1"
                                                                                             className="input-text "
-                                                                                            defaultValue=""
+
                                                                                             id="billing_address_1"
                                                                                             name="billing_address_1"
+                                                                                            value={formData.billing_address_1}
+                                                                                            onChange={handleChange}
                                                                                             placeholder="House number and street name"
                                                                                             type="text"
                                                                                         />
@@ -602,97 +718,18 @@ const checkout = () => {
                                                                                         <input
                                                                                             autoComplete="postal-code"
                                                                                             className="input-text "
-                                                                                            defaultValue=""
+
                                                                                             id="billing_postcode"
                                                                                             name="billing_postcode"
+                                                                                            value={formData.billing_postcode}
+                                                                                            onChange={handleChange}
                                                                                             placeholder=""
                                                                                             type="text"
                                                                                         />
                                                                                     </span>
                                                                                 </p>
                                                                             </div>
-                                                                            <wc-order-attribution-inputs>
-                                                                                <input
-                                                                                    defaultValue="typein"
-                                                                                    name="wc_order_attribution_source_type"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_referrer"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_utm_campaign"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(direct)"
-                                                                                    name="wc_order_attribution_utm_source"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_utm_medium"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_utm_content"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_utm_id"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_utm_term"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_utm_source_platform"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_utm_creative_format"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="(none)"
-                                                                                    name="wc_order_attribution_utm_marketing_tactic"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="https://woodmart.xtemos.com/mega-electronics/"
-                                                                                    name="wc_order_attribution_session_entry"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="2025-01-14 04:17:15"
-                                                                                    name="wc_order_attribution_session_start_time"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="10"
-                                                                                    name="wc_order_attribution_session_pages"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="1"
-                                                                                    name="wc_order_attribution_session_count"
-                                                                                    type="hidden"
-                                                                                />
-                                                                                <input
-                                                                                    defaultValue="Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36"
-                                                                                    name="wc_order_attribution_user_agent"
-                                                                                    type="hidden"
-                                                                                />
-                                                                            </wc-order-attribution-inputs>
+
                                                                         </div>
                                                                         <div className="woocommerce-account-fields">
                                                                             <p className="form-row form-row-wide create-account woocommerce-validated">
@@ -703,70 +740,68 @@ const checkout = () => {
                                                                                         id="createaccount"
                                                                                         name="createaccount"
                                                                                         type="checkbox"
+                                                                                        checked={createAccount}
+                                                                                        onChange={handleCreateAccountChange}
                                                                                     />
                                                                                     <span>Create an account?</span>
                                                                                 </label>
                                                                             </p>
-                                                                            <div
-                                                                                className="create-account"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                }}>
-                                                                                <p
-                                                                                    className="form-row validate-required"
-                                                                                    data-priority=""
-                                                                                    id="account_username_field">
-                                                                                    <label
-                                                                                        className=""
-                                                                                        htmlFor="account_username">
-                                                                                        Account username
-                                                                                        <abbr
-                                                                                            className="required"
-                                                                                            title="required">
-                                                                                            *
-                                                                                        </abbr>
-                                                                                    </label>
-                                                                                    <span className="woocommerce-input-wrapper">
-                                                                                        <input
-                                                                                            autoComplete="username"
-                                                                                            className="input-text "
-                                                                                            defaultValue=""
-                                                                                            id="account_username"
-                                                                                            name="account_username"
-                                                                                            placeholder="Username"
-                                                                                            type="text"
-                                                                                        />
-                                                                                    </span>
-                                                                                </p>
-                                                                                <p
-                                                                                    className="form-row validate-required"
-                                                                                    data-priority=""
-                                                                                    id="account_password_field">
-                                                                                    <label
-                                                                                        className=""
-                                                                                        htmlFor="account_password">
-                                                                                        Create account password
-                                                                                        <abbr
-                                                                                            className="required"
-                                                                                            title="required">
-                                                                                            *
-                                                                                        </abbr>
-                                                                                    </label>
-                                                                                    <span className="woocommerce-input-wrapper password-input">
-                                                                                        <input
-                                                                                            autoComplete="new-password"
-                                                                                            className="input-text "
-                                                                                            defaultValue=""
-                                                                                            id="account_password"
-                                                                                            name="account_password"
-                                                                                            placeholder="Password"
-                                                                                            type="password"
-                                                                                        />
-                                                                                        <span className="show-password-input" />
-                                                                                    </span>
-                                                                                </p>
-                                                                                <div className="clear" />
-                                                                            </div>
+                                                                            {createAccount && (
+                                                                                <div className="create-account">
+                                                                                    <p
+                                                                                        className="form-row validate-required"
+                                                                                        data-priority=""
+                                                                                        id="account_username_field"
+                                                                                    >
+                                                                                        <label htmlFor="account_username">
+                                                                                            Account username
+                                                                                            <abbr className="required" title="required">
+                                                                                                *
+                                                                                            </abbr>
+                                                                                        </label>
+                                                                                        <span className="woocommerce-input-wrapper">
+                                                                                            <input
+                                                                                                autoComplete="username"
+                                                                                                className="input-text"
+                                                                                                id="account_username"
+                                                                                                name="account_username"
+                                                                                                value={userData.account_username}
+                                                                                                onChange={handleChange}
+                                                                                                placeholder="Username"
+                                                                                                type="text"
+                                                                                            />
+                                                                                        </span>
+                                                                                    </p>
+
+                                                                                    <p
+                                                                                        className="form-row validate-required"
+                                                                                        data-priority=""
+                                                                                        id="account_password_field"
+                                                                                    >
+                                                                                        <label htmlFor="account_password">
+                                                                                            Create account password
+                                                                                            <abbr className="required" title="required">
+                                                                                                *
+                                                                                            </abbr>
+                                                                                        </label>
+                                                                                        <span className="woocommerce-input-wrapper password-input">
+                                                                                            <input
+                                                                                                autoComplete="new-password"
+                                                                                                className="input-text"
+                                                                                                id="account_password"
+                                                                                                name="account_password"
+                                                                                                value={userData.account_password}
+                                                                                                onChange={handleChange}
+                                                                                                placeholder="Password"
+                                                                                                type="password"
+                                                                                            />
+                                                                                            <span className="show-password-input" />
+                                                                                        </span>
+                                                                                    </p>
+
+                                                                                    <div className="clear" />
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     </div>
                                                                     <div className="wd-shipping-details wd-wpb wd-rs-63bffa375a171 vc_custom_1673525820444">
@@ -779,419 +814,285 @@ const checkout = () => {
                                                                                         id="ship-to-different-address-checkbox"
                                                                                         name="ship_to_different_address"
                                                                                         type="checkbox"
+                                                                                        checked={shipToDifferentAddress}
+                                                                                        onChange={handleCheckboxChange}
                                                                                     />
                                                                                     <span>Ship to a different address?</span>
                                                                                 </label>
                                                                             </h3>
-                                                                            <div
-                                                                                className="shipping_address"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                }}>
-                                                                                <div className="woocommerce-shipping-fields__field-wrapper">
-                                                                                    <p
-                                                                                        className="form-row form-row-first validate-required"
-                                                                                        data-priority="10"
-                                                                                        id="shipping_first_name_field">
-                                                                                        <label
-                                                                                            className=""
-                                                                                            htmlFor="shipping_first_name">
-                                                                                            First name
-                                                                                            <abbr
-                                                                                                className="required"
-                                                                                                title="required">
-                                                                                                *
-                                                                                            </abbr>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <input
-                                                                                                autoComplete="given-name"
-                                                                                                className="input-text "
-                                                                                                defaultValue=""
-                                                                                                id="shipping_first_name"
-                                                                                                name="shipping_first_name"
-                                                                                                placeholder=""
-                                                                                                type="text"
-                                                                                            />
-                                                                                        </span>
-                                                                                    </p>
-                                                                                    <p
-                                                                                        className="form-row form-row-last validate-required"
-                                                                                        data-priority="20"
-                                                                                        id="shipping_last_name_field">
-                                                                                        <label
-                                                                                            className=""
-                                                                                            htmlFor="shipping_last_name">
-                                                                                            Last name
-                                                                                            <abbr
-                                                                                                className="required"
-                                                                                                title="required">
-                                                                                                *
-                                                                                            </abbr>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <input
-                                                                                                autoComplete="family-name"
-                                                                                                className="input-text "
-                                                                                                defaultValue=""
-                                                                                                id="shipping_last_name"
-                                                                                                name="shipping_last_name"
-                                                                                                placeholder=""
-                                                                                                type="text"
-                                                                                            />
-                                                                                        </span>
-                                                                                    </p>
-                                                                                    <p
-                                                                                        className="form-row form-row-wide"
-                                                                                        data-priority="30"
-                                                                                        id="shipping_company_field">
-                                                                                        <label
-                                                                                            className=""
-                                                                                            htmlFor="shipping_company">
-                                                                                            Company name
-                                                                                            <span className="optional">
-                                                                                                (optional)
-                                                                                            </span>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <input
-                                                                                                autoComplete="organization"
-                                                                                                className="input-text "
-                                                                                                defaultValue=""
-                                                                                                id="shipping_company"
-                                                                                                name="shipping_company"
-                                                                                                placeholder=""
-                                                                                                type="text"
-                                                                                            />
-                                                                                        </span>
-                                                                                    </p>
-                                                                                    <p
-                                                                                        className="form-row form-row-wide address-field update_totals_on_change validate-required"
-                                                                                        data-priority="40"
-                                                                                        id="shipping_country_field">
-                                                                                        <label
-                                                                                            className=""
-                                                                                            htmlFor="shipping_country">
-                                                                                            Country / Region
-                                                                                            <abbr
-                                                                                                className="required"
-                                                                                                title="required">
-                                                                                                *
-                                                                                            </abbr>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <select
-                                                                                                aria-hidden="true"
-                                                                                                autoComplete="country"
-                                                                                                className="country_to_state country_select select2-hidden-accessible"
-                                                                                                data-label="Country / Region"
-                                                                                                data-placeholder="Select a country / region…"
-                                                                                                id="shipping_country"
-                                                                                                name="shipping_country"
-                                                                                                tabIndex="-1">
-                                                                                                <option value="">
-                                                                                                    Select a country / region…
-                                                                                                </option>
-                                                                                            </select>
-                                                                                            <span
-                                                                                                className="select2 select2-container select2-container--default"
-                                                                                                dir="ltr"
-                                                                                                style={{
-                                                                                                    width: "100%",
-                                                                                                }}>
-                                                                                                <span className="selection">
-                                                                                                    <span
-                                                                                                        aria-expanded="false"
-                                                                                                        aria-haspopup="true"
-                                                                                                        aria-label="Country / Region"
-                                                                                                        className="select2-selection select2-selection--single"
-                                                                                                        role="combobox"
-                                                                                                        tabIndex="0">
-                                                                                                        <span
-                                                                                                            aria-readonly="true"
-                                                                                                            className="select2-selection__rendered"
-                                                                                                            id="select2-shipping_country-container"
-                                                                                                            role="textbox">
-                                                                                                            <span className="select2-selection__placeholder">
-                                                                                                                Select a country / region…
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                        <span
-                                                                                                            className="select2-selection__arrow"
-                                                                                                            role="presentation">
-                                                                                                            <b role="presentation" />
-                                                                                                        </span>
-                                                                                                    </span>
-                                                                                                </span>
-                                                                                                <span
-                                                                                                    aria-hidden="true"
-                                                                                                    className="dropdown-wrapper"
+                                                                            {shipToDifferentAddress && (
+                                                                                <div
+                                                                                    className="shipping_address"
+                                                                                    style={{
+                                                                                        display: "block",
+                                                                                    }}>
+                                                                                    <div className="woocommerce-shipping-fields__field-wrapper">
+                                                                                        <p
+                                                                                            className="form-row form-row-first validate-required"
+                                                                                            data-priority="10"
+                                                                                            id="shipping_first_name_field">
+                                                                                            <label
+                                                                                                className=""
+                                                                                                htmlFor="shipping_first_name">
+                                                                                                First name
+                                                                                                <abbr
+                                                                                                    className="required"
+                                                                                                    title="required">
+                                                                                                    *
+                                                                                                </abbr>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <input
+                                                                                                    autoComplete="given-name"
+                                                                                                    className="input-text "
+                                                                                                    value={shippingData.shipping_first_name}
+                                                                                                    onChange={handleShippingChange}
+                                                                                                    id="shipping_first_name"
+                                                                                                    name="shipping_first_name"
+                                                                                                    placeholder=""
+                                                                                                    type="text"
                                                                                                 />
                                                                                             </span>
-                                                                                            <noscript>
-                                                                                                <button
-                                                                                                    name="woocommerce_checkout_update_totals"
-                                                                                                    type="submit"
-                                                                                                    value="Update country / region">
-                                                                                                    Update country / region
-                                                                                                </button>
-                                                                                            </noscript>
-                                                                                        </span>
-                                                                                    </p>
-                                                                                    <p
-                                                                                        className="form-row form-row-wide address-field validate-required"
-                                                                                        data-priority="50"
-                                                                                        id="shipping_address_1_field">
-                                                                                        <label
-                                                                                            className=""
-                                                                                            htmlFor="shipping_address_1">
-                                                                                            Street address
-                                                                                            <abbr
-                                                                                                className="required"
-                                                                                                title="required">
-                                                                                                *
-                                                                                            </abbr>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <input
-                                                                                                autoComplete="address-line1"
-                                                                                                className="input-text "
-                                                                                                defaultValue=""
-                                                                                                id="shipping_address_1"
-                                                                                                name="shipping_address_1"
-                                                                                                placeholder="House number and street name"
-                                                                                                type="text"
-                                                                                            />
-                                                                                        </span>
-                                                                                    </p>
-                                                                                    <p
-                                                                                        className="form-row form-row-wide address-field"
-                                                                                        data-priority="60"
-                                                                                        id="shipping_address_2_field">
-                                                                                        <label
-                                                                                            className="screen-reader-text"
-                                                                                            htmlFor="shipping_address_2">
-                                                                                            Apartment, suite, unit, etc.
-                                                                                            <span className="optional">
-                                                                                                (optional)
-                                                                                            </span>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <input
-                                                                                                autoComplete="address-line2"
-                                                                                                className="input-text "
-                                                                                                defaultValue=""
-                                                                                                id="shipping_address_2"
-                                                                                                name="shipping_address_2"
-                                                                                                placeholder="Apartment, suite, unit, etc. (optional)"
-                                                                                                type="text"
-                                                                                            />
-                                                                                        </span>
-                                                                                    </p>
-                                                                                    <p
-                                                                                        className="form-row form-row-wide address-field validate-required"
-                                                                                        data-priority="70"
-                                                                                        id="shipping_city_field">
-                                                                                        <label
-                                                                                            className=""
-                                                                                            htmlFor="shipping_city">
-                                                                                            Town / City
-                                                                                            <abbr
-                                                                                                className="required"
-                                                                                                title="required">
-                                                                                                *
-                                                                                            </abbr>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <input
-                                                                                                autoComplete="address-level2"
-                                                                                                className="input-text "
-                                                                                                defaultValue=""
-                                                                                                id="shipping_city"
-                                                                                                name="shipping_city"
-                                                                                                placeholder=""
-                                                                                                type="text"
-                                                                                            />
-                                                                                        </span>
-                                                                                    </p>
-                                                                                    <p
-                                                                                        className="form-row form-row-wide address-field validate-required validate-state"
-                                                                                        data-priority="80"
-                                                                                        id="shipping_state_field">
-                                                                                        <label
-                                                                                            className=""
-                                                                                            htmlFor="shipping_state">
-                                                                                            State / County
-                                                                                            <abbr
-                                                                                                className="required"
-                                                                                                title="required">
-                                                                                                *
-                                                                                            </abbr>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <select
-                                                                                                aria-hidden="true"
-                                                                                                autoComplete="address-level1"
-                                                                                                className="state_select select2-hidden-accessible"
-                                                                                                data-input-classes=""
-                                                                                                data-label="State / County"
-                                                                                                data-placeholder="Select an option…"
-                                                                                                id="shipping_state"
-                                                                                                name="shipping_state"
-                                                                                                tabIndex="-1">
-                                                                                                <option value="">
-                                                                                                    Select an option…
-                                                                                                </option>
-                                                                                                <option value="AL">Alabama</option>
-                                                                                                <option value="AK">Alaska</option>
-                                                                                                <option value="AZ">Arizona</option>
-                                                                                                <option value="AR">Arkansas</option>
-                                                                                                <option value="CA">California</option>
-                                                                                                <option value="CO">Colorado</option>
-                                                                                                <option value="CT">
-                                                                                                    Connecticut
-                                                                                                </option>
-                                                                                                <option value="DE">Delaware</option>
-                                                                                                <option value="DC">
-                                                                                                    District Of Columbia
-                                                                                                </option>
-                                                                                                <option value="FL">Florida</option>
-                                                                                                <option value="GA">Georgia</option>
-                                                                                                <option value="HI">Hawaii</option>
-                                                                                                <option value="ID">Idaho</option>
-                                                                                                <option value="IL">Illinois</option>
-                                                                                                <option value="IN">Indiana</option>
-                                                                                                <option value="IA">Iowa</option>
-                                                                                                <option value="KS">Kansas</option>
-                                                                                                <option value="KY">Kentucky</option>
-                                                                                                <option value="LA">Louisiana</option>
-                                                                                                <option value="ME">Maine</option>
-                                                                                                <option value="MD">Maryland</option>
-                                                                                                <option value="MA">
-                                                                                                    Massachusetts
-                                                                                                </option>
-                                                                                                <option value="MI">Michigan</option>
-                                                                                                <option value="MN">Minnesota</option>
-                                                                                                <option value="MS">
-                                                                                                    Mississippi
-                                                                                                </option>
-                                                                                                <option value="MO">Missouri</option>
-                                                                                                <option value="MT">Montana</option>
-                                                                                                <option value="NE">Nebraska</option>
-                                                                                                <option value="NV">Nevada</option>
-                                                                                                <option value="NH">
-                                                                                                    New Hampshire
-                                                                                                </option>
-                                                                                                <option value="NJ">New Jersey</option>
-                                                                                                <option value="NM">New Mexico</option>
-                                                                                                <option value="NY">New York</option>
-                                                                                                <option value="NC">
-                                                                                                    North Carolina
-                                                                                                </option>
-                                                                                                <option value="ND">
-                                                                                                    North Dakota
-                                                                                                </option>
-                                                                                                <option value="OH">Ohio</option>
-                                                                                                <option value="OK">Oklahoma</option>
-                                                                                                <option value="OR">Oregon</option>
-                                                                                                <option value="PA">
-                                                                                                    Pennsylvania
-                                                                                                </option>
-                                                                                                <option value="RI">
-                                                                                                    Rhode Island
-                                                                                                </option>
-                                                                                                <option value="SC">
-                                                                                                    South Carolina
-                                                                                                </option>
-                                                                                                <option value="SD">
-                                                                                                    South Dakota
-                                                                                                </option>
-                                                                                                <option value="TN">Tennessee</option>
-                                                                                                <option value="TX">Texas</option>
-                                                                                                <option value="UT">Utah</option>
-                                                                                                <option value="VT">Vermont</option>
-                                                                                                <option value="VA">Virginia</option>
-                                                                                                <option value="WA">Washington</option>
-                                                                                                <option value="WV">
-                                                                                                    West Virginia
-                                                                                                </option>
-                                                                                                <option value="WI">Wisconsin</option>
-                                                                                                <option value="WY">Wyoming</option>
-                                                                                                <option value="AA">
-                                                                                                    Armed Forces (AA)
-                                                                                                </option>
-                                                                                                <option value="AE">
-                                                                                                    Armed Forces (AE)
-                                                                                                </option>
-                                                                                                <option value="AP">
-                                                                                                    Armed Forces (AP)
-                                                                                                </option>
-                                                                                            </select>
-                                                                                            <span
-                                                                                                className="select2 select2-container select2-container--default"
-                                                                                                dir="ltr"
-                                                                                                style={{
-                                                                                                    width: "100%",
-                                                                                                }}>
-                                                                                                <span className="selection">
-                                                                                                    <span
-                                                                                                        aria-expanded="false"
-                                                                                                        aria-haspopup="true"
-                                                                                                        aria-label="State / County"
-                                                                                                        className="select2-selection select2-selection--single"
-                                                                                                        role="combobox"
-                                                                                                        tabIndex="0">
-                                                                                                        <span
-                                                                                                            aria-readonly="true"
-                                                                                                            className="select2-selection__rendered"
-                                                                                                            id="select2-shipping_state-container"
-                                                                                                            role="textbox">
-                                                                                                            <span className="select2-selection__placeholder">
-                                                                                                                Select an option…
-                                                                                                            </span>
-                                                                                                        </span>
-                                                                                                        <span
-                                                                                                            className="select2-selection__arrow"
-                                                                                                            role="presentation">
-                                                                                                            <b role="presentation" />
-                                                                                                        </span>
-                                                                                                    </span>
-                                                                                                </span>
-                                                                                                <span
-                                                                                                    aria-hidden="true"
-                                                                                                    className="dropdown-wrapper"
+                                                                                        </p>
+                                                                                        <p
+                                                                                            className="form-row form-row-last validate-required"
+                                                                                            data-priority="20"
+                                                                                            id="shipping_last_name_field">
+                                                                                            <label
+                                                                                                className=""
+                                                                                                htmlFor="shipping_last_name">
+                                                                                                Last name
+                                                                                                <abbr
+                                                                                                    className="required"
+                                                                                                    title="required">
+                                                                                                    *
+                                                                                                </abbr>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <input
+                                                                                                    autoComplete="family-name"
+                                                                                                    className="input-text "
+                                                                                                    value={shippingData.shipping_last_name}
+                                                                                                    onChange={handleShippingChange}
+                                                                                                    id="shipping_last_name"
+                                                                                                    name="shipping_last_name"
+                                                                                                    placeholder=""
+                                                                                                    type="text"
                                                                                                 />
                                                                                             </span>
-                                                                                        </span>
-                                                                                    </p>
-                                                                                    <p
-                                                                                        className="form-row form-row-wide address-field validate-required validate-postcode"
-                                                                                        data-priority="90"
-                                                                                        id="shipping_postcode_field">
-                                                                                        <label
-                                                                                            className=""
-                                                                                            htmlFor="shipping_postcode">
-                                                                                            Postcode / ZIP
-                                                                                            <abbr
-                                                                                                className="required"
-                                                                                                title="required">
-                                                                                                *
-                                                                                            </abbr>
-                                                                                        </label>
-                                                                                        <span className="woocommerce-input-wrapper">
-                                                                                            <input
-                                                                                                autoComplete="postal-code"
-                                                                                                className="input-text "
-                                                                                                defaultValue=""
-                                                                                                id="shipping_postcode"
-                                                                                                name="shipping_postcode"
-                                                                                                placeholder=""
-                                                                                                type="text"
-                                                                                            />
-                                                                                        </span>
-                                                                                    </p>
+                                                                                        </p>
+                                                                                        <p
+                                                                                            className="form-row form-row-wide"
+                                                                                            data-priority="30"
+                                                                                            id="shipping_company_field">
+                                                                                            <label
+                                                                                                className=""
+                                                                                                htmlFor="shipping_company">
+                                                                                                Company name
+                                                                                                <span className="optional">
+                                                                                                    (optional)
+                                                                                                </span>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <input
+                                                                                                    autoComplete="organization"
+                                                                                                    className="input-text "
+                                                                                                    value={shippingData.shipping_company}
+                                                                                                    onChange={handleShippingChange}
+                                                                                                    id="shipping_company"
+                                                                                                    name="shipping_company"
+                                                                                                    placeholder=""
+                                                                                                    type="text"
+                                                                                                />
+                                                                                            </span>
+                                                                                        </p>
+                                                                                        <p
+                                                                                            className="form-row form-row-wide address-field update_totals_on_change validate-required"
+                                                                                            data-priority="40"
+                                                                                            id="shipping_country_field">
+                                                                                            <label
+                                                                                                className=""
+                                                                                                htmlFor="shipping_country">
+                                                                                                Country / Region
+                                                                                                <abbr
+                                                                                                    className="required"
+                                                                                                    title="required">
+                                                                                                    *
+                                                                                                </abbr>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <select
+                                                                                                    aria-hidden="true"
+                                                                                                    autoComplete="country"
+                                                                                                    className="country_to_state country_select select2-hidden-accessible"
+                                                                                                    data-label="Country / Region"
+                                                                                                    data-placeholder="Select a country / region…"
+                                                                                                    id="shipping_country"
+                                                                                                    name="shipping_country"
+                                                                                                    value={shippingData.shipping_country}
+                                                                                                    onChange={handleShippingCountryChange}
+                                                                                                    tabIndex="-1">
+                                                                                                    <option value="">
+                                                                                                        Select a country / region…
+                                                                                                    </option>
+                                                                                                    {Country.getAllCountries().map((country) => (
+                                                                                                        <option key={country.isoCode} value={country.isoCode}>
+                                                                                                            {country.name}
+                                                                                                        </option>
+                                                                                                    ))}
+                                                                                                </select>
+
+                                                                                            </span>
+                                                                                        </p>
+                                                                                        <p
+                                                                                            className="form-row form-row-wide address-field validate-required"
+                                                                                            data-priority="50"
+                                                                                            id="shipping_address_1_field">
+                                                                                            <label
+                                                                                                className=""
+                                                                                                htmlFor="shipping_address_1">
+                                                                                                Street address
+                                                                                                <abbr
+                                                                                                    className="required"
+                                                                                                    title="required">
+                                                                                                    *
+                                                                                                </abbr>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <input
+                                                                                                    autoComplete="address-line1"
+                                                                                                    className="input-text "
+
+                                                                                                    id="shipping_address_1"
+                                                                                                    name="shipping_address_1"
+                                                                                                    value={shippingData.shipping_address_1}
+                                                                                                    onChange={handleShippingChange}
+                                                                                                    placeholder="House number and street name"
+                                                                                                    type="text"
+                                                                                                />
+                                                                                            </span>
+                                                                                        </p>
+                                                                                        <p
+                                                                                            className="form-row form-row-wide address-field"
+                                                                                            data-priority="60"
+                                                                                            id="shipping_address_2_field">
+                                                                                            <label
+                                                                                                className="screen-reader-text"
+                                                                                                htmlFor="shipping_address_2">
+                                                                                                Apartment, suite, unit, etc.
+                                                                                                <span className="optional">
+                                                                                                    (optional)
+                                                                                                </span>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <input
+                                                                                                    autoComplete="address-line2"
+                                                                                                    className="input-text "
+                                                                                                    value={shippingData.shipping_address_2}
+                                                                                                    onChange={handleShippingChange}
+                                                                                                    id="shipping_address_2"
+                                                                                                    name="shipping_address_2"
+                                                                                                    placeholder="Apartment, suite, unit, etc. (optional)"
+                                                                                                    type="text"
+                                                                                                />
+                                                                                            </span>
+                                                                                        </p>
+                                                                                        <p
+                                                                                            className="form-row form-row-wide address-field validate-required"
+                                                                                            data-priority="70"
+                                                                                            id="shipping_city_field">
+                                                                                            <label
+                                                                                                className=""
+                                                                                                htmlFor="shipping_city">
+                                                                                                Town / City
+                                                                                                <abbr
+                                                                                                    className="required"
+                                                                                                    title="required">
+                                                                                                    *
+                                                                                                </abbr>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <input
+                                                                                                    autoComplete="address-level2"
+                                                                                                    className="input-text "
+                                                                                                    value={shippingData.shipping_city}
+                                                                                                    onChange={handleShippingChange}
+                                                                                                    id="shipping_city"
+                                                                                                    name="shipping_city"
+                                                                                                    placeholder=""
+                                                                                                    type="text"
+                                                                                                />
+                                                                                            </span>
+                                                                                        </p>
+                                                                                        <p
+                                                                                            className="form-row form-row-wide address-field validate-required validate-state"
+                                                                                            data-priority="80"
+                                                                                            id="shipping_state_field">
+                                                                                            <label
+                                                                                                className=""
+                                                                                                htmlFor="shipping_state">
+                                                                                                State / County
+                                                                                                <abbr
+                                                                                                    className="required"
+                                                                                                    title="required">
+                                                                                                    *
+                                                                                                </abbr>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <select
+                                                                                                    aria-hidden="true"
+                                                                                                    autoComplete="address-level1"
+                                                                                                    className="state_select select2-hidden-accessible"
+                                                                                                    data-input-classes=""
+                                                                                                    data-label="State / County"
+                                                                                                    data-placeholder="Select an option…"
+                                                                                                    id="shipping_state"
+                                                                                                    name="shipping_state"
+                                                                                                    value={shippingData.shipping_state}
+                                                                                                    onChange={handleStateChange}
+                                                                                                    tabIndex="-1">
+                                                                                                    <option value="">
+                                                                                                        Select an option…
+                                                                                                    </option>
+                                                                                                    {states.map((state) => (
+                                                                                                        <option key={state.isoCode} value={state.isoCode}>
+                                                                                                            {state.name}
+                                                                                                        </option>
+                                                                                                    ))}
+                                                                                                </select>
+
+                                                                                            </span>
+                                                                                        </p>
+                                                                                        <p
+                                                                                            className="form-row form-row-wide address-field validate-required validate-postcode"
+                                                                                            data-priority="90"
+                                                                                            id="shipping_postcode_field">
+                                                                                            <label
+                                                                                                className=""
+                                                                                                htmlFor="shipping_postcode">
+                                                                                                Postcode / ZIP
+                                                                                                <abbr
+                                                                                                    className="required"
+                                                                                                    title="required">
+                                                                                                    *
+                                                                                                </abbr>
+                                                                                            </label>
+                                                                                            <span className="woocommerce-input-wrapper">
+                                                                                                <input
+                                                                                                    autoComplete="postal-code"
+                                                                                                    className="input-text "
+                                                                                                    value={shippingData.shipping_postcode}
+                                                                                                    onChange={handleShippingChange}
+                                                                                                    id="shipping_postcode"
+                                                                                                    name="shipping_postcode"
+                                                                                                    placeholder=""
+                                                                                                    type="text"
+                                                                                                />
+                                                                                            </span>
+                                                                                        </p>
+                                                                                    </div>
                                                                                 </div>
-                                                                            </div>
+                                                                            )}
                                                                         </div>
                                                                         <div className="woocommerce-additional-fields">
                                                                             <div className="woocommerce-additional-fields__field-wrapper">
@@ -1221,6 +1122,140 @@ const checkout = () => {
                                                                             </div>
                                                                         </div>
                                                                     </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1668170517479 vc_row-has-fill wd-rs-636e4311ab3a7">
+                                                        <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-629f104b4859b">
+                                                            <div className="vc_column-inner vc_custom_1654591567385">
+                                                                <div className="wpb_wrapper">
+                                                                    <div
+                                                                        className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63972756160aa wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1670850398669 wd-underline-colored"
+                                                                        id="wd-63972756160aa">
+                                                                        <div className="liner-continer">
+                                                                            <h4 className="woodmart-title-container title  wd-font-weight- wd-fontsize-l">
+                                                                                Card Details
+                                                                            </h4>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="wd-billing-details wd-wpb wd-rs-63bffa3f72cee vc_custom_1673525826744">
+                                                                        <div className="woocommerce-billing-fields">
+                                                                            <h3>Card details</h3>
+                                                                            <div className="woocommerce-billing-fields__field-wrapper">
+                                                                                {/* Cardholder Name */}
+                                                                                <p
+                                                                                    className="form-row form-row-first validate-required"
+                                                                                    data-priority="85"
+                                                                                    id="card_holder_name_field">
+                                                                                    <label className="" htmlFor="card_holder_name">
+                                                                                        Cardholder Name
+                                                                                        <abbr
+                                                                                            className="required"
+                                                                                            title="required">
+                                                                                            *
+                                                                                        </abbr>
+                                                                                    </label>
+                                                                                    <span className="woocommerce-input-wrapper">
+                                                                                        <input
+                                                                                            autoComplete="cc-name"
+                                                                                            className="input-text"
+                                                                                            id="card_holder_name"
+                                                                                            name="card_holder_name"
+                                                                                            value={cardData.card_holder_name}
+                                                                                            onChange={handleCardChange}
+                                                                                            placeholder="John Doe"
+                                                                                            type="text"
+                                                                                        />
+                                                                                    </span>
+                                                                                </p>
+                                                                                {/* Card Number */}
+                                                                                <p
+                                                                                    className="form-row form-row-first validate-required validate-card-number"
+                                                                                    data-priority="90"
+                                                                                    id="card_number_field">
+                                                                                    <label className="" htmlFor="card_number">
+                                                                                        Card Number
+                                                                                        <abbr
+                                                                                            className="required"
+                                                                                            title="required">
+                                                                                            *
+                                                                                        </abbr>
+                                                                                    </label>
+                                                                                    <span className="woocommerce-input-wrapper">
+                                                                                        <input
+                                                                                            autoComplete="cc-number"
+                                                                                            className="input-text"
+                                                                                            id="card_number"
+                                                                                            name="card_number"
+                                                                                            value={cardData.card_number}
+                                                                                            onChange={handleCardChange}
+                                                                                            placeholder="1234 5678 9012 3456"
+                                                                                            type="text"
+                                                                                        />
+                                                                                    </span>
+                                                                                </p>
+
+                                                                                {/* Expiration Date */}
+                                                                                <p
+                                                                                    className="form-row form-row-last validate-required validate-expiry"
+                                                                                    data-priority="100"
+                                                                                    id="card_expiry_field">
+                                                                                    <label className="" htmlFor="card_expiry">
+                                                                                        Expiration Date
+                                                                                        <abbr
+                                                                                            className="required"
+                                                                                            title="required">
+                                                                                            *
+                                                                                        </abbr>
+                                                                                    </label>
+                                                                                    <span className="woocommerce-input-wrapper">
+                                                                                        <input
+                                                                                            autoComplete="cc-exp"
+                                                                                            className="input-text"
+                                                                                            id="card_expiry"
+                                                                                            name="card_expiry"
+                                                                                            value={cardData.card_expiry}
+                                                                                            onChange={handleCardChange}
+                                                                                            placeholder="MM / YY"
+                                                                                            type="text"
+                                                                                        />
+                                                                                    </span>
+                                                                                </p>
+
+                                                                                {/* CVV */}
+                                                                                <p
+                                                                                    className="form-row form-row-first validate-required validate-cvv"
+                                                                                    data-priority="110"
+                                                                                    id="card_cvv_field">
+                                                                                    <label className="" htmlFor="card_cvv">
+                                                                                        CVV
+                                                                                        <abbr
+                                                                                            className="required"
+                                                                                            title="required">
+                                                                                            *
+                                                                                        </abbr>
+                                                                                    </label>
+                                                                                    <span className="woocommerce-input-wrapper">
+                                                                                        <input
+                                                                                            autoComplete="cc-csc"
+                                                                                            className="input-text"
+                                                                                            id="card_cvv"
+                                                                                            name="card_cvv"
+                                                                                            value={cardData.card_cvv}
+                                                                                            onChange={handleCardChange}
+                                                                                            placeholder="123"
+                                                                                            type="password"
+                                                                                        />
+                                                                                    </span>
+                                                                                </p>
+                                                                            </div>
+
+
+                                                                        </div>
+
+                                                                    </div>
+
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -12477,6 +12512,7 @@ const checkout = () => {
                                                                                     id="place_order"
                                                                                     name="woocommerce_checkout_place_order"
                                                                                     type="submit"
+                                                                                    onClick={handleSubmit}
                                                                                     value="Place order">
                                                                                     Place order
                                                                                 </button>
@@ -12499,6 +12535,8 @@ const checkout = () => {
                                                             </div>
                                                         </div>
                                                     </div>
+
+
                                                 </div>
                                             </div>
                                         </div>
@@ -12550,7 +12588,7 @@ const checkout = () => {
                                                                                                     className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
                                                                                                     decoding="async"
                                                                                                     height="491"
-                                                                                                    src={item.imageUrls[0]} // Display the first image
+                                                                                                    src={item.imageUrls} // Display the first image
                                                                                                     width="430"
                                                                                                 />
                                                                                             </div>

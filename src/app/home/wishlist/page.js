@@ -36,6 +36,9 @@ const wishlist = () => {
         }
     }, []);
 
+    console.log(wishlist, "Wishlist data");
+
+
     const handleRemoveFromWishlist = async (productId) => {
         try {
             const user = JSON.parse(localStorage.getItem('currentUser'));
@@ -94,44 +97,34 @@ const wishlist = () => {
                             id="post-30"
                         >
                             <div className="">
-                                {wishlist.length === 0 ? (
-                                    <p>Your wishlist is empty.</p>
-                                ) : (
-                                    wishlist.map((offer, index) => (
-                                        <div className="wd-wishlist-content" key={index}>
-                                            <link
-                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-page-wishlist-bulk.min.css?ver=8.0.4"
-                                                id="wd-page-wishlist-bulk-css"
-                                                media="all"
-                                                rel="stylesheet"
-                                                type="text/css"
-                                            />
-                                            <div className="wd-wishlist-head">
-                                                <h4 className="title">Your products wishlist</h4>
-                                            </div>
-                                            <div className="wd-wishlist-bulk-action">
-                                                <div className="wd-wishlist-remove-action wd-action-btn wd-style-text wd-cross-icon">
-                                                    <a onClick={(e) => handleRemoveFromWishlist(offer.productId)}>
-                                                        Remove
-                                                    </a>
-                                                </div>
-                                            </div>
 
-                                            <div className="wd-products-element wd-wpb">
-                                                <div
-                                                    className="products wd-products grid-columns-3 elements-grid pagination-links wd-grid-g title-line-one wd-stretch-cont-lg wd-products-with-bg"
-                                                    style={{
-                                                        '--wd-col-lg': '3',
-                                                        '--wd-col-md': '3',
-                                                        '--wd-col-sm': '2',
-                                                        '--wd-gap-lg': '20px',
-                                                        '--wd-gap-sm': '10px'
-                                                    }}
-                                                >
+                                <div className="wd-wishlist-content" >
+                                    <div className="wd-wishlist-head">
+                                        <h4 className="title">Your products wishlist</h4>
+                                    </div>
+
+                                   
+
+                                    <div className="wd-products-element wd-wpb">
+                                        <div
+                                            className="products wd-products grid-columns-3 elements-grid pagination-links wd-grid-g title-line-one wd-stretch-cont-lg wd-products-with-bg"
+                                            style={{
+                                                '--wd-col-lg': '3',
+                                                '--wd-col-md': '3',
+                                                '--wd-col-sm': '2',
+                                                '--wd-gap-lg': '20px',
+                                                '--wd-gap-sm': '10px'
+                                            }}
+                                        >
+                                            {wishlist.length === 0 ? (
+                                                <p>Your wishlist is empty.</p>
+                                            ) : (
+                                                wishlist.map((offer, index) => (
                                                     <div
                                                         className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item"
                                                         data-id={offer.productId}
                                                         data-loop="1"
+                                                        key={index}
                                                     >
                                                         <div className="wd-wishlist-product-actions">
                                                             <div className="wd-wishlist-product-remove wd-action-btn wd-style-text wd-cross-icon">
@@ -143,48 +136,140 @@ const wishlist = () => {
                                                             </div>
                                                         </div>
                                                         <div className="product-wrapper">
-                                                            <div className="content-product-imagin" />
+                                                            <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
                                                             <div className="product-element-top wd-quick-shop">
-                                                                <a className="product-image-link" href={offer.productUrl}>
-                                                                    <div className="wd-product-grid-slider wd-fill">
-                                                                        {offer.imageUrls.map((url, imageIndex) => (
-                                                                            <div
-                                                                                className="wd-product-grid-slide"
-                                                                                key={imageIndex}
-                                                                                data-image-url={url}
-                                                                            />
-                                                                        ))}
-                                                                    </div>
+                                                                <a
+                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/"
+                                                                    className="product-image-link"
+                                                                >
+                                                                    <picture
+                                                                        decoding="async"
+                                                                        className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
+                                                                    >
+                                                                        <source
+                                                                            type="image/webp"
+                                                                            srcSet={`${offer.imageUrls}?maxHeight=150&maxWidth=225 225w`}
+                                                                            sizes="(max-width: 430px) 100vw, 430px"
+                                                                        />
+                                                                        <img
+                                                                            decoding="async"
+                                                                            width={430}
+                                                                            height={491}
+                                                                            src={offer.imageUrls}
+                                                                            alt={offer.productName}
+                                                                            srcSet={`${offer.imageUrls}?maxHeight=150&maxWidth=225 225w`}
+                                                                            sizes="(max-width: 430px) 100vw, 430px"
+                                                                        />
+                                                                    </picture>
                                                                 </a>
+                                                                <div className="wd-buttons wd-pos-r-t">
+                                                                    <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
+                                                                        <a
+                                                                            href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=182"
+                                                                            data-id={182}
+                                                                            rel="nofollow"
+                                                                            data-added-text="Compare products"
+                                                                        >
+                                                                            <span>Compare</span>
+                                                                        </a>
+                                                                    </div>
+                                                                    <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
+                                                                        <a
+                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/"
+                                                                            className="open-quick-view quick-view-button"
+                                                                            rel="nofollow"
+                                                                            data-id={182}
+                                                                        >
+                                                                            Quick view
+                                                                        </a>
+                                                                    </div>
+                                                                    <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
+                                                                        <a
+                                                                            className=""
+                                                                            href="https://woodmart.xtemos.com/mega-electronics/wishlist/"
+                                                                            data-key="757556bfa1"
+                                                                            data-product-id={182}
+                                                                            rel="nofollow"
+                                                                            data-added-text="Browse Wishlist"
+                                                                        >
+                                                                            <span>Add to wishlist</span>
+                                                                        </a>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-
                                                             <div className="product-element-bottom">
                                                                 <h3 className="wd-entities-title">
-                                                                    <a href={offer.productUrl}>{offer.productName}</a>
+                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/">
+                                                                        {offer.productName}
+                                                                    </a>
                                                                 </h3>
-                                                                <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                    In stock
-                                                                </p>
+                                                                <div className="wd-product-cats">
+                                                                    <a
+                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/apple-macbook/"
+                                                                        rel="tag"
+                                                                    >
+                                                                        {offer.productName}
+                                                                    </a>{" "}
+                                                                </div>
+                                                                <div className="star-rating" role="img" aria-label="Rated 5.00 out of 5">
+                                                                    <span style={{ width: "100%" }}>
+                                                                        Rated <strong className="rating">5.00</strong> out of 5{" "}
+                                                                    </span>
+                                                                </div>
+                                                                <p className="wd-product-stock stock wd-style-default in-stock">In stock</p>
                                                                 <div className="wrap-price">
                                                                     <span className="price">
                                                                         <span className="woocommerce-Price-amount amount">
                                                                             <bdi>
-                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                    $
-                                                                                </span>
-                                                                                {offer.price}
+                                                                                <span className="woocommerce-Price-currencySymbol">$</span>  {offer.price}
+                                                                            </bdi>
+                                                                        </span>{" "}
+                                                                        –{" "}
+                                                                        <span className="woocommerce-Price-amount amount">
+                                                                            <bdi>
+                                                                                <span className="woocommerce-Price-currencySymbol">$</span>  {offer.price}
                                                                             </bdi>
                                                                         </span>
                                                                     </span>
+
+
                                                                 </div>
+                                                                <div className="wd-add-btn wd-add-btn-replace">
+                                                                    <a
+                                                                        href="/home/productDetails"
+                                                                        aria-describedby="woocommerce_loop_add_to_cart_link_describedby_182"
+                                                                        data-quantity={1}
+                                                                        className="button product_type_variable add_to_cart_button add-to-cart-loop"
+                                                                        data-product_id={182}
+                                                                        data-product_sku={30876}
+                                                                        aria-label='Select options for “Apple MacBook Pro 16" M1 Pro”'
+                                                                        rel="nofollow"
+                                                                    >
+                                                                        <span>Buy Now</span>
+                                                                    </a>{" "}
+                                                                    <span
+                                                                        id="woocommerce_loop_add_to_cart_link_describedby_182"
+                                                                        className="screen-reader-text"
+                                                                    >
+                                                                        This product has multiple variants. The options may be chosen on the
+                                                                        product page{" "}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="wd-product-detail wd-product-sku">
+                                                                    <span className="wd-label">SKU: </span>
+                                                                    <span>{offer.productSku} </span>
+                                                                </div>
+                                                                {/* Added Extra Code */}
                                                             </div>
                                                         </div>
+
                                                     </div>
-                                                </div>
-                                            </div>
+                                                ))
+                                            )}
+
                                         </div>
-                                    ))
-                                )}
+                                    </div>
+                                </div>
 
                             </div>
                         </article>

@@ -12,13 +12,13 @@
     "price": "899"
   },
   {
-    "brand": "Norton Antivirus",
+    "brand": "Norton",
     "productUrl": "https://example.com/apple-iphone",
     "imageUrl": "https://example.com/iphone.jpg",
     "price": "999"
   },
   {
-    "brand": "Bitdefender Antivirus",
+    "brand": "Bitdefender",
     "productUrl": "https://example.com/apple-iphone",
     "imageUrl": "https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-iphone-13-midnight-5.jpg",
     "price": "999"

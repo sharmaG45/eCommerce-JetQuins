@@ -1,21 +1,117 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import bestOffer from "../../assets/scraped_products.json";
+import { useRouter, useSearchParams } from "next/navigation";
 import { auth, fireStore } from "../../_components/firebase/config";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 
 const productDetails = () => {
     const [selectedOption, setSelectedOption] = useState("default");
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [cartItems, setCartItems] = useState([]);
-    const [quantity, setQuantity] = useState(1);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [products, setProducts] = useState([]);
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     // Function to open the Cart Modal
-    const openCart = (e) => {
-        e.preventDefault();
-        setIsCartOpen(true);
+    const openCart = async (e, offer) => {
+        e.preventDefault(); // Prevent the default link behavior
+
+        const user = JSON.parse(localStorage.getItem('currentUser'));
+
+        if (!user) {
+            alert("Please log in first.");
+            return;
+        }
+
+        // Log the offer object to see if it's structured correctly
+        console.log('Offer:', offer);
+
+        // Static fallback data in case some fields are missing
+        const staticData = {
+            product_url: 'https://defaultproducturl.com',
+            image_urls: [
+                "https://via.placeholder.com/430x491?text=Image+1",
+                "https://via.placeholder.com/430x491?text=Image+2",
+                "https://via.placeholder.com/430x491?text=Image+3",
+                "https://via.placeholder.com/430x491?text=Image+4"
+            ],
+            brand: 'Default Brand',
+            productId: '00000',
+            productName: 'Default Product',
+            productSku: 'DEFAULTSKU',
+            price: 99.99,
+            discount: 0,
+            quantity: 1 // Ensuring default quantity is 1
+        };
+
+        // Use static data if any required fields are missing
+        const offerData = {
+            product_url: offer.product_url || staticData.product_url,
+            image_urls: offer.image_url && offer.image_url.length > 0 ? offer.image_url : staticData.image_urls,
+            productId: offer.productId || staticData.productId,
+            productName: offer.productName || staticData.productName,
+            productSku: offer.productSku || staticData.productSku,
+            price: offer.price || staticData.price,
+            discount: offer.discount || staticData.discount,
+            quantity: offer.quantity || staticData.quantity // Default to 1 if quantity is missing
+        };
+
+        // Log the final offer data (either user-provided or static)
+        console.log('Final Offer Data:', offerData);
+
+        try {
+            // Get the user's ID
+            const userId = user.uid;
+
+            // Reference to the user document in the 'users' collection
+            const userRef = doc(fireStore, "users", userId);
+
+            // Fetch the current user data to check if the cart exists
+            const userDoc = await getDoc(userRef);
+            let userCart = userDoc.exists() ? userDoc.data().cart || [] : [];
+
+            // Check if the product is already in the cart
+            const existingProductIndex = userCart.findIndex(item => item.productId === offerData.productId);
+
+            if (existingProductIndex !== -1) {
+                // If the product is found, increment the quantity in place
+                const updatedCart = [...userCart];
+                updatedCart[existingProductIndex].quantity = (updatedCart[existingProductIndex].quantity || 0) + 1;
+
+                // Update the user's cart document with the new quantity
+                await updateDoc(userRef, { cart: updatedCart });
+
+                console.log("Product quantity incremented in cart for user:", userId);
+                alert("Product quantity updated in your cart!");
+            } else {
+                // If the product is not in the cart, add it as a new product
+                userCart.push({
+                    productUrls: offerData.product_url,
+                    productId: offerData.productId,
+                    productName: offerData.productName,
+                    productSku: offerData.productSku,
+                    imageUrls: offerData.image_urls,
+                    price: offerData.price,
+                    discount: offerData.discount,
+                    quantity: 1, // Starting quantity
+                    timestamp: new Date(),
+                });
+
+                // Update the user's cart document with the new product
+                await updateDoc(userRef, { cart: userCart });
+
+                console.log("Product added to cart for user:", userId);
+                alert("Product added to your cart!");
+            }
+
+            setIsCartOpen(true); // Open the cart after adding/updating
+        } catch (error) {
+            console.error("Error adding product to cart:", error);
+            alert("Error adding product to cart.");
+        }
     };
 
     const closeCart = () => {
@@ -26,16 +122,69 @@ const productDetails = () => {
         setSelectedOption(event.target.value);
     };
 
-    const handleQuantityChange = (e) => {
-        const value = Math.max(1, parseInt(e.target.value, 10)); // Ensure quantity is at least 1
-        setQuantity(value);
-    };
+    useEffect(() => {
+        const fetchAndFilter = () => {
+            const brand = searchParams.get('brand');
+            console.log('Title from URL:', brand);
 
-    const incrementQuantity = () => setQuantity(prev => Math.min(99, prev + 1)); // Max 99
-    const decrementQuantity = () => setQuantity(prev => Math.max(1, prev - 1)); // Min 1
+            if (brand) {
+                const filtered = bestOffer.filter((product) => {
+                    if (!product.productName) {
+                        console.warn('Missing brand data for product:', product);
+                        return false;
+                    }
+                    return product.productName.toLowerCase().includes(brand.toLowerCase());
+                });
 
-    const removeFromCart = async (productId, e) => {
-        e.preventDefault()
+                // If no specific products match the filter, display all products
+                if (filtered.length === 0) {
+                    console.warn('No matching products found. Displaying all products.');
+                    setFilteredProducts(bestOffer);
+                } else {
+                    setFilteredProducts(filtered);
+                }
+            } else {
+                setFilteredProducts(bestOffer);
+            }
+
+            setProducts(bestOffer);
+        };
+
+        fetchAndFilter();
+    }, [searchParams]);
+
+    useEffect(() => {
+        // Fetch the current user's cart items
+        const fetchCart = async () => {
+            const userData = localStorage.getItem('currentUser');
+
+            if (!userData) {
+                alert("Please log in first.");
+                return; // Exit if no user is logged in
+            }
+
+            const user = JSON.parse(userData); // Parse the user data from localStorage
+
+            try {
+                // Get the user's cart data from Firestore
+                const userRef = doc(fireStore, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const cartData = userDoc.data().cart || []; // Retrieve the cart data from the user document
+                    setCartItems(cartData); // Set the cart items to state
+                } else {
+                    console.log("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error fetching cart data:", error);
+            }
+        };
+
+        fetchCart(); // Call the fetchCart function to retrieve cart items
+    }, []);
+
+    const removeFromCart = async (productId) => {
         const userData = localStorage.getItem('currentUser');
         if (!userData) {
             alert("Please log in first.");
@@ -62,8 +211,7 @@ const productDetails = () => {
         }
     };
 
-    const changeQuantity = async (productId, newQuantity, e) => {
-        e.preventDefault()
+    const changeQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
             alert("Quantity cannot be less than 1.");
             return;
@@ -100,47 +248,13 @@ const productDetails = () => {
         }
     };
 
-    const handleCheckout = (e) => {
-        e.preventDefault();
-        router.push('/home/checkout');
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
     };
 
-    useEffect(() => {
-        // Fetch the current user's cart items
-        const fetchCart = async () => {
-            // Retrieve user data from localStorage
-            const userData = localStorage.getItem('currentUser');
-
-            if (!userData) {
-                alert("Please log in first.");
-                return; // Exit if no user is logged in
-            }
-
-            const user = JSON.parse(userData); // Parse the user data from localStorage
-
-            try {
-                // Get the user's cart data from Firestore
-                const userRef = doc(fireStore, "users", user.uid);
-                const userDoc = await getDoc(userRef);
-
-                if (userDoc.exists()) {
-                    const cartData = userDoc.data().cart || []; // Retrieve the cart data from the user document
-                    setCartItems(cartData); // Set the cart items to state
-                } else {
-                    console.log("User document not found.");
-                }
-            } catch (error) {
-                console.error("Error fetching cart data:", error);
-            }
-        };
-
-        fetchCart(); // Call the fetchCart function to retrieve cart items
-    }, [])
-
-    const handleAddToCart = (e) => {
-        e.preventDefault();
-        // Handle adding the item to cart logic here
-        console.log(`Adding ${quantity} items to the cart`);
+    const handleCheckout = () => {
+       
+        router.push('/home/checkout');
     };
 
     const handleViewCart = () => {
@@ -190,42 +304,42 @@ const productDetails = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="vc_row wpb_row vc_row-fluid vc_row-o-equal-height vc_row-flex wd-rs-63c961a47cbd5">
-                                        <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column wd_sticky_offset_150 wd-rs-63c80f01d23e4">
-                                            <div
-                                                className="vc_column-inner vc_custom_1674055430857"
-                                                style={{
-                                                    position: "relative",
-                                                }}>
+                                    {filteredProducts.map((item, index) => (
+                                        <div className="vc_row wpb_row vc_row-fluid vc_row-o-equal-height vc_row-flex wd-rs-63c961a47cbd5" key={index}>
+                                            <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column wd_sticky_offset_150 wd-rs-63c80f01d23e4">
                                                 <div
-                                                    className="wpb_wrapper is_stuck"
+                                                    className="vc_column-inner vc_custom_1674055430857"
                                                     style={{
-                                                        position: "sticky",
-                                                        top: "150px",
+                                                        position: "relative",
                                                     }}>
-                                                    <div className="wd-single-gallery wd-wpb wd-rs-6309cbf997419 vc_custom_1661586460519">
-                                                        <div
-                                                            className="woocommerce-product-gallery woocommerce-product-gallery--with-images woocommerce-product-gallery--columns-4 images wd-has-thumb thumbs-position-left wd-thumbs-wrap images image-action-zoom"
-                                                            style={{
-                                                                "--wd-thumbs-height": "594px",
-                                                                opacity: "1",
-                                                            }}>
-                                                            <div className="wd-carousel-container wd-gallery-images">
-                                                                <div className="wd-carousel-inner">
+                                                    <div
+                                                        className="wpb_wrapper is_stuck"
+                                                        style={{
+                                                            position: "sticky",
+                                                            top: "150px",
+                                                        }}>
+                                                        <div className="wd-single-gallery wd-wpb wd-rs-6309cbf997419 vc_custom_1661586460519">
+                                                            <div
+                                                                className="woocommerce-product-gallery woocommerce-product-gallery--with-images woocommerce-product-gallery--columns-4 images wd-has-thumb thumbs-position-left wd-thumbs-wrap images image-action-zoom"
+                                                                style={{
+                                                                    "--wd-thumbs-height": "594px",
+                                                                    opacity: "1",
+                                                                }}>
+                                                                <div className="wd-carousel-container wd-gallery-images">
+                                                                    <div className="wd-carousel-inner">
 
-                                                                    <figure
-                                                                        className="woocommerce-product-gallery__wrapper wd-carousel wd-grid wd-initialized wd-horizontal wd-backface-hidden"
-                                                                        style={{
-                                                                            "--wd-col-lg": "1",
-                                                                            "--wd-col-md": "1",
-                                                                            "--wd-col-sm": "1",
-                                                                        }}>
-                                                                        <div
-                                                                            className="wd-carousel-wrap"
+                                                                        <figure
+                                                                            className="woocommerce-product-gallery__wrapper wd-carousel wd-grid wd-initialized wd-horizontal wd-backface-hidden"
                                                                             style={{
-                                                                                cursor: "grab",
+                                                                                "--wd-col-lg": "1",
+                                                                                "--wd-col-md": "1",
+                                                                                "--wd-col-sm": "1",
                                                                             }}>
-                                                                            {cartItems.map((item, index) => (
+                                                                            <div
+                                                                                className="wd-carousel-wrap"
+                                                                                style={{
+                                                                                    cursor: "grab",
+                                                                                }}>
                                                                                 <div
                                                                                     className={`wd-carousel-item ${index === 0 ? "wd-active" : ""}`}
                                                                                     key={item.productId}
@@ -235,7 +349,7 @@ const productDetails = () => {
                                                                                 >
                                                                                     <figure
                                                                                         className="woocommerce-product-gallery__image"
-                                                                                        data-thumb={item.imageUrls} // Dynamically set thumbnail URL
+                                                                                        data-thumb={item.image_url || ""} // Dynamically set thumbnail URL (first image or empty string)
                                                                                         style={{
                                                                                             overflow: "hidden",
                                                                                             position: "relative",
@@ -243,36 +357,35 @@ const productDetails = () => {
                                                                                     >
                                                                                         <a
                                                                                             data-elementor-open-lightbox="no"
-                                                                                            href={item.imageUrls} // Link to the image URL
+                                                                                            href={item.image_url || "#"} // Link to the first image URL or fallback
                                                                                         >
                                                                                             <img
-                                                                                                alt={item.title || "Product Image"} // Dynamically set alt text
+                                                                                                alt={item.productName || "Product Image"} // Dynamically set alt text from productName
                                                                                                 className="wp-post-image imagify-no-webp wp-post-image"
                                                                                                 decoding="async"
                                                                                                 fetchPriority="high"
                                                                                                 height="800"
                                                                                                 sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                src={item.imageUrls} // Use first image URL
-                                                                                                title={item.title || "Product Image"} // Dynamically set title
+                                                                                                src={item.image_url || "https://via.placeholder.com/700x800?text=No+Image"} // Use first image URL or placeholder
+                                                                                                title={item.productName || "Product Image"} // Dynamically set title
                                                                                                 width="700"
                                                                                             />
                                                                                         </a>
-
                                                                                     </figure>
                                                                                 </div>
-                                                                            ))}
 
-                                                                        </div>
-                                                                    </figure>
+                                                                            </div>
+                                                                        </figure>
 
-                                                                    <div className="product-additional-galleries">
-                                                                        <div className="wd-show-product-gallery-wrap wd-action-btn wd-style-icon-bg-text wd-gallery-btn">
-                                                                            <a
-                                                                                className="woodmart-show-product-gallery"
+                                                                        <div className="product-additional-galleries">
+                                                                            <div className="wd-show-product-gallery-wrap wd-action-btn wd-style-icon-bg-text wd-gallery-btn">
+                                                                                <a
+                                                                                    className="woodmart-show-product-gallery"
 
-                                                                                rel="nofollow">
-                                                                                <span>Click to enlarge</span>
-                                                                            </a>
+                                                                                    rel="nofollow">
+                                                                                    <span>Click to enlarge</span>
+                                                                                </a>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -281,466 +394,456 @@ const productDetails = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column wd_sticky_offset_150 wd-rs-63c9614087a6e">
-                                            <div className="vc_column-inner vc_custom_1674142019727">
-                                                <div className="wpb_wrapper">
-                                                    <div className="wd-single-title wd-wpb wd-rs-6390a9d10a24e wd-enabled-width vc_custom_1670425100192 text-left">
-                                                        <h1 className="product_title entry-title wd-entities-title">
-                                                            Oculus Quest 2
-                                                        </h1>
-                                                    </div>
-                                                    <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63c960dc91465">
-                                                        <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-63c16c51d2bb9">
-                                                            <div className="vc_column-inner vc_custom_1673620565601">
-                                                                <div className="wpb_wrapper">
-                                                                    <div className="wd-single-rating wd-wpb wd-rs-63515eaf9ecf7 wd-enabled-width vc_custom_1666277043647 text-left">
-                                                                        <div className="woocommerce-product-rating">
-                                                                            <div
-                                                                                aria-label="Rated 5.00 out of 5"
-                                                                                className="star-rating"
-                                                                                role="img">
-                                                                                <span
-                                                                                    style={{
-                                                                                        width: "100%",
-                                                                                    }}>
-                                                                                    Rated
-                                                                                    <strong className="rating">5.00</strong> out
-                                                                                    of 5 based on
-                                                                                    <span className="rating">2</span> customer
-                                                                                    ratings
-                                                                                </span>
-                                                                            </div>
-                                                                            <a
-                                                                                className="woocommerce-review-link"
-                                                                                href="#reviews"
-                                                                                rel="nofollow">
-                                                                                (<span className="count">2</span> customer
-                                                                                reviews)
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="wd-single-meta wd-wpb wd-rs-63515eb300c21 wd-enabled-width vc_custom_1666277049247 text-left">
-                                                                        <div className="product_meta wd-layout-inline">
-                                                                            <span className="sku_wrapper">
-                                                                                <span className="meta-label">SKU:</span>
-                                                                                <span className="sku">608069</span>
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                            <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column wd_sticky_offset_150 wd-rs-63c9614087a6e">
+                                                <div className="vc_column-inner vc_custom_1674142019727">
+                                                    <div className="wpb_wrapper">
+                                                        <div className="wd-single-title wd-wpb wd-rs-6390a9d10a24e wd-enabled-width vc_custom_1670425100192 text-left">
+                                                            <h1 className="product_title entry-title wd-entities-title">
+                                                                {item.productName}
+                                                            </h1>
                                                         </div>
-                                                    </div>
-                                                    <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666278566087 vc_row-has-fill wd-rs-635164a092f94">
-                                                        <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-6351551373f96">
-                                                            <div className="vc_column-inner vc_custom_1666274584416">
-                                                                <div className="wpb_wrapper">
-                                                                    <div
-                                                                        className="wd-image wd-wpb wd-rs-6351641f2eb53 text-left vc_custom_1666278440432 inline-element"
-                                                                        id="wd-6351641f2eb53">
-                                                                        <img
-                                                                            decoding="async"
-                                                                            height="32"
-                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/promotions.svg"
-                                                                            title="promotions"
-                                                                            width="32"
-                                                                        />
-                                                                    </div>
-                                                                    <div
-                                                                        className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63da234e04f15 wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1675240275015 wd-underline-colored"
-                                                                        id="wd-63da234e04f15">
-                                                                        <div className="liner-continer">
-                                                                            <h4 className="woodmart-title-container title  wd-font-weight- wd-fontsize-m">
-                                                                                Apple Shopping Event
-                                                                            </h4>
-                                                                        </div>
-                                                                        <div className="title-after_title reset-last-child  wd-fontsize-xs">
-                                                                            Hurry and get discounts on all Apple devices up
-                                                                            to 20%
-                                                                        </div>
-                                                                    </div>
-                                                                    <div
-                                                                        className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63b815c9407f5 text-left wd-font-weight-600 color-primary wd-fontsize-custom vc_custom_1673008596198"
-                                                                        id="wd-63b815c9407f5">
-                                                                        <p>Sale_coupon_15</p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="vc_row wpb_row vc_inner vc_row-fluid">
-                                                        <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-63c961da69c5c">
-                                                            <div className="vc_column-inner vc_custom_1674142174161">
-                                                                <div className="wpb_wrapper">
-                                                                    <div className="wd-single-price wd-wpb wd-rs-63c811812f7ea wd-enabled-width vc_custom_1674056069124 text-left">
-                                                                        <p className="price">
-                                                                            <del aria-hidden="true">
-                                                                                <span className="woocommerce-Price-amount amount">
-                                                                                    <bdi>
-                                                                                        <span className="woocommerce-Price-currencySymbol">
-                                                                                            $
-                                                                                        </span>
-                                                                                        499.00
-                                                                                    </bdi>
-                                                                                </span>
-                                                                            </del>
-                                                                            <span className="screen-reader-text">
-                                                                                Original price was: $499.00.
-                                                                            </span>
-                                                                            <ins aria-hidden="true">
-                                                                                <span className="woocommerce-Price-amount amount">
-                                                                                    <bdi>
-                                                                                        <span className="woocommerce-Price-currencySymbol">
-                                                                                            $
-                                                                                        </span>
-                                                                                        449.00
-                                                                                    </bdi>
-                                                                                </span>
-                                                                            </ins>
-                                                                            <span className="screen-reader-text">
-                                                                                Current price is: $449.00.
-                                                                            </span>
-                                                                        </p>
-                                                                    </div>
-                                                                    <div className="wd-single-stock-status wd-wpb wd-rs-63c9619e0428e wd-enabled-width vc_custom_1674142114518"></div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="wd-single-countdown wd-wpb wd-rs-635160d715add wd-enabled-width vc_custom_1666277599876 text-left" />
-                                                    <div className="wd-single-add-cart wd-wpb wd-rs-63e21fb628f6d wd-enabled-width vc_custom_1675763666068 text-left wd-btn-design-full wd-design-default wd-swatch-layout-default wd-stock-status-off">
-                                                        <form className="cart" onSubmit={handleAddToCart}>
-                                                            <div className="quantity">
-                                                                <button
-                                                                    type="button"
-                                                                    className="minus btn"
-                                                                    onClick={decrementQuantity}
-                                                                >
-                                                                    -
-                                                                </button>
-                                                                <label className="screen-reader-text" htmlFor="quantity">
-                                                                    Oculus Quest 2 quantity
-                                                                </label>
-                                                                <input
-                                                                    aria-label="Product quantity"
-                                                                    autoComplete="off"
-                                                                    className="input-text qty text"
-                                                                    value={quantity}
-                                                                    id="quantity"
-                                                                    inputMode="numeric"
-                                                                    min="1"
-                                                                    name="quantity"
-                                                                    onChange={handleQuantityChange}
-                                                                    step="1"
-                                                                    type="number"
-                                                                />
-                                                                <button
-                                                                    type="button"
-                                                                    className="plus btn"
-                                                                    onClick={incrementQuantity}
-                                                                >
-                                                                    +
-                                                                </button>
-                                                            </div>
-
-                                                            <button
-                                                                className="single_add_to_cart_button button alt"
-                                                                name="add-to-cart"
-                                                                type="submit"
-                                                                value="2435"
-                                                                onClick={openCart}
-                                                            >
-                                                                Add to cart
-                                                            </button>
-
-                                                            <button
-                                                                className="wd-buy-now-btn button alt"
-                                                                id="wd-add-to-cart"
-                                                                name="wd-add-to-cart"
-                                                                onClick={handleCheckout}
-                                                                type="button" // changed to "button" to prevent form submission
-                                                                value="2435"
-                                                            >
-                                                                Buy now
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                    <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1644414902227">
-                                                        <span className="vc_sep_holder vc_sep_holder_l">
-                                                            <span className="vc_sep_line" />
-                                                        </span>
-                                                        <span className="vc_sep_holder vc_sep_holder_r">
-                                                            <span className="vc_sep_line" />
-                                                        </span>
-                                                    </div>
-                                                    <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1675240747389 wd-rs-63da25268a823">
-                                                        <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-lg-7 wd-enabled-flex wd-rs-632091ba53b3e">
-                                                            <div className="vc_column-inner vc_custom_1663078849081">
-                                                                <div className="wpb_wrapper">
-                                                                    <div className="wd-single-action-btn wd-single-compare-btn wd-wpb wd-rs-632daa1fc06be wd-enabled-width vc_custom_1663937059655 text-left">
-                                                                        <div className="wd-compare-btn product-compare-button wd-action-btn wd-compare-icon wd-style-text">
-                                                                            <a
-                                                                                data-added-text="Compare products"
-                                                                                data-id="2435"
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2435"
-                                                                                rel="nofollow">
-                                                                                <span>Compare</span>
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="wd-single-action-btn wd-single-wishlist-btn wd-wpb wd-rs-632daa24d1169 wd-enabled-width vc_custom_1663937064916 text-left">
-                                                                        <div className="wd-wishlist-btn wd-action-btn wd-wishlist-icon wd-style-text">
-                                                                            <a
-                                                                                className=""
-                                                                                data-added-text="Browse Wishlist"
-                                                                                data-key="44768c5fb7"
-                                                                                data-product-id="2435"
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
-                                                                                rel="nofollow">
-                                                                                <span>Add to wishlist</span>
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-lg-5 wd-enabled-flex wd-rs-632091d71eeaa">
-                                                            <div className="vc_column-inner">
-                                                                <div className="wpb_wrapper">
-                                                                    <div
-                                                                        className=" wd-rs-635160fd64578 wd-enabled-width wd-social-icons vc_custom_1666277639691 wd-layout-inline wd-style-default wd-size-small social-share wd-shape-circle color-scheme-dark text-left"
-                                                                        id="">
-                                                                        <span className="wd-label">Share: </span>
-                                                                        <a
-                                                                            aria-label="Facebook social link"
-                                                                            className=" wd-social-icon social-facebook"
-                                                                            href="https://www.facebook.com/sharer/sharer.php?u=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                                                            rel="noopener noreferrer nofollow"
-                                                                            target="_blank">
-                                                                            <span className="wd-icon" />
-                                                                        </a>
-                                                                        <a
-                                                                            aria-label="X social link"
-                                                                            className=" wd-social-icon social-twitter"
-                                                                            href="https://x.com/share?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                                                            rel="noopener noreferrer nofollow"
-                                                                            target="_blank">
-                                                                            <span className="wd-icon" />
-                                                                        </a>
-                                                                        <a
-                                                                            aria-label="Pinterest social link"
-                                                                            className=" wd-social-icon social-pinterest"
-                                                                            href="https://pinterest.com/pin/create/button/?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/&media=https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg&description=Oculus+Quest+2"
-                                                                            rel="noopener noreferrer nofollow"
-                                                                            target="_blank">
-                                                                            <span className="wd-icon" />
-                                                                        </a>
-                                                                        <a
-                                                                            aria-label="Linkedin social link"
-                                                                            className=" wd-social-icon social-linkedin"
-                                                                            href="https://www.linkedin.com/shareArticle?mini=true&url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                                                            rel="noopener noreferrer nofollow"
-                                                                            target="_blank">
-                                                                            <span className="wd-icon" />
-                                                                        </a>
-                                                                        <a
-                                                                            aria-label="Telegram social link"
-                                                                            className=" wd-social-icon social-tg"
-                                                                            href="https://telegram.me/share/url?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                                                            rel="noopener noreferrer nofollow"
-                                                                            target="_blank">
-                                                                            <span className="wd-icon" />
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div
-                                                        className="wd-product-info wd-visits-count wd-wpb wd-rs-63516115f0a98 vc_custom_1666277662511 wd-style-with-bg"
-                                                        data-product-id="2435">
-                                                        <span className="wd-info-icon" />
-                                                        <span className="wd-info-number">18</span>
-                                                        <span className="wd-info-msg">
-                                                            People watching this product now!
-                                                        </span>
-                                                    </div>
-                                                    <style
-                                                        dangerouslySetInnerHTML={{
-                                                            __html:
-                                                                '.vc_custom_1666276610354{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: 0px !important;border-top-width: 1px !important;border-right-width: 1px !important;border-bottom-width: 1px !important;border-left-width: 1px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;border-left-color: rgba(0,0,0,0.11) !important;border-left-style: solid !important;border-right-color: rgba(0,0,0,0.11) !important;border-right-style: solid !important;border-top-color: rgba(0,0,0,0.11) !important;border-top-style: solid !important;border-bottom-color: rgba(0,0,0,0.11) !important;border-bottom-style: solid !important;border-radius: 10px !important;}.vc_custom_1666276493900{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: 0px !important;border-top-width: 1px !important;border-right-width: 1px !important;border-bottom-width: 1px !important;border-left-width: 1px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;border-left-color: rgba(0,0,0,0.11) !important;border-left-style: solid !important;border-right-color: rgba(0,0,0,0.11) !important;border-right-style: solid !important;border-top-color: rgba(0,0,0,0.11) !important;border-top-style: solid !important;border-bottom-color: rgba(0,0,0,0.11) !important;border-bottom-style: solid !important;border-radius: 10px !important;}.vc_custom_1666276412018{padding-top: 0px !important;}.vc_custom_1666276299558{margin-bottom: 20px !important;}.vc_custom_1666276211555{margin-bottom: 20px !important;}.vc_custom_1666279911914{padding-top: 0px !important;}.vc_custom_1666279917143{padding-top: 0px !important;}.vc_custom_1675240348630{margin-bottom: 10px !important;}.vc_custom_1666279994022{margin-bottom: 0px !important;}.vc_custom_1666275735231{margin-bottom: 0px !important;}.vc_custom_1666279964257{padding-top: 0px !important;}.vc_custom_1666279969234{padding-top: 0px !important;}.vc_custom_1675240359200{margin-bottom: 10px !important;}.vc_custom_1666275830183{margin-bottom: 0px !important;}.vc_custom_1666276843606{margin-bottom: 0px !important;}.vc_custom_1666276851509{margin-bottom: 0px !important;}.vc_custom_1666279923554{padding-top: 0px !important;}.vc_custom_1666279929111{padding-top: 0px !important;}.vc_custom_1675240366945{margin-bottom: 10px !important;}.vc_custom_1666276333505{margin-bottom: 0px !important;}.vc_custom_1666276338706{margin-bottom: 0px !important;}.vc_custom_1666275735231{margin-bottom: 0px !important;}.vc_custom_1666276412018{padding-top: 0px !important;}.vc_custom_1666276299558{margin-bottom: 20px !important;}.vc_custom_1666279829826{padding-top: 0px !important;}.vc_custom_1666279835418{padding-top: 0px !important;}.vc_custom_1675240375283{margin-bottom: 10px !important;}.vc_custom_1666276670303{margin-bottom: 0px !important;}.vc_custom_1666279850289{padding-top: 0px !important;}.vc_custom_1666279855663{padding-top: 0px !important;}.vc_custom_1675240382222{margin-bottom: 10px !important;}.vc_custom_1666276745123{margin-bottom: 0px !important;}.wd-rs-635169e7141f1 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da2392bba88 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da2392bba88.wd-list{--li-mb: 10px;}.wd-rs-63516a1bc3872 > .vc_column-inner > .wpb_wrapper{justify-content: space-between}.wd-rs-63da239f9d9f2 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da239f9d9f2.wd-list{--li-mb: 10px;}.wd-rs-635169f2e8756 > .vc_column-inner > .wpb_wrapper{justify-content: space-between}.wd-rs-63da23a9e6a2c .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23a9e6a2c.wd-list{--li-mb: 10px;}.wd-rs-635169952cd4f > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da23b25b2b7 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23b25b2b7.wd-list{--li-mb: 10px;}.wd-rs-635169a96f9a0 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da23b8b68cf .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23b8b68cf.wd-list{--li-mb: 10px;}@media (max-width: 767px) { .wd-rs-635169e7141f1 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63516a1bc3872 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-635169f2e8756 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end} }#wd-63da2392bba88 li{color:rgba(16,16,16,0.9);}#wd-63da239f9d9f2 li{color:rgba(16,16,16,0.9);}#wd-63da23a9e6a2c li{color:rgba(16,16,16,0.9);}#wd-63da23b25b2b7 li{color:rgba(16,16,16,0.9);}#wd-63da23b8b68cf li{color:rgba(16,16,16,0.9);}@media (max-width: 767px) {.website-wrapper .wd-rs-635169e02438d > .vc_column-inner{margin-bottom:10px !important;}.website-wrapper .wd-rs-63516a32a555f{margin-bottom:10px !important;}.website-wrapper .wd-rs-63516a16edbdb > .vc_column-inner{margin-bottom:10px !important;}.website-wrapper .wd-rs-635169ed5c1db > .vc_column-inner{margin-bottom:10px !important;}}',
-                                                        }}
-                                                        data-type="vc_shortcodes-custom-css"
-                                                    />
-                                                    <div className="wpb-content-wrapper">
-                                                        <div className="vc_row wpb_row vc_row-fluid vc_custom_1666276610354 vc_row-has-fill wd-rs-63515cfcb6953">
-                                                            <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63515c3613791">
-                                                                <div className="vc_column-inner vc_custom_1666276412018">
+                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63c960dc91465">
+                                                            <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-63c16c51d2bb9">
+                                                                <div className="vc_column-inner vc_custom_1673620565601">
                                                                     <div className="wpb_wrapper">
-                                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276299558 vc_row-o-content-middle vc_row-flex wd-rs-63515bc78fadd">
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169e02438d">
-                                                                                <div className="vc_column-inner vc_custom_1666279911914">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <ul
-                                                                                            className=" wd-rs-63da2392bba88 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240348630"
-                                                                                            id="wd-63da2392bba88">
-                                                                                            <li>
-                                                                                                <span className="wd-icon list-icon far fa-bell">
-                                                                                                    <img
-                                                                                                        decoding="async"
-                                                                                                        height="24"
-                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/store.svg"
-                                                                                                        title="store"
-                                                                                                        width="24"
-                                                                                                    />
-                                                                                                </span>
-                                                                                                <span className="wd-list-content list-content">
-                                                                                                    Pick up from the Woodmart Store
-                                                                                                </span>
-                                                                                            </li>
-                                                                                        </ul>
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63516a32a555f text-left vc_custom_1666279994022"
-                                                                                            id="wd-63516a32a555f">
-                                                                                            <p>To pick up today</p>
-                                                                                        </div>
-                                                                                    </div>
+                                                                        <div className="wd-single-rating wd-wpb wd-rs-63515eaf9ecf7 wd-enabled-width vc_custom_1666277043647 text-left">
+                                                                            <div className="woocommerce-product-rating">
+                                                                                <div className="star-rating" role="img" aria-label={`Rated ${item.rating} out of 5`}>
+                                                                                    <span style={{ width: `${(item.rating / 5) * 100}%` }}>
+                                                                                        Rated <strong className="rating">{item.rating}</strong> out of 5
+                                                                                    </span>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169e7141f1">
-                                                                                <div className="vc_column-inner vc_custom_1666279917143">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515990493f3 text-right wd-font-weight-600 color-title vc_custom_1666275735231"
-                                                                                            id="wd-63515990493f3">
-                                                                                            <p>Free</p>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
+                                                                                <a
+                                                                                    className="woocommerce-review-link"
+                                                                                    href="#reviews"
+                                                                                    rel="nofollow">
+                                                                                    (<span className="count">2</span> customer
+                                                                                    reviews)
+                                                                                </a>
                                                                             </div>
                                                                         </div>
-                                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276211555 vc_row-o-content-middle vc_row-flex wd-rs-63515b6ea370d">
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-63516a16edbdb">
-                                                                                <div className="vc_column-inner vc_custom_1666279964257">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <ul
-                                                                                            className=" wd-rs-63da239f9d9f2 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240359200"
-                                                                                            id="wd-63da239f9d9f2">
-                                                                                            <li>
-                                                                                                <span className="wd-icon list-icon far fa-bell">
-                                                                                                    <img
-                                                                                                        className="entered lazyloaded"
-                                                                                                        data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/delivery-car.svg"
-                                                                                                        data-ll-status="loaded"
-                                                                                                        decoding="async"
-                                                                                                        height="24"
-                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/delivery-car.svg"
-                                                                                                        title="delivery-car"
-                                                                                                        width="24"
-                                                                                                    />
-                                                                                                    <noscript>
+                                                                        <div className="wd-single-meta wd-wpb wd-rs-63515eb300c21 wd-enabled-width vc_custom_1666277049247 text-left">
+                                                                            <div className="product_meta wd-layout-inline">
+                                                                                <span className="sku_wrapper">
+                                                                                    <span className="meta-label">SKU:</span>
+                                                                                    <span className="sku">{item.productSku}</span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666278566087 vc_row-has-fill wd-rs-635164a092f94">
+                                                            <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-6351551373f96">
+                                                                <div className="vc_column-inner vc_custom_1666274584416">
+                                                                    <div className="wpb_wrapper">
+                                                                        <div
+                                                                            className="wd-image wd-wpb wd-rs-6351641f2eb53 text-left vc_custom_1666278440432 inline-element"
+                                                                            id="wd-6351641f2eb53">
+                                                                            <img
+                                                                                decoding="async"
+                                                                                height="32"
+                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/promotions.svg"
+                                                                                title="promotions"
+                                                                                width="32"
+                                                                            />
+                                                                        </div>
+                                                                        <div
+                                                                            className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63da234e04f15 wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1675240275015 wd-underline-colored"
+                                                                            id="wd-63da234e04f15">
+                                                                            <div className="liner-continer">
+                                                                                <h4 className="woodmart-title-container title  wd-font-weight- wd-fontsize-m">
+                                                                                    Apple Shopping Event
+                                                                                </h4>
+                                                                            </div>
+                                                                            <div className="title-after_title reset-last-child  wd-fontsize-xs">
+                                                                                Hurry and get discounts on all Apple devices up
+                                                                                to 20%
+                                                                            </div>
+                                                                        </div>
+                                                                        <div
+                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63b815c9407f5 text-left wd-font-weight-600 color-primary wd-fontsize-custom vc_custom_1673008596198"
+                                                                            id="wd-63b815c9407f5">
+                                                                            <p>Sale_coupon_15</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid">
+                                                            <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-63c961da69c5c">
+                                                                <div className="vc_column-inner vc_custom_1674142174161">
+                                                                    <div className="wpb_wrapper">
+                                                                        <div className="wd-single-price wd-wpb wd-rs-63c811812f7ea wd-enabled-width vc_custom_1674056069124 text-left">
+                                                                            <p className="price">
+                                                                                <del aria-hidden="true">
+                                                                                    <span className="woocommerce-Price-amount amount">
+                                                                                        <bdi>
+                                                                                            <span className="woocommerce-Price-currencySymbol">
+                                                                                                $
+                                                                                            </span>
+                                                                                            {item.price}
+                                                                                        </bdi>
+                                                                                    </span>
+                                                                                </del>
+                                                                                <span className="screen-reader-text">
+                                                                                    Original price was: {item.originalPrice}.
+                                                                                </span>
+                                                                                <ins aria-hidden="true">
+                                                                                    <span className="woocommerce-Price-amount amount">
+                                                                                        <bdi>
+                                                                                            <span className="woocommerce-Price-currencySymbol">
+                                                                                                $
+                                                                                            </span>
+                                                                                            {item.price}
+                                                                                        </bdi>
+                                                                                    </span>
+                                                                                </ins>
+                                                                                <span className="screen-reader-text">
+                                                                                    Current price is: $449.00.
+                                                                                </span>
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className="wd-single-stock-status wd-wpb wd-rs-63c9619e0428e wd-enabled-width vc_custom_1674142114518"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="wd-single-countdown wd-wpb wd-rs-635160d715add wd-enabled-width vc_custom_1666277599876 text-left" />
+                                                        <div className="wd-single-add-cart wd-wpb wd-rs-63e21fb628f6d wd-enabled-width vc_custom_1675763666068 text-left wd-btn-design-full wd-design-default wd-swatch-layout-default wd-stock-status-off">
+                                                            <form className="cart" >
+                                                                <div className="quantity">
+                                                                    <button
+                                                                        className="minus btn"
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault(); // Prevent default button action
+                                                                            changeQuantity(item.productId, item.quantity - 1);
+                                                                        }}
+                                                                    >
+                                                                        -
+                                                                    </button>
+                                                                    <input
+                                                                        className="input-text qty text"
+                                                                        value={item.quantity}
+                                                                        onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))}
+                                                                        type="number"
+                                                                    />
+                                                                    <button
+                                                                        className="plus btn"
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault(); // Prevent default button action
+                                                                            changeQuantity(item.productId, item.quantity + 1);
+                                                                        }}
+                                                                    >
+                                                                        +
+                                                                    </button>
+                                                                </div>
+
+                                                                <button
+                                                                    className="single_add_to_cart_button button alt"
+                                                                    name="add-to-cart"
+                                                                    type="submit"
+                                                                    value="2435"
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault(); // Prevent form submission
+                                                                        openCart(e, item);
+                                                                    }}
+                                                                >
+                                                                    Add to cart
+                                                                </button>
+
+                                                                <button
+                                                                    className="wd-buy-now-btn button alt"
+                                                                    id="wd-add-to-cart"
+                                                                    name="wd-add-to-cart"
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault(); // Prevent form submission
+                                                                        handleCheckout();
+                                                                    }}
+                                                                    type="button" // changed to "button" to prevent form submission
+                                                                    value="2435"
+                                                                >
+                                                                    Buy now
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                        <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1644414902227">
+                                                            <span className="vc_sep_holder vc_sep_holder_l">
+                                                                <span className="vc_sep_line" />
+                                                            </span>
+                                                            <span className="vc_sep_holder vc_sep_holder_r">
+                                                                <span className="vc_sep_line" />
+                                                            </span>
+                                                        </div>
+                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1675240747389 wd-rs-63da25268a823">
+                                                            <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-lg-7 wd-enabled-flex wd-rs-632091ba53b3e">
+                                                                <div className="vc_column-inner vc_custom_1663078849081">
+                                                                    <div className="wpb_wrapper">
+                                                                        <div className="wd-single-action-btn wd-single-compare-btn wd-wpb wd-rs-632daa1fc06be wd-enabled-width vc_custom_1663937059655 text-left">
+                                                                            <div className="wd-compare-btn product-compare-button wd-action-btn wd-compare-icon wd-style-text">
+                                                                                <a
+                                                                                    data-added-text="Compare products"
+                                                                                    data-id="2435"
+                                                                                    href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2435"
+                                                                                    rel="nofollow">
+                                                                                    <span>Compare</span>
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="wd-single-action-btn wd-single-wishlist-btn wd-wpb wd-rs-632daa24d1169 wd-enabled-width vc_custom_1663937064916 text-left">
+                                                                            <div className="wd-wishlist-btn wd-action-btn wd-wishlist-icon wd-style-text">
+                                                                                <a
+                                                                                    className=""
+                                                                                    data-added-text="Browse Wishlist"
+                                                                                    data-key="44768c5fb7"
+                                                                                    data-product-id="2435"
+                                                                                    href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
+                                                                                    rel="nofollow">
+                                                                                    <span>Add to wishlist</span>
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-lg-5 wd-enabled-flex wd-rs-632091d71eeaa">
+                                                                <div className="vc_column-inner">
+                                                                    <div className="wpb_wrapper">
+                                                                        <div
+                                                                            className=" wd-rs-635160fd64578 wd-enabled-width wd-social-icons vc_custom_1666277639691 wd-layout-inline wd-style-default wd-size-small social-share wd-shape-circle color-scheme-dark text-left"
+                                                                            id="">
+                                                                            <span className="wd-label">Share: </span>
+                                                                            <a
+                                                                                aria-label="Facebook social link"
+                                                                                className=" wd-social-icon social-facebook"
+                                                                                href="https://www.facebook.com/sharer/sharer.php?u=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                                                                rel="noopener noreferrer nofollow"
+                                                                                target="_blank">
+                                                                                <span className="wd-icon" />
+                                                                            </a>
+                                                                            <a
+                                                                                aria-label="X social link"
+                                                                                className=" wd-social-icon social-twitter"
+                                                                                href="https://x.com/share?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                                                                rel="noopener noreferrer nofollow"
+                                                                                target="_blank">
+                                                                                <span className="wd-icon" />
+                                                                            </a>
+                                                                            <a
+                                                                                aria-label="Pinterest social link"
+                                                                                className=" wd-social-icon social-pinterest"
+                                                                                href="https://pinterest.com/pin/create/button/?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/&media=https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg&description=Oculus+Quest+2"
+                                                                                rel="noopener noreferrer nofollow"
+                                                                                target="_blank">
+                                                                                <span className="wd-icon" />
+                                                                            </a>
+                                                                            <a
+                                                                                aria-label="Linkedin social link"
+                                                                                className=" wd-social-icon social-linkedin"
+                                                                                href="https://www.linkedin.com/shareArticle?mini=true&url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                                                                rel="noopener noreferrer nofollow"
+                                                                                target="_blank">
+                                                                                <span className="wd-icon" />
+                                                                            </a>
+                                                                            <a
+                                                                                aria-label="Telegram social link"
+                                                                                className=" wd-social-icon social-tg"
+                                                                                href="https://telegram.me/share/url?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                                                                rel="noopener noreferrer nofollow"
+                                                                                target="_blank">
+                                                                                <span className="wd-icon" />
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div
+                                                            className="wd-product-info wd-visits-count wd-wpb wd-rs-63516115f0a98 vc_custom_1666277662511 wd-style-with-bg"
+                                                            data-product-id="2435">
+                                                            <span className="wd-info-icon" />
+                                                            <span className="wd-info-number">18</span>
+                                                            <span className="wd-info-msg">
+                                                                People watching this product now!
+                                                            </span>
+                                                        </div>
+                                                        <style
+                                                            dangerouslySetInnerHTML={{
+                                                                __html:
+                                                                    '.vc_custom_1666276610354{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: 0px !important;border-top-width: 1px !important;border-right-width: 1px !important;border-bottom-width: 1px !important;border-left-width: 1px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;border-left-color: rgba(0,0,0,0.11) !important;border-left-style: solid !important;border-right-color: rgba(0,0,0,0.11) !important;border-right-style: solid !important;border-top-color: rgba(0,0,0,0.11) !important;border-top-style: solid !important;border-bottom-color: rgba(0,0,0,0.11) !important;border-bottom-style: solid !important;border-radius: 10px !important;}.vc_custom_1666276493900{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: 0px !important;border-top-width: 1px !important;border-right-width: 1px !important;border-bottom-width: 1px !important;border-left-width: 1px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;border-left-color: rgba(0,0,0,0.11) !important;border-left-style: solid !important;border-right-color: rgba(0,0,0,0.11) !important;border-right-style: solid !important;border-top-color: rgba(0,0,0,0.11) !important;border-top-style: solid !important;border-bottom-color: rgba(0,0,0,0.11) !important;border-bottom-style: solid !important;border-radius: 10px !important;}.vc_custom_1666276412018{padding-top: 0px !important;}.vc_custom_1666276299558{margin-bottom: 20px !important;}.vc_custom_1666276211555{margin-bottom: 20px !important;}.vc_custom_1666279911914{padding-top: 0px !important;}.vc_custom_1666279917143{padding-top: 0px !important;}.vc_custom_1675240348630{margin-bottom: 10px !important;}.vc_custom_1666279994022{margin-bottom: 0px !important;}.vc_custom_1666275735231{margin-bottom: 0px !important;}.vc_custom_1666279964257{padding-top: 0px !important;}.vc_custom_1666279969234{padding-top: 0px !important;}.vc_custom_1675240359200{margin-bottom: 10px !important;}.vc_custom_1666275830183{margin-bottom: 0px !important;}.vc_custom_1666276843606{margin-bottom: 0px !important;}.vc_custom_1666276851509{margin-bottom: 0px !important;}.vc_custom_1666279923554{padding-top: 0px !important;}.vc_custom_1666279929111{padding-top: 0px !important;}.vc_custom_1675240366945{margin-bottom: 10px !important;}.vc_custom_1666276333505{margin-bottom: 0px !important;}.vc_custom_1666276338706{margin-bottom: 0px !important;}.vc_custom_1666275735231{margin-bottom: 0px !important;}.vc_custom_1666276412018{padding-top: 0px !important;}.vc_custom_1666276299558{margin-bottom: 20px !important;}.vc_custom_1666279829826{padding-top: 0px !important;}.vc_custom_1666279835418{padding-top: 0px !important;}.vc_custom_1675240375283{margin-bottom: 10px !important;}.vc_custom_1666276670303{margin-bottom: 0px !important;}.vc_custom_1666279850289{padding-top: 0px !important;}.vc_custom_1666279855663{padding-top: 0px !important;}.vc_custom_1675240382222{margin-bottom: 10px !important;}.vc_custom_1666276745123{margin-bottom: 0px !important;}.wd-rs-635169e7141f1 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da2392bba88 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da2392bba88.wd-list{--li-mb: 10px;}.wd-rs-63516a1bc3872 > .vc_column-inner > .wpb_wrapper{justify-content: space-between}.wd-rs-63da239f9d9f2 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da239f9d9f2.wd-list{--li-mb: 10px;}.wd-rs-635169f2e8756 > .vc_column-inner > .wpb_wrapper{justify-content: space-between}.wd-rs-63da23a9e6a2c .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23a9e6a2c.wd-list{--li-mb: 10px;}.wd-rs-635169952cd4f > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da23b25b2b7 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23b25b2b7.wd-list{--li-mb: 10px;}.wd-rs-635169a96f9a0 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da23b8b68cf .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23b8b68cf.wd-list{--li-mb: 10px;}@media (max-width: 767px) { .wd-rs-635169e7141f1 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63516a1bc3872 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-635169f2e8756 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end} }#wd-63da2392bba88 li{color:rgba(16,16,16,0.9);}#wd-63da239f9d9f2 li{color:rgba(16,16,16,0.9);}#wd-63da23a9e6a2c li{color:rgba(16,16,16,0.9);}#wd-63da23b25b2b7 li{color:rgba(16,16,16,0.9);}#wd-63da23b8b68cf li{color:rgba(16,16,16,0.9);}@media (max-width: 767px) {.website-wrapper .wd-rs-635169e02438d > .vc_column-inner{margin-bottom:10px !important;}.website-wrapper .wd-rs-63516a32a555f{margin-bottom:10px !important;}.website-wrapper .wd-rs-63516a16edbdb > .vc_column-inner{margin-bottom:10px !important;}.website-wrapper .wd-rs-635169ed5c1db > .vc_column-inner{margin-bottom:10px !important;}}',
+                                                            }}
+                                                            data-type="vc_shortcodes-custom-css"
+                                                        />
+                                                        <div className="wpb-content-wrapper">
+                                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1666276610354 vc_row-has-fill wd-rs-63515cfcb6953">
+                                                                <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63515c3613791">
+                                                                    <div className="vc_column-inner vc_custom_1666276412018">
+                                                                        <div className="wpb_wrapper">
+                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276299558 vc_row-o-content-middle vc_row-flex wd-rs-63515bc78fadd">
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169e02438d">
+                                                                                    <div className="vc_column-inner vc_custom_1666279911914">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <ul
+                                                                                                className=" wd-rs-63da2392bba88 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240348630"
+                                                                                                id="wd-63da2392bba88">
+                                                                                                <li>
+                                                                                                    <span className="wd-icon list-icon far fa-bell">
                                                                                                         <img
                                                                                                             decoding="async"
                                                                                                             height="24"
-                                                                                                            loading="lazy"
+                                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/store.svg"
+                                                                                                            title="store"
+                                                                                                            width="24"
+                                                                                                        />
+                                                                                                    </span>
+                                                                                                    <span className="wd-list-content list-content">
+                                                                                                        Pick up from the Woodmart Store
+                                                                                                    </span>
+                                                                                                </li>
+                                                                                            </ul>
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63516a32a555f text-left vc_custom_1666279994022"
+                                                                                                id="wd-63516a32a555f">
+                                                                                                <p>To pick up today</p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169e7141f1">
+                                                                                    <div className="vc_column-inner vc_custom_1666279917143">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515990493f3 text-right wd-font-weight-600 color-title vc_custom_1666275735231"
+                                                                                                id="wd-63515990493f3">
+                                                                                                <p>Free</p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276211555 vc_row-o-content-middle vc_row-flex wd-rs-63515b6ea370d">
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-63516a16edbdb">
+                                                                                    <div className="vc_column-inner vc_custom_1666279964257">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <ul
+                                                                                                className=" wd-rs-63da239f9d9f2 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240359200"
+                                                                                                id="wd-63da239f9d9f2">
+                                                                                                <li>
+                                                                                                    <span className="wd-icon list-icon far fa-bell">
+                                                                                                        <img
+                                                                                                            className="entered lazyloaded"
+                                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/delivery-car.svg"
+                                                                                                            data-ll-status="loaded"
+                                                                                                            decoding="async"
+                                                                                                            height="24"
                                                                                                             src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/delivery-car.svg"
                                                                                                             title="delivery-car"
                                                                                                             width="24"
                                                                                                         />
-                                                                                                    </noscript>
-                                                                                                </span>
-                                                                                                <span className="wd-list-content list-content">
-                                                                                                    Courier delivery
-                                                                                                </span>
-                                                                                            </li>
-                                                                                        </ul>
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-635159f05c6a7 text-left vc_custom_1666275830183"
-                                                                                            id="wd-635159f05c6a7">
-                                                                                            <p>
-                                                                                                Our courier will deliver to the
-                                                                                                specified address
-                                                                                            </p>
+                                                                                                        <noscript>
+                                                                                                            <img
+                                                                                                                decoding="async"
+                                                                                                                height="24"
+                                                                                                                loading="lazy"
+                                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/delivery-car.svg"
+                                                                                                                title="delivery-car"
+                                                                                                                width="24"
+                                                                                                            />
+                                                                                                        </noscript>
+                                                                                                    </span>
+                                                                                                    <span className="wd-list-content list-content">
+                                                                                                        Courier delivery
+                                                                                                    </span>
+                                                                                                </li>
+                                                                                            </ul>
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-635159f05c6a7 text-left vc_custom_1666275830183"
+                                                                                                id="wd-635159f05c6a7">
+                                                                                                <p>
+                                                                                                    Our courier will deliver to the
+                                                                                                    specified address
+                                                                                                </p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-63516a1bc3872">
+                                                                                    <div className="vc_column-inner vc_custom_1666279969234">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515de1da1f5 text-right vc_custom_1666276843606"
+                                                                                                id="wd-63515de1da1f5">
+                                                                                                <p>2-3 Days</p>
+                                                                                            </div>
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515dec8375e text-right wd-font-weight-600 color-title vc_custom_1666276851509"
+                                                                                                id="wd-63515dec8375e">
+                                                                                                <p>Free</p>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-63516a1bc3872">
-                                                                                <div className="vc_column-inner vc_custom_1666279969234">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515de1da1f5 text-right vc_custom_1666276843606"
-                                                                                            id="wd-63515de1da1f5">
-                                                                                            <p>2-3 Days</p>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515dec8375e text-right wd-font-weight-600 color-title vc_custom_1666276851509"
-                                                                                            id="wd-63515dec8375e">
-                                                                                            <p>Free</p>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63515bf24aa07">
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169ed5c1db">
-                                                                                <div className="vc_column-inner vc_custom_1666279923554">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <ul
-                                                                                            className=" wd-rs-63da23a9e6a2c wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240366945"
-                                                                                            id="wd-63da23a9e6a2c">
-                                                                                            <li>
-                                                                                                <span className="wd-icon list-icon far fa-bell">
-                                                                                                    <img
-                                                                                                        className="entered lazyloaded"
-                                                                                                        data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/dhl-logo.svg"
-                                                                                                        data-ll-status="loaded"
-                                                                                                        decoding="async"
-                                                                                                        height="24"
-                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/dhl-logo.svg"
-                                                                                                        title="dhl-logo"
-                                                                                                        width="24"
-                                                                                                    />
-                                                                                                    <noscript>
+                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63515bf24aa07">
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169ed5c1db">
+                                                                                    <div className="vc_column-inner vc_custom_1666279923554">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <ul
+                                                                                                className=" wd-rs-63da23a9e6a2c wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240366945"
+                                                                                                id="wd-63da23a9e6a2c">
+                                                                                                <li>
+                                                                                                    <span className="wd-icon list-icon far fa-bell">
                                                                                                         <img
+                                                                                                            className="entered lazyloaded"
+                                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/dhl-logo.svg"
+                                                                                                            data-ll-status="loaded"
                                                                                                             decoding="async"
                                                                                                             height="24"
-                                                                                                            loading="lazy"
                                                                                                             src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/dhl-logo.svg"
                                                                                                             title="dhl-logo"
                                                                                                             width="24"
                                                                                                         />
-                                                                                                    </noscript>
-                                                                                                </span>
-                                                                                                <span className="wd-list-content list-content">
-                                                                                                    DHL Courier delivery
-                                                                                                </span>
-                                                                                            </li>
-                                                                                        </ul>
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515be7aebfa text-left vc_custom_1666276333505"
-                                                                                            id="wd-63515be7aebfa">
-                                                                                            <p>
-                                                                                                DHL courier will deliver to the
-                                                                                                specified address
-                                                                                            </p>
+                                                                                                        <noscript>
+                                                                                                            <img
+                                                                                                                decoding="async"
+                                                                                                                height="24"
+                                                                                                                loading="lazy"
+                                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/dhl-logo.svg"
+                                                                                                                title="dhl-logo"
+                                                                                                                width="24"
+                                                                                                            />
+                                                                                                        </noscript>
+                                                                                                    </span>
+                                                                                                    <span className="wd-list-content list-content">
+                                                                                                        DHL Courier delivery
+                                                                                                    </span>
+                                                                                                </li>
+                                                                                            </ul>
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515be7aebfa text-left vc_custom_1666276333505"
+                                                                                                id="wd-63515be7aebfa">
+                                                                                                <p>
+                                                                                                    DHL courier will deliver to the
+                                                                                                    specified address
+                                                                                                </p>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169f2e8756">
-                                                                                <div className="vc_column-inner vc_custom_1666279929111">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515becd4fe2 text-right vc_custom_1666276338706"
-                                                                                            id="wd-63515becd4fe2">
-                                                                                            <p>1-3 Days</p>
-                                                                                        </div>
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515990493f3 text-right wd-font-weight-600 color-title vc_custom_1666275735231"
-                                                                                            id="wd-63515990493f3">
-                                                                                            <p>Free</p>
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169f2e8756">
+                                                                                    <div className="vc_column-inner vc_custom_1666279929111">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515becd4fe2 text-right vc_custom_1666276338706"
+                                                                                                id="wd-63515becd4fe2">
+                                                                                                <p>1-3 Days</p>
+                                                                                            </div>
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515990493f3 text-right wd-font-weight-600 color-title vc_custom_1666275735231"
+                                                                                                id="wd-63515990493f3">
+                                                                                                <p>Free</p>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -749,136 +852,136 @@ const productDetails = () => {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="vc_row wpb_row vc_row-fluid vc_custom_1666276493900 vc_row-has-fill wd-rs-63515c885dbd5">
-                                                            <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63515c3613791">
-                                                                <div className="vc_column-inner vc_custom_1666276412018">
-                                                                    <div className="wpb_wrapper">
-                                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276299558 vc_row-o-content-middle vc_row-flex wd-rs-63515bc78fadd">
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-6351698bd6311">
-                                                                                <div className="vc_column-inner vc_custom_1666279829826">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <ul
-                                                                                            className=" wd-rs-63da23b25b2b7 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240375283"
-                                                                                            id="wd-63da23b25b2b7">
-                                                                                            <li>
-                                                                                                <span className="wd-icon list-icon far fa-bell">
-                                                                                                    <img
-                                                                                                        className="entered lazyloaded"
-                                                                                                        data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/warranty.svg"
-                                                                                                        data-ll-status="loaded"
-                                                                                                        decoding="async"
-                                                                                                        height="24"
-                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/warranty.svg"
-                                                                                                        title="warranty"
-                                                                                                        width="24"
-                                                                                                    />
-                                                                                                    <noscript>
+                                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1666276493900 vc_row-has-fill wd-rs-63515c885dbd5">
+                                                                <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63515c3613791">
+                                                                    <div className="vc_column-inner vc_custom_1666276412018">
+                                                                        <div className="wpb_wrapper">
+                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276299558 vc_row-o-content-middle vc_row-flex wd-rs-63515bc78fadd">
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-6351698bd6311">
+                                                                                    <div className="vc_column-inner vc_custom_1666279829826">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <ul
+                                                                                                className=" wd-rs-63da23b25b2b7 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240375283"
+                                                                                                id="wd-63da23b25b2b7">
+                                                                                                <li>
+                                                                                                    <span className="wd-icon list-icon far fa-bell">
                                                                                                         <img
+                                                                                                            className="entered lazyloaded"
+                                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/warranty.svg"
+                                                                                                            data-ll-status="loaded"
                                                                                                             decoding="async"
                                                                                                             height="24"
-                                                                                                            loading="lazy"
                                                                                                             src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/warranty.svg"
                                                                                                             title="warranty"
                                                                                                             width="24"
                                                                                                         />
-                                                                                                    </noscript>
-                                                                                                </span>
-                                                                                                <span className="wd-list-content list-content">
-                                                                                                    Warranty 1 year
-                                                                                                </span>
-                                                                                            </li>
-                                                                                        </ul>
+                                                                                                        <noscript>
+                                                                                                            <img
+                                                                                                                decoding="async"
+                                                                                                                height="24"
+                                                                                                                loading="lazy"
+                                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/warranty.svg"
+                                                                                                                title="warranty"
+                                                                                                                width="24"
+                                                                                                            />
+                                                                                                        </noscript>
+                                                                                                    </span>
+                                                                                                    <span className="wd-list-content list-content">
+                                                                                                        Warranty 1 year
+                                                                                                    </span>
+                                                                                                </li>
+                                                                                            </ul>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169952cd4f">
-                                                                                <div className="vc_column-inner vc_custom_1666279835418">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515d383c991 text-right vc_custom_1666276670303"
-                                                                                            id="wd-63515d383c991">
-                                                                                            <p>
-                                                                                                <span
-                                                                                                    style={{
-                                                                                                        color: "#1877f2",
-                                                                                                    }}>
-                                                                                                    <em>
-                                                                                                        <a
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169952cd4f">
+                                                                                    <div className="vc_column-inner vc_custom_1666279835418">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515d383c991 text-right vc_custom_1666276670303"
+                                                                                                id="wd-63515d383c991">
+                                                                                                <p>
+                                                                                                    <span
+                                                                                                        style={{
+                                                                                                            color: "#1877f2",
+                                                                                                        }}>
+                                                                                                        <em>
+                                                                                                            <a
 
-                                                                                                            style={{
-                                                                                                                color: "#1877f2",
-                                                                                                            }}>
-                                                                                                            More details
-                                                                                                        </a>
-                                                                                                    </em>
-                                                                                                </span>
-                                                                                            </p>
+                                                                                                                style={{
+                                                                                                                    color: "#1877f2",
+                                                                                                                }}>
+                                                                                                                More details
+                                                                                                            </a>
+                                                                                                        </em>
+                                                                                                    </span>
+                                                                                                </p>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
-                                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63515daa06ae4">
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169a331673">
-                                                                                <div className="vc_column-inner vc_custom_1666279850289">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <ul
-                                                                                            className=" wd-rs-63da23b8b68cf wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240382222"
-                                                                                            id="wd-63da23b8b68cf">
-                                                                                            <li>
-                                                                                                <span className="wd-icon list-icon far fa-bell">
-                                                                                                    <img
-                                                                                                        className="entered lazyloaded"
-                                                                                                        data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/return.svg"
-                                                                                                        data-ll-status="loaded"
-                                                                                                        decoding="async"
-                                                                                                        height="24"
-                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/return.svg"
-                                                                                                        title="return"
-                                                                                                        width="24"
-                                                                                                    />
-                                                                                                    <noscript>
+                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63515daa06ae4">
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169a331673">
+                                                                                    <div className="vc_column-inner vc_custom_1666279850289">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <ul
+                                                                                                className=" wd-rs-63da23b8b68cf wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240382222"
+                                                                                                id="wd-63da23b8b68cf">
+                                                                                                <li>
+                                                                                                    <span className="wd-icon list-icon far fa-bell">
                                                                                                         <img
+                                                                                                            className="entered lazyloaded"
+                                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/return.svg"
+                                                                                                            data-ll-status="loaded"
                                                                                                             decoding="async"
                                                                                                             height="24"
-                                                                                                            loading="lazy"
                                                                                                             src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/return.svg"
                                                                                                             title="return"
                                                                                                             width="24"
                                                                                                         />
-                                                                                                    </noscript>
-                                                                                                </span>
-                                                                                                <span className="wd-list-content list-content">
-                                                                                                    Free 30-Day returns
-                                                                                                </span>
-                                                                                            </li>
-                                                                                        </ul>
+                                                                                                        <noscript>
+                                                                                                            <img
+                                                                                                                decoding="async"
+                                                                                                                height="24"
+                                                                                                                loading="lazy"
+                                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/return.svg"
+                                                                                                                title="return"
+                                                                                                                width="24"
+                                                                                                            />
+                                                                                                        </noscript>
+                                                                                                    </span>
+                                                                                                    <span className="wd-list-content list-content">
+                                                                                                        Free 30-Day returns
+                                                                                                    </span>
+                                                                                                </li>
+                                                                                            </ul>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169a96f9a0">
-                                                                                <div className="vc_column-inner vc_custom_1666279855663">
-                                                                                    <div className="wpb_wrapper">
-                                                                                        <div
-                                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515d804539e text-right color-primary vc_custom_1666276745123"
-                                                                                            id="wd-63515d804539e">
-                                                                                            <p>
-                                                                                                <span
-                                                                                                    style={{
-                                                                                                        color: "#1877f2",
-                                                                                                    }}>
-                                                                                                    <em>
-                                                                                                        <a
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169a96f9a0">
+                                                                                    <div className="vc_column-inner vc_custom_1666279855663">
+                                                                                        <div className="wpb_wrapper">
+                                                                                            <div
+                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515d804539e text-right color-primary vc_custom_1666276745123"
+                                                                                                id="wd-63515d804539e">
+                                                                                                <p>
+                                                                                                    <span
+                                                                                                        style={{
+                                                                                                            color: "#1877f2",
+                                                                                                        }}>
+                                                                                                        <em>
+                                                                                                            <a
 
-                                                                                                            style={{
-                                                                                                                color: "#1877f2",
-                                                                                                            }}>
-                                                                                                            More details
-                                                                                                        </a>
-                                                                                                    </em>
-                                                                                                </span>
-                                                                                            </p>
+                                                                                                                style={{
+                                                                                                                    color: "#1877f2",
+                                                                                                                }}>
+                                                                                                                More details
+                                                                                                            </a>
+                                                                                                        </em>
+                                                                                                    </span>
+                                                                                                </p>
+                                                                                            </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -888,55 +991,35 @@ const productDetails = () => {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="vc_row wpb_row vc_inner vc_row-fluid wd-rs-635161cda23c7">
-                                                        <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-635158eae79ac">
-                                                            <div className="vc_column-inner vc_custom_1666275569983">
-                                                                <div className="wpb_wrapper">
-                                                                    <div
-                                                                        className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-635158ccc1380 text-left wd-font-weight-600 color-title vc_custom_1666275537205"
-                                                                        id="wd-635158ccc1380">
-                                                                        <p>Payment Methods:</p>
-                                                                    </div>
-                                                                    <div
-                                                                        className="wd-image wd-wpb wd-rs-635158c62aefd text-left vc_custom_1666275533341 inline-element"
-                                                                        id="wd-635158c62aefd">
-                                                                        <picture
-                                                                            className="attachment-full size-full"
-                                                                            decoding="async">
-                                                                            <source
-                                                                                data-lazy-sizes="(max-width: 403px) 100vw, 403px"
-                                                                                data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg.webp 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg.webp 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg.webp 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg.webp 180w"
-                                                                                sizes="(max-width: 403px) 100vw, 403px"
-                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg.webp 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg.webp 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg.webp 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg.webp 180w"
-                                                                                type="image/webp"
-                                                                            />
-                                                                            <img
-                                                                                alt=""
-                                                                                className="entered lazyloaded"
-                                                                                data-lazy-sizes="(max-width: 403px) 100vw, 403px"
-                                                                                data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg"
-                                                                                data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg 180w"
-                                                                                data-ll-status="loaded"
-                                                                                decoding="async"
-                                                                                height="26"
-                                                                                sizes="(max-width: 403px) 100vw, 403px"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg"
-                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg 180w"
-                                                                                width="403"
-                                                                            />
-                                                                        </picture>
-                                                                        <noscript>
+                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid wd-rs-635161cda23c7">
+                                                            <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-635158eae79ac">
+                                                                <div className="vc_column-inner vc_custom_1666275569983">
+                                                                    <div className="wpb_wrapper">
+                                                                        <div
+                                                                            className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-635158ccc1380 text-left wd-font-weight-600 color-title vc_custom_1666275537205"
+                                                                            id="wd-635158ccc1380">
+                                                                            <p>Payment Methods:</p>
+                                                                        </div>
+                                                                        <div
+                                                                            className="wd-image wd-wpb wd-rs-635158c62aefd text-left vc_custom_1666275533341 inline-element"
+                                                                            id="wd-635158c62aefd">
                                                                             <picture
                                                                                 className="attachment-full size-full"
                                                                                 decoding="async">
                                                                                 <source
+                                                                                    data-lazy-sizes="(max-width: 403px) 100vw, 403px"
+                                                                                    data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg.webp 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg.webp 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg.webp 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg.webp 180w"
                                                                                     sizes="(max-width: 403px) 100vw, 403px"
                                                                                     srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg.webp 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg.webp 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg.webp 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg.webp 180w"
                                                                                     type="image/webp"
                                                                                 />
                                                                                 <img
                                                                                     alt=""
+                                                                                    className="entered lazyloaded"
+                                                                                    data-lazy-sizes="(max-width: 403px) 100vw, 403px"
+                                                                                    data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg"
+                                                                                    data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg 180w"
+                                                                                    data-ll-status="loaded"
                                                                                     decoding="async"
                                                                                     height="26"
                                                                                     sizes="(max-width: 403px) 100vw, 403px"
@@ -945,7 +1028,27 @@ const productDetails = () => {
                                                                                     width="403"
                                                                                 />
                                                                             </picture>
-                                                                        </noscript>
+                                                                            <noscript>
+                                                                                <picture
+                                                                                    className="attachment-full size-full"
+                                                                                    decoding="async">
+                                                                                    <source
+                                                                                        sizes="(max-width: 403px) 100vw, 403px"
+                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg.webp 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg.webp 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg.webp 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg.webp 180w"
+                                                                                        type="image/webp"
+                                                                                    />
+                                                                                    <img
+                                                                                        alt=""
+                                                                                        decoding="async"
+                                                                                        height="26"
+                                                                                        sizes="(max-width: 403px) 100vw, 403px"
+                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg"
+                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods.jpg 403w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-400x26.jpg 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-100x6.jpg 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/payment-methods-180x12.jpg 180w"
+                                                                                        width="403"
+                                                                                    />
+                                                                                </picture>
+                                                                            </noscript>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -954,7 +1057,8 @@ const productDetails = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    ))}
+
                                 </section>
                                 <div className="vc_row wpb_row vc_row-fluid wd-rs-63a1bb62d1ae5">
                                     <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63514be4ee487">
@@ -4552,164 +4656,80 @@ const productDetails = () => {
                         <div className="shopping-cart-widget-body wd-scroll">
                             <div className="wd-scroll-content">
                                 <ul className="cart_list product_list_widget woocommerce-mini-cart ">
-                                    <li
-                                        className="woocommerce-mini-cart-item mini_cart_item"
-                                        data-key="b1301141feffabac455e1f90a7de2054"
-                                    >
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                            className="cart-item-link wd-fill"
-                                        >
-                                            Show
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/home/cart/?remove_item=b1301141feffabac455e1f90a7de2054&_wpnonce=ee462b7815"
-                                            className="remove remove_from_cart_button"
-                                            aria-label="Remove Oculus Quest 2 from cart"
-                                            data-product_id={2435}
-                                            data-cart_item_key="b1301141feffabac455e1f90a7de2054"
-                                            data-product_sku={608069}
-                                            data-success_message="“Oculus Quest 2” has been removed from your cart"
-                                        >
-                                            ×
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                            className="cart-item-image"
-                                        >
-                                            <img
-                                                width={430}
-                                                height={491}
-                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg"
-                                                className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                alt=""
-                                                decoding="async"
-                                                srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg 180w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg 700w"
-                                                sizes="(max-width: 430px) 100vw, 430px"
-                                            />
-                                        </a>
-                                        <div className="cart-info">
-                                            <span className="wd-entities-title">Oculus Quest 2 </span>
-                                            <div className="wd-product-detail wd-product-sku">
-                                                <span className="wd-label">SKU: </span>
-                                                <span>608069 </span>
-                                            </div>
-                                            <div className="quantity">
-                                                <input type="button" defaultValue="-" className="minus btn" />
-                                                <label
-                                                    className="screen-reader-text"
-                                                    htmlFor="quantity_6784e22dca593"
+                                    {cartItems.length > 0 ? (
+                                        cartItems.map((item, index) => (
+                                            <li key={index} className="woocommerce-mini-cart-item mini_cart_item">
+                                                <a href={item.productUrl} className="cart-item-link wd-fill">
+                                                    Show
+                                                </a>
+                                                <a
+                                                    href="#"
+                                                    className="remove remove_from_cart_button"
+                                                    aria-label={`Remove ${item.productName} from cart`}
+                                                    onClick={() => removeFromCart(item.productId)} // Implement remove functionality
                                                 >
-                                                    Oculus Quest 2 quantity
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    id="quantity_6784e22dca593"
-                                                    className="input-text qty text"
-                                                    defaultValue={5}
-                                                    aria-label="Product quantity"
-                                                    min={0}
-                                                    max=""
-                                                    name="cart[b1301141feffabac455e1f90a7de2054][qty]"
-                                                    step={1}
-                                                    placeholder=""
-                                                    inputMode="numeric"
-                                                    autoComplete="off"
-                                                />
-                                                <input type="button" defaultValue="+" className="plus btn" />
-                                            </div>
-                                            <span className="quantity">
-                                                5 ×
-                                                <span className="woocommerce-Price-amount amount">
-                                                    <bdi>
-                                                        <span className="woocommerce-Price-currencySymbol">
-                                                            $
+                                                    ×
+                                                </a>
+                                                <a href={item.productUrl} className="cart-item-image">
+                                                    <img
+                                                        width={430}
+                                                        height={491}
+                                                        src={item.imageUrls}
+                                                        className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
+                                                        alt={item.productName}
+                                                        decoding="async"
+                                                    />
+                                                </a>
+                                                <div className="cart-info">
+                                                    <span className="wd-entities-title">{item.productName}</span>
+                                                    <div className="wd-product-detail wd-product-sku">
+                                                        <span className="wd-label">SKU: </span>
+                                                        <span>{item.productSku}</span>
+                                                    </div>
+                                                    <div className="quantity">
+                                                        <input
+                                                            type="button"
+                                                            value="-"
+                                                            className="minus btn"
+                                                            onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Decrease quantity
+                                                        />
+                                                        <label
+                                                            className="screen-reader-text"
+                                                            htmlFor={`quantity_${item.productId}`}
+                                                        >
+                                                            {item.productName} quantity
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            id={`quantity_${item.productId}`}
+                                                            className="input-text qty text"
+                                                            value={item.quantity}
+                                                            aria-label="Product quantity"
+                                                            min={1}
+                                                            onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))} // Set new quantity
+                                                        />
+                                                        <input
+                                                            type="button"
+                                                            value="+"
+                                                            className="plus btn"
+                                                            onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Increase quantity
+                                                        />
+                                                    </div>
+                                                    <span className="quantity">
+                                                        {item.quantity} ×
+                                                        <span className="woocommerce-Price-amount amount">
+                                                            <bdi>
+                                                                <span className="woocommerce-Price-currencySymbol">$</span>
+                                                                {item.price * item.quantity}
+                                                            </bdi>
                                                         </span>
-                                                        449.00
-                                                    </bdi>
-                                                </span>
-                                            </span>
-                                        </div>
-                                    </li>
-                                    <li
-                                        className="woocommerce-mini-cart-item mini_cart_item"
-                                        data-key="26e359e83860db1d11b6acca57d8ea88"
-                                    >
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
-                                            className="cart-item-link wd-fill"
-                                        >
-                                            Show
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/home/cart/?remove_item=26e359e83860db1d11b6acca57d8ea88&_wpnonce=ee462b7815"
-                                            className="remove remove_from_cart_button"
-                                            aria-label="Remove ASUS ZenBook OLED 13 from cart"
-                                            data-product_id={298}
-                                            data-cart_item_key="26e359e83860db1d11b6acca57d8ea88"
-                                            data-product_sku={30884}
-                                            data-success_message="“ASUS ZenBook OLED 13” has been removed from your cart"
-                                        >
-                                            ×
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
-                                            className="cart-item-image"
-                                        >
-                                            <img
-                                                width={430}
-                                                height={491}
-                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-430x491.jpg"
-                                                className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                alt=""
-                                                decoding="async"
-                                                srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-180x206.jpg 180w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1.jpg 700w"
-                                                sizes="(max-width: 430px) 100vw, 430px"
-                                            />
-                                        </a>
-                                        <div className="cart-info">
-                                            <span className="wd-entities-title">ASUS ZenBook OLED 13 </span>
-                                            <div className="wd-product-detail wd-product-sku">
-                                                <span className="wd-label">SKU: </span>
-                                                <span>30884 </span>
-                                            </div>
-                                            <div className="quantity">
-                                                <input type="button" defaultValue="-" className="minus btn" />
-                                                <label
-                                                    className="screen-reader-text"
-                                                    htmlFor="quantity_6784e22dcaabe"
-                                                >
-                                                    ASUS ZenBook OLED 13 quantity
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    id="quantity_6784e22dcaabe"
-                                                    className="input-text qty text"
-                                                    defaultValue={2}
-                                                    aria-label="Product quantity"
-                                                    min={0}
-                                                    max=""
-                                                    name="cart[26e359e83860db1d11b6acca57d8ea88][qty]"
-                                                    step={1}
-                                                    placeholder=""
-                                                    inputMode="numeric"
-                                                    autoComplete="off"
-                                                />
-                                                <input type="button" defaultValue="+" className="plus btn" />
-                                            </div>
-                                            <span className="quantity">
-                                                2 ×
-                                                <span className="woocommerce-Price-amount amount">
-                                                    <bdi>
-                                                        <span className="woocommerce-Price-currencySymbol">
-                                                            $
-                                                        </span>
-                                                        1,600.00
-                                                    </bdi>
-                                                </span>
-                                            </span>
-                                        </div>
-                                    </li>
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <li>No items in your cart</li>
+                                    )}
                                 </ul>
                             </div>
                         </div>
@@ -4719,7 +4739,7 @@ const productDetails = () => {
                                 <span className="woocommerce-Price-amount amount">
                                     <bdi>
                                         <span className="woocommerce-Price-currencySymbol">$</span>
-                                        5,445.00
+                                        {calculateSubtotal()}
                                     </bdi>
                                 </span>
                             </p>

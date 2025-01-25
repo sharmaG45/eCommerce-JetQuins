@@ -2,26 +2,28 @@
 
 import bestOffer from "../../app/assets/scraped_products.json";
 import categories from "../../app/assets/product_categories.json";
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import styles from './Slider.module.css'
 import Slider from "react-slick";
 import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+// import img from "../../../public/assets/Images/"
 
 const HomePage = () => {
 
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
+    const [cartItems, setCartItems] = useState([]);
     const router = useRouter();
     const sliderRef = useRef(null);
 
 
+    console.log(bestOffer, "Image for image");
+
     const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent the default link behavior
         const user = JSON.parse(localStorage.getItem('currentUser')); // Assuming user info is stored in localStorage
-
-
 
         if (!user) {
             alert("Please log in first.");
@@ -51,7 +53,7 @@ const HomePage = () => {
         // Use static data if any required fields are missing
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_urls: offer.image_urls && offer.image_urls.length > 0 ? offer.image_urls : staticData.image_urls,
+            image_urls: offer.image_url && offer.image_url.length > 0 ? offer.image_url : staticData.image_urls,
             productId: offer.productId || staticData.productId,
             productName: offer.productName || staticData.productName,
             productSku: offer.productSku || staticData.productSku,
@@ -114,6 +116,7 @@ const HomePage = () => {
         console.log(category.title, "Category");
 
         const encodedTitle = encodeURIComponent(category.title);
+        console.log(encodedTitle, "Title");
         router.push(`/home/productCategory?title=${encodedTitle}`);
     };
 
@@ -149,18 +152,20 @@ const HomePage = () => {
             productName: 'Default Product',
             productSku: 'DEFAULTSKU',
             price: 99.99,
-            discount: 0
+            discount: 0,
+            quantity: 1 // Ensuring default quantity is 1
         };
 
         // Use static data if any required fields are missing
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_urls: offer.image_urls && offer.image_urls.length > 0 ? offer.image_urls : staticData.image_urls,
+            image_urls: offer.image_url && offer.image_url.length > 0 ? offer.image_url : staticData.image_urls,
             productId: offer.productId || staticData.productId,
             productName: offer.productName || staticData.productName,
             productSku: offer.productSku || staticData.productSku,
             price: offer.price || staticData.price,
             discount: offer.discount || staticData.discount,
+            quantity: offer.quantity || staticData.quantity // Default to 1 if quantity is missing
         };
 
         // Log the final offer data (either user-provided or static)
@@ -182,10 +187,11 @@ const HomePage = () => {
 
             if (existingProductIndex !== -1) {
                 // If the product is found, increment the quantity in place
-                userCart[existingProductIndex].quantity += 1;
+                const updatedCart = [...userCart];
+                updatedCart[existingProductIndex].quantity = (updatedCart[existingProductIndex].quantity || 0) + 1;
 
                 // Update the user's cart document with the new quantity
-                await updateDoc(userRef, { cart: userCart });
+                await updateDoc(userRef, { cart: updatedCart });
 
                 console.log("Product quantity incremented in cart for user:", userId);
                 alert("Product quantity updated in your cart!");
@@ -222,9 +228,9 @@ const HomePage = () => {
     };
 
     const handleCheckout = (e) => {
-        e.preventDefault();
-        router.push('/home/checkout');
-        setIsCartOpen(false);
+        e.preventDefault(); // Prevent the default link navigation
+        router.push('/home/checkout'); // Navigate to the checkout page
+        setIsCartOpen(false); // Close the cart (if you have this state)
     };
 
     const handleViewCart = (e) => {
@@ -233,10 +239,42 @@ const HomePage = () => {
         setIsCartOpen(false);
     }
 
+    useEffect(() => {
+        // Fetch the current user's cart items
+        const fetchCart = async () => {
+            const userData = localStorage.getItem('currentUser');
+
+            if (!userData) {
+                alert("Please log in first.");
+                return; // Exit if no user is logged in
+            }
+
+            const user = JSON.parse(userData); // Parse the user data from localStorage
+
+            try {
+                // Get the user's cart data from Firestore
+                const userRef = doc(fireStore, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const cartData = userDoc.data().cart || []; // Retrieve the cart data from the user document
+                    setCartItems(cartData); // Set the cart items to state
+                } else {
+                    console.log("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error fetching cart data:", error);
+            }
+        };
+
+        fetchCart(); // Call the fetchCart function to retrieve cart items
+    }, []);
+
+    console.log(cartItems, "Carts Data");
+
 
 
     // SLider
-
     const sliderSettings = {
         dots: true,
         infinite: true,
@@ -256,7 +294,7 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Shop Now",
             buttonLink: "#",
-            backgroundImage: "/assets/Images/background-1.jpg", // Replace with your image URL
+            backgroundImage: "/assets/Images/backgound-1.jpg",
         },
         {
             id: "slide-2",
@@ -264,7 +302,7 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Pre-Order Now",
             buttonLink: "#",
-            backgroundImage: "/assets/Images/background-2.jpg", // Replace with your image URL
+            backgroundImage: "/assets/Images/backgound-2.jpg",
         },
         {
             id: "slide-3",
@@ -272,7 +310,7 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Shop Now",
             buttonLink: "#",
-            backgroundImage: "/assets/Images/background-3.jpg", // Replace with your image URL
+            backgroundImage: "/assets/Images/backgound-3.jpg",
         },
     ];
 
@@ -287,6 +325,96 @@ const HomePage = () => {
             sliderRef.current.slickPrev();
         }
     };
+
+    const removeFromCart = async (productId) => {
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
+
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
+        try {
+            // Get user document reference
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Remove item from cart array in Firestore
+            await updateDoc(userRef, {
+                cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+            });
+
+            // Update local state
+            setCartItems(cartItems.filter(item => item.productId !== productId));
+
+            console.log(`Removed item with productId: ${productId}`);
+        } catch (error) {
+            console.error("Error removing item from cart:", error);
+        }
+    };
+
+    const changeQuantity = async (productId, newQuantity) => {
+        if (newQuantity < 1) {
+            alert("Quantity cannot be less than 1.");
+            return;
+        }
+
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
+
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
+        try {
+            // Get user document reference
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Find the item to update
+            const updatedCart = cartItems.map(item =>
+                item.productId === productId ? { ...item, quantity: newQuantity } : item
+            );
+
+            // Update Firestore with new quantity
+            await updateDoc(userRef, {
+                cart: updatedCart
+            });
+
+            // Update local state
+            setCartItems(updatedCart);
+
+            console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
+        } catch (error) {
+            console.error("Error updating quantity in cart:", error);
+        }
+    };
+
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    };
+
+    const PRODUCTS_PER_PAGE = 5;
+    const PRODUCTS_PER_PAGE2 = 4;
+    const PRODUCTS_PER_PAGE3 = 5;
+    const [visibleProducts, setVisibleProducts] = useState(PRODUCTS_PER_PAGE);
+    const [visibleProducts2, setVisibleProducts2] = useState(PRODUCTS_PER_PAGE2);
+    const [visibleProducts3, setVisibleProducts3] = useState(PRODUCTS_PER_PAGE3);
+    const handleShowMore = () => {
+        // Show the next batch of products
+        setVisibleProducts((prev) => prev + PRODUCTS_PER_PAGE);
+    };
+    const handleShowMore2 = () => {
+        // Show the next batch of products
+        setVisibleProducts2((prev) => prev + PRODUCTS_PER_PAGE2);
+    };
+    const handleShowMore3 = () => {
+        // Show the next batch of products
+        setVisibleProducts3((prev) => prev + PRODUCTS_PER_PAGE3);
+    };
+    const bestOffers = bestOffer.slice(0, visibleProducts);
+    const bestOffers2 = bestOffer.slice(0, visibleProducts2);
+    const bestOffers3 = bestOffer.slice(0, visibleProducts3);
 
     return (
         <>
@@ -313,7 +441,7 @@ const HomePage = () => {
                                                                 key={slide.id}
                                                                 className={styles.slide}
                                                                 style={{
-                                                                    backgroundImage: `url(${slide.backgroundImage})`,
+                                                                    backgroundImage: `url(/assets/Images/backgound-1.jpg)`,
                                                                     backgroundSize: "cover",
                                                                     backgroundPosition: "center",
                                                                 }}
@@ -463,31 +591,35 @@ const HomePage = () => {
                                                         </h4>
                                                     </div>
                                                 </div>
-                                                <div
-                                                    id="wd-63e123a3abd83"
-                                                    className=" wd-rs-63e123a3abd83 vc_custom_1675699148725 wd-button-wrapper text-center inline-element"
-                                                >
-                                                    <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/outlet/"
-                                                        title="Outlet"
-                                                        className="btn btn-style-default btn-shape-round btn-size-default btn-icon-pos-right"
+                                                {visibleProducts < bestOffer.length && (
+                                                    <div
+                                                        id="wd-63e123a3abd83"
+                                                        className=" wd-rs-63e123a3abd83 vc_custom_1675699148725 wd-button-wrapper text-center inline-element"
                                                     >
-                                                        More Products
-                                                        <span className="wd-btn-icon">
-                                                            <img
-                                                                decoding="async"
-                                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
-                                                                title="chevron-right-primary"
-                                                                width={14}
-                                                                height={14}
-                                                                data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
-                                                                data-ll-status="loaded"
-                                                                className="entered lazyloaded"
-                                                            />
+                                                        <button
 
-                                                        </span>
-                                                    </a>
-                                                </div>
+                                                            title="Outlet"
+                                                            className="btn btn-style-default btn-shape-round btn-size-default btn-icon-pos-right"
+                                                            onClick={handleShowMore}
+                                                        >
+                                                            More Products
+                                                            <span className="wd-btn-icon">
+                                                                <img
+                                                                    decoding="async"
+                                                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
+                                                                    title="chevron-right-primary"
+                                                                    width={14}
+                                                                    height={14}
+                                                                    data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
+                                                                    data-ll-status="loaded"
+                                                                    className="entered lazyloaded"
+                                                                />
+
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                )}
+
                                                 <div
                                                     id
                                                     className="wd-products-element wd-rs-63e1023d7a64b wd-wpb"
@@ -508,7 +640,7 @@ const HomePage = () => {
                                                         }}
                                                     >
 
-                                                        {bestOffer.slice(0, 5).map((offer, index) => (
+                                                        {bestOffers.map((offer, index) => (
                                                             <div
                                                                 className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
                                                                 data-loop={index}
@@ -521,8 +653,8 @@ const HomePage = () => {
 
                                                                     <div className="product-element-top wd-quick-shop">
                                                                         <a className="product-image-link" >
-                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.brand)}>
-                                                                                {/* {offer.image_urls.map((url, imageIndex) => (
+                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
+                                                                                {/* {offer.image_url.map((url, imageIndex) => (
                                                                                     <div
                                                                                         className="wd-product-grid-slide"
                                                                                         key={imageIndex}
@@ -538,7 +670,7 @@ const HomePage = () => {
                                                                                 <div className="wd-next" />
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-pagin">
-                                                                                {/* {offer.image_urls.map((_, imageIndex) => (
+                                                                                {/* {offer.image_url.map((_, imageIndex) => (
                                                                                     <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
                                                                                 ))} */}
                                                                             </div>
@@ -548,21 +680,21 @@ const HomePage = () => {
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
                                                                                     type="image/webp"
-                                                                                    data-lazy-srcset={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
-                                                                                    srcSet={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                    srcSet={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
                                                                                 />
                                                                                 <img
                                                                                     decoding="async"
                                                                                     width={700}
                                                                                     height={800}
-                                                                                    src={offer.image_urls}
+                                                                                    src={offer.image_url}
 
-                                                                                    data-lazy-srcset={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
-                                                                                    srcSet={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
+                                                                                    srcSet={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                 />
                                                                             </picture>
                                                                         </a>
@@ -748,31 +880,34 @@ const HomePage = () => {
                                                         </h4>
                                                     </div>
                                                 </div>
-                                                <div
-                                                    id="wd-63e125b0c79da"
-                                                    className=" wd-rs-63e125b0c79da vc_custom_1675699639912 wd-button-wrapper text-center inline-element"
-                                                >
-                                                    <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/"
-                                                        title="Outlet"
-                                                        className="btn btn-style-default btn-shape-round btn-size-default btn-icon-pos-right"
+                                                {visibleProducts2 < bestOffer.length && (
+                                                    <div
+                                                        id="wd-63e123a3abd83"
+                                                        className=" wd-rs-63e123a3abd83 vc_custom_1675699148725 wd-button-wrapper text-center inline-element"
                                                     >
-                                                        More Products
-                                                        <span className="wd-btn-icon">
-                                                            <img
-                                                                decoding="async"
-                                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
-                                                                title="chevron-right-primary"
-                                                                width={14}
-                                                                height={14}
-                                                                data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
-                                                                data-ll-status="loaded"
-                                                                className="entered lazyloaded"
-                                                            />
+                                                        <button
 
-                                                        </span>
-                                                    </a>
-                                                </div>
+                                                            title="Outlet"
+                                                            className="btn btn-style-default btn-shape-round btn-size-default btn-icon-pos-right"
+                                                            onClick={handleShowMore2}
+                                                        >
+                                                            More Products
+                                                            <span className="wd-btn-icon">
+                                                                <img
+                                                                    decoding="async"
+                                                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
+                                                                    title="chevron-right-primary"
+                                                                    width={14}
+                                                                    height={14}
+                                                                    data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
+                                                                    data-ll-status="loaded"
+                                                                    className="entered lazyloaded"
+                                                                />
+
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                )}
                                                 <div
                                                     id
                                                     className="wd-products-element wd-rs-63ca986f2aaee wd-wpb"
@@ -794,7 +929,7 @@ const HomePage = () => {
                                                     >
                                                         {/* Addd */}
 
-                                                        {bestOffer.slice(0, 4).map((offer, index) => (
+                                                        {bestOffers2.map((offer, index) => (
                                                             <div
                                                                 className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
                                                                 data-loop={index}
@@ -807,8 +942,8 @@ const HomePage = () => {
 
                                                                     <div className="product-element-top wd-quick-shop">
                                                                         <a className="product-image-link" >
-                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.brand)}>
-                                                                                {/* {offer.image_urls.map((url, imageIndex) => (
+                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
+                                                                                {/* {offer.image_url.map((url, imageIndex) => (
                                                                                     <div
                                                                                         className="wd-product-grid-slide"
                                                                                         key={imageIndex}
@@ -824,7 +959,7 @@ const HomePage = () => {
                                                                                 <div className="wd-next" />
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-pagin">
-                                                                                {/* {offer.image_urls.map((_, imageIndex) => (
+                                                                                {/* {offer.image_url.map((_, imageIndex) => (
                                                                                     <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
                                                                                 ))} */}
                                                                             </div>
@@ -834,21 +969,21 @@ const HomePage = () => {
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
                                                                                     type="image/webp"
-                                                                                    data-lazy-srcset={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
-                                                                                    srcSet={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                    srcSet={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
                                                                                 />
                                                                                 <img
                                                                                     decoding="async"
                                                                                     width={700}
                                                                                     height={800}
-                                                                                    src={offer.image_urls}
+                                                                                    src={offer.image_url}
 
-                                                                                    data-lazy-srcset={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
-                                                                                    srcSet={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
+                                                                                    srcSet={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                 />
                                                                             </picture>
                                                                         </a>
@@ -1098,6 +1233,7 @@ const HomePage = () => {
                                                                 className="wd-carousel-wrap"
                                                                 style={{ cursor: "grab" }}
                                                             >
+
                                                                 <div
                                                                     className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
                                                                     style={{ width: "262.6px" }}
@@ -1166,376 +1302,7 @@ const HomePage = () => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible wd-slide-next"
-                                                                    style={{ width: "262.6px" }}
-                                                                >
-                                                                    <div
-                                                                        className="wd-product wd-hover-small product-grid-item product type-product post-2090 status-publish instock product_cat-sport-watches has-post-thumbnail shipping-taxable purchasable product-type-simple"
-                                                                        data-loop={2}
-                                                                        data-id={2090}
-                                                                    >
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-watch-ultra/"
-                                                                                    className="product-image-link"
-                                                                                >
-                                                                                    <img
-                                                                                        decoding="async"
-                                                                                        width={80}
-                                                                                        height={80}
-                                                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-watch-ultra-1-80x80.jpg"
-                                                                                        className="attachment-80x80 size-80x80 entered lazyloaded"
-                                                                                        alt
-                                                                                        data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-watch-ultra-1-80x80.jpg"
-                                                                                        data-ll-status="loaded"
-                                                                                    />
 
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-watch-ultra/">
-                                                                                        Apple Watch Ultra
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    className="star-rating"
-                                                                                    role="img"
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                >
-                                                                                    <span style={{ width: "100%" }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            799.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                    style={{ width: "262.6px" }}
-                                                                >
-                                                                    <div
-                                                                        className="wd-product wd-hover-small product-grid-item product type-product post-239 status-publish last instock product_cat-apple-macbook has-post-thumbnail shipping-taxable purchasable product-type-variable"
-                                                                        data-loop={3}
-                                                                        data-id={239}
-                                                                    >
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-air-13-m1/"
-                                                                                    className="product-image-link"
-                                                                                >
-                                                                                    <img
-                                                                                        decoding="async"
-                                                                                        width={80}
-                                                                                        height={80}
-                                                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-macbook-air-13-space-gray-1-2-80x80.jpg"
-                                                                                        className="attachment-80x80 size-80x80 entered lazyloaded"
-                                                                                        alt
-                                                                                        data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-macbook-air-13-space-gray-1-2-80x80.jpg"
-                                                                                        data-ll-status="loaded"
-                                                                                    />
-
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-air-13-m1/">
-                                                                                        Apple MacBook Air 13” M1
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    className="star-rating"
-                                                                                    role="img"
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                >
-                                                                                    <span style={{ width: "100%" }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            999.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                    –
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            1,299.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                    style={{ width: "262.6px" }}
-                                                                >
-                                                                    <div
-                                                                        className="wd-product wd-with-labels wd-hover-small product-grid-item product type-product post-1937 status-publish first instock product_cat-apple-iphone has-post-thumbnail featured shipping-taxable purchasable product-type-variable"
-                                                                        data-loop={4}
-                                                                        data-id={1937}
-                                                                    >
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-iphone-14-plus/"
-                                                                                    className="product-image-link"
-                                                                                >
-                                                                                    <img
-                                                                                        decoding="async"
-                                                                                        width={80}
-                                                                                        height={80}
-                                                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-iphone-14-plus-blue-1-80x80.jpg"
-                                                                                        className="attachment-80x80 size-80x80 entered lazyloaded"
-                                                                                        alt
-                                                                                        data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-iphone-14-plus-blue-1-80x80.jpg"
-                                                                                        data-ll-status="loaded"
-                                                                                    />
-
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-iphone-14-plus/">
-                                                                                        Apple iPhone 14 Plus
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    className="star-rating"
-                                                                                    role="img"
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                >
-                                                                                    <span style={{ width: "100%" }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            799.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                    –
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            899.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                    style={{ width: "262.6px" }}
-                                                                >
-                                                                    <div
-                                                                        className="wd-product wd-with-labels wd-hover-small product-grid-item product type-product post-897 status-publish instock product_cat-all-in-one has-post-thumbnail featured shipping-taxable purchasable product-type-simple"
-                                                                        data-loop={5}
-                                                                        data-id={897}
-                                                                    >
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-imac-24-m1/"
-                                                                                    className="product-image-link"
-                                                                                >
-                                                                                    <img
-                                                                                        decoding="async"
-                                                                                        width={80}
-                                                                                        height={80}
-                                                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-imac-24-M1-blue-1-80x80.jpg"
-                                                                                        className="attachment-80x80 size-80x80 entered lazyloaded"
-                                                                                        alt
-                                                                                        data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-imac-24-M1-blue-1-80x80.jpg"
-                                                                                        data-ll-status="loaded"
-                                                                                    />
-
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-imac-24-m1/">
-                                                                                        Apple iMac 24″ M1
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    className="star-rating"
-                                                                                    role="img"
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                >
-                                                                                    <span style={{ width: "100%" }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            1,299.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item"
-                                                                    style={{ width: "262.6px" }}
-                                                                >
-                                                                    <div
-                                                                        className="wd-product wd-hover-small product-grid-item product type-product post-1277 status-publish instock product_cat-keyboadrs has-post-thumbnail shipping-taxable purchasable product-type-simple"
-                                                                        data-loop={6}
-                                                                        data-id={1277}
-                                                                    >
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-magic-keyboard-with-touch-id/"
-                                                                                    className="product-image-link"
-                                                                                >
-                                                                                    <img
-                                                                                        decoding="async"
-                                                                                        width={80}
-                                                                                        height={80}
-                                                                                        src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2080%2080'%3E%3C/svg%3E"
-                                                                                        className="attachment-80x80 size-80x80"
-                                                                                        alt
-                                                                                        data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-magic-keyboard-with-touch-id-1-80x80.jpg"
-                                                                                    />
-
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-magic-keyboard-with-touch-id/">
-                                                                                        Apple Magic Keyboard with Touch ID
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    className="star-rating"
-                                                                                    role="img"
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                >
-                                                                                    <span style={{ width: "100%" }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            270.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item"
-                                                                    style={{ width: "262.6px" }}
-                                                                >
-                                                                    <div
-                                                                        className="wd-product wd-with-labels wd-hover-small product-grid-item product type-product post-2126 status-publish last instock product_cat-cases-accessories has-post-thumbnail featured shipping-taxable purchasable product-type-simple"
-                                                                        data-loop={7}
-                                                                        data-id={2126}
-                                                                    >
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-magsafe-clear-case/"
-                                                                                    className="product-image-link"
-                                                                                >
-                                                                                    <img
-                                                                                        decoding="async"
-                                                                                        width={80}
-                                                                                        height={80}
-                                                                                        src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2080%2080'%3E%3C/svg%3E"
-                                                                                        className="attachment-80x80 size-80x80"
-                                                                                        alt
-                                                                                        data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-magsafe-clear-case-1-80x80.jpg"
-                                                                                    />
-
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-magsafe-clear-case/">
-                                                                                        Apple MagSafe Clear Case
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    className="star-rating"
-                                                                                    role="img"
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                >
-                                                                                    <span style={{ width: "100%" }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            50.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-icon-1">
@@ -1566,31 +1333,34 @@ const HomePage = () => {
                                                         </h4>
                                                     </div>
                                                 </div>
-                                                <div
-                                                    id="wd-63e125d491cb9"
-                                                    className=" wd-rs-63e125d491cb9 vc_custom_1675699678280 wd-button-wrapper text-center inline-element"
-                                                >
-                                                    <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/"
-                                                        title="Outlet"
-                                                        className="btn btn-style-default btn-shape-round btn-size-default btn-icon-pos-right"
+                                                {visibleProducts3 < bestOffer.length && (
+                                                    <div
+                                                        id="wd-63e123a3abd83"
+                                                        className=" wd-rs-63e123a3abd83 vc_custom_1675699148725 wd-button-wrapper text-center inline-element"
                                                     >
-                                                        More Products
-                                                        <span className="wd-btn-icon">
-                                                            <img
-                                                                decoding="async"
-                                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
-                                                                title="chevron-right-primary"
-                                                                width={14}
-                                                                height={14}
-                                                                data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
-                                                                data-ll-status="loaded"
-                                                                className="entered lazyloaded"
-                                                            />
+                                                        <button
 
-                                                        </span>
-                                                    </a>
-                                                </div>
+                                                            title="Outlet"
+                                                            className="btn btn-style-default btn-shape-round btn-size-default btn-icon-pos-right"
+                                                            onClick={handleShowMore3}
+                                                        >
+                                                            More Products
+                                                            <span className="wd-btn-icon">
+                                                                <img
+                                                                    decoding="async"
+                                                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
+                                                                    title="chevron-right-primary"
+                                                                    width={14}
+                                                                    height={14}
+                                                                    data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-primary.svg"
+                                                                    data-ll-status="loaded"
+                                                                    className="entered lazyloaded"
+                                                                />
+
+                                                            </span>
+                                                        </button>
+                                                    </div>
+                                                )}
                                                 <div
                                                     id
                                                     className="wd-products-element wd-rs-63ca97d62665c wd-wpb"
@@ -1610,7 +1380,7 @@ const HomePage = () => {
                                                             "--wd-gap-sm": "10px",
                                                         }}
                                                     >
-                                                        {bestOffer.slice(0, 5).map((offer, index) => (
+                                                        {bestOffers3.map((offer, index) => (
                                                             <div
                                                                 className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
                                                                 data-loop={index}
@@ -1623,8 +1393,8 @@ const HomePage = () => {
 
                                                                     <div className="product-element-top wd-quick-shop">
                                                                         <a className="product-image-link" >
-                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.brand)}>
-                                                                                {/* {offer.image_urls.map((url, imageIndex) => (
+                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
+                                                                                {/* {offer.image_url.map((url, imageIndex) => (
                                                                                     <div
                                                                                         className="wd-product-grid-slide"
                                                                                         key={imageIndex}
@@ -1640,7 +1410,7 @@ const HomePage = () => {
                                                                                 <div className="wd-next" />
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-pagin">
-                                                                                {/* {offer.image_urls.map((_, imageIndex) => (
+                                                                                {/* {offer.image_url.map((_, imageIndex) => (
                                                                                     <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
                                                                                 ))} */}
                                                                             </div>
@@ -1650,21 +1420,21 @@ const HomePage = () => {
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
                                                                                     type="image/webp"
-                                                                                    data-lazy-srcset={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
-                                                                                    srcSet={`${offer.image_urls}.webp 700w, ${offer.image_urls}.webp 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                    srcSet={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
                                                                                 />
                                                                                 <img
                                                                                     decoding="async"
                                                                                     width={700}
                                                                                     height={800}
-                                                                                    src={offer.image_urls}
+                                                                                    src={offer.image_url}
 
-                                                                                    data-lazy-srcset={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
+                                                                                    data-lazy-srcset={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
-                                                                                    srcSet={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
+                                                                                    srcSet={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                 />
                                                                             </picture>
                                                                         </a>
@@ -1879,164 +1649,80 @@ const HomePage = () => {
                         <div className="shopping-cart-widget-body wd-scroll">
                             <div className="wd-scroll-content">
                                 <ul className="cart_list product_list_widget woocommerce-mini-cart ">
-                                    <li
-                                        className="woocommerce-mini-cart-item mini_cart_item"
-                                        data-key="b1301141feffabac455e1f90a7de2054"
-                                    >
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                            className="cart-item-link wd-fill"
-                                        >
-                                            Show
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/home/cart/?remove_item=b1301141feffabac455e1f90a7de2054&_wpnonce=ee462b7815"
-                                            className="remove remove_from_cart_button"
-                                            aria-label="Remove Oculus Quest 2 from cart"
-                                            data-product_id={2435}
-                                            data-cart_item_key="b1301141feffabac455e1f90a7de2054"
-                                            data-product_sku={608069}
-                                            data-success_message="“Oculus Quest 2” has been removed from your cart"
-                                        >
-                                            ×
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                            className="cart-item-image"
-                                        >
-                                            <img
-                                                width={430}
-                                                height={491}
-                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg"
-                                                className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                alt=""
-                                                decoding="async"
-                                                srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg 180w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg 700w"
-                                                sizes="(max-width: 430px) 100vw, 430px"
-                                            />
-                                        </a>
-                                        <div className="cart-info">
-                                            <span className="wd-entities-title">Oculus Quest 2 </span>
-                                            <div className="wd-product-detail wd-product-sku">
-                                                <span className="wd-label">SKU: </span>
-                                                <span>608069 </span>
-                                            </div>
-                                            <div className="quantity">
-                                                <input type="button" defaultValue="-" className="minus btn" />
-                                                <label
-                                                    className="screen-reader-text"
-                                                    htmlFor="quantity_6784e22dca593"
+                                    {cartItems.length > 0 ? (
+                                        cartItems.map((item, index) => (
+                                            <li key={index} className="woocommerce-mini-cart-item mini_cart_item">
+                                                <a href={item.productUrl} className="cart-item-link wd-fill">
+                                                    Show
+                                                </a>
+                                                <a
+                                                    href="#"
+                                                    className="remove remove_from_cart_button"
+                                                    aria-label={`Remove ${item.productName} from cart`}
+                                                    onClick={() => removeFromCart(item.productId)} // Implement remove functionality
                                                 >
-                                                    Oculus Quest 2 quantity
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    id="quantity_6784e22dca593"
-                                                    className="input-text qty text"
-                                                    defaultValue={5}
-                                                    aria-label="Product quantity"
-                                                    min={0}
-                                                    max=""
-                                                    name="cart[b1301141feffabac455e1f90a7de2054][qty]"
-                                                    step={1}
-                                                    placeholder=""
-                                                    inputMode="numeric"
-                                                    autoComplete="off"
-                                                />
-                                                <input type="button" defaultValue="+" className="plus btn" />
-                                            </div>
-                                            <span className="quantity">
-                                                5 ×
-                                                <span className="woocommerce-Price-amount amount">
-                                                    <bdi>
-                                                        <span className="woocommerce-Price-currencySymbol">
-                                                            $
+                                                    ×
+                                                </a>
+                                                <a href={item.productUrl} className="cart-item-image">
+                                                    <img
+                                                        width={430}
+                                                        height={491}
+                                                        src={item.imageUrls}
+                                                        className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
+                                                        alt={item.productName}
+                                                        decoding="async"
+                                                    />
+                                                </a>
+                                                <div className="cart-info">
+                                                    <span className="wd-entities-title">{item.productName}</span>
+                                                    <div className="wd-product-detail wd-product-sku">
+                                                        <span className="wd-label">SKU: </span>
+                                                        <span>{item.productSku}</span>
+                                                    </div>
+                                                    <div className="quantity">
+                                                        <input
+                                                            type="button"
+                                                            value="-"
+                                                            className="minus btn"
+                                                            onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Decrease quantity
+                                                        />
+                                                        <label
+                                                            className="screen-reader-text"
+                                                            htmlFor={`quantity_${item.productId}`}
+                                                        >
+                                                            {item.productName} quantity
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            id={`quantity_${item.productId}`}
+                                                            className="input-text qty text"
+                                                            value={item.quantity}
+                                                            aria-label="Product quantity"
+                                                            min={1}
+                                                            onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))} // Set new quantity
+                                                        />
+                                                        <input
+                                                            type="button"
+                                                            value="+"
+                                                            className="plus btn"
+                                                            onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Increase quantity
+                                                        />
+                                                    </div>
+                                                    <span className="quantity">
+                                                        {item.quantity} ×
+                                                        <span className="woocommerce-Price-amount amount">
+                                                            <bdi>
+                                                                <span className="woocommerce-Price-currencySymbol">$</span>
+                                                                {item.price * item.quantity}
+                                                            </bdi>
                                                         </span>
-                                                        449.00
-                                                    </bdi>
-                                                </span>
-                                            </span>
-                                        </div>
-                                    </li>
-                                    <li
-                                        className="woocommerce-mini-cart-item mini_cart_item"
-                                        data-key="26e359e83860db1d11b6acca57d8ea88"
-                                    >
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
-                                            className="cart-item-link wd-fill"
-                                        >
-                                            Show
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/home/cart/?remove_item=26e359e83860db1d11b6acca57d8ea88&_wpnonce=ee462b7815"
-                                            className="remove remove_from_cart_button"
-                                            aria-label="Remove ASUS ZenBook OLED 13 from cart"
-                                            data-product_id={298}
-                                            data-cart_item_key="26e359e83860db1d11b6acca57d8ea88"
-                                            data-product_sku={30884}
-                                            data-success_message="“ASUS ZenBook OLED 13” has been removed from your cart"
-                                        >
-                                            ×
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
-                                            className="cart-item-image"
-                                        >
-                                            <img
-                                                width={430}
-                                                height={491}
-                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-430x491.jpg"
-                                                className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                alt=""
-                                                decoding="async"
-                                                srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-180x206.jpg 180w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1.jpg 700w"
-                                                sizes="(max-width: 430px) 100vw, 430px"
-                                            />
-                                        </a>
-                                        <div className="cart-info">
-                                            <span className="wd-entities-title">ASUS ZenBook OLED 13 </span>
-                                            <div className="wd-product-detail wd-product-sku">
-                                                <span className="wd-label">SKU: </span>
-                                                <span>30884 </span>
-                                            </div>
-                                            <div className="quantity">
-                                                <input type="button" defaultValue="-" className="minus btn" />
-                                                <label
-                                                    className="screen-reader-text"
-                                                    htmlFor="quantity_6784e22dcaabe"
-                                                >
-                                                    ASUS ZenBook OLED 13 quantity
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    id="quantity_6784e22dcaabe"
-                                                    className="input-text qty text"
-                                                    defaultValue={2}
-                                                    aria-label="Product quantity"
-                                                    min={0}
-                                                    max=""
-                                                    name="cart[26e359e83860db1d11b6acca57d8ea88][qty]"
-                                                    step={1}
-                                                    placeholder=""
-                                                    inputMode="numeric"
-                                                    autoComplete="off"
-                                                />
-                                                <input type="button" defaultValue="+" className="plus btn" />
-                                            </div>
-                                            <span className="quantity">
-                                                2 ×
-                                                <span className="woocommerce-Price-amount amount">
-                                                    <bdi>
-                                                        <span className="woocommerce-Price-currencySymbol">
-                                                            $
-                                                        </span>
-                                                        1,600.00
-                                                    </bdi>
-                                                </span>
-                                            </span>
-                                        </div>
-                                    </li>
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <li>No items in your cart</li>
+                                    )}
                                 </ul>
                             </div>
                         </div>
@@ -2046,7 +1732,7 @@ const HomePage = () => {
                                 <span className="woocommerce-Price-amount amount">
                                     <bdi>
                                         <span className="woocommerce-Price-currencySymbol">$</span>
-                                        5,445.00
+                                        {calculateSubtotal()}
                                     </bdi>
                                 </span>
                             </p>
@@ -2062,14 +1748,17 @@ const HomePage = () => {
                                 <a
                                     href="#"
                                     className="button btn-cart wc-forward"
-                                    onClick={handleViewCart}
+                                    onClick={(e) => { handleViewCart(e) }}
                                 >
                                     View cart
                                 </a>
                                 <a
                                     href="#"
                                     className="button checkout wc-forward"
-                                    onClick={handleCheckout}
+                                    onClick={(e) => {
+
+                                        handleCheckout(e)
+                                    }}
                                 >
                                     Checkout
                                 </a>

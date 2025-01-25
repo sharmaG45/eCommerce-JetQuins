@@ -40,84 +40,110 @@ const cart = () => {
         setIsCartOpen(false);
     }
 
-
     useEffect(() => {
-        if (user && user.uid) {
-            const fetchCartData = async () => {
-                try {
-                    // Fetch user cart from Firestore
-                    const userRef = doc(fireStore, "users", user.uid);
-                    const userDoc = await getDoc(userRef);
+        // Fetch the current user's cart items
+        const fetchCart = async () => {
+            const userData = localStorage.getItem('currentUser');
 
-                    if (userDoc.exists()) {
-                        const cartData = userDoc.data().cart || [];
-                        setCartItems(cartData);
-                        calculateTotal(cartData);
-                    }
-                } catch (error) {
-                    console.error("Error fetching cart data: ", error);
+            if (!userData) {
+                alert("Please log in first.");
+                return; // Exit if no user is logged in
+            }
+
+            const user = JSON.parse(userData); // Parse the user data from localStorage
+
+            try {
+                // Get the user's cart data from Firestore
+                const userRef = doc(fireStore, "users", user.uid);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const cartData = userDoc.data().cart || []; // Retrieve the cart data from the user document
+                    setCartItems(cartData); // Set the cart items to state
+                } else {
+                    console.log("User document not found.");
                 }
-            };
+            } catch (error) {
+                console.error("Error fetching cart data:", error);
+            }
+        };
 
-            fetchCartData();
-        }
-    }, [user]);
-
-    const calculateTotal = (cartData) => {
-        const total = cartData.reduce(
-            (acc, item) => acc + item.price * item.quantity,
-            0
-        );
-        setTotalPrice(total);
-    }
+        fetchCart(); // Call the fetchCart function to retrieve cart items
+    }, []);
 
     const handleRemoveItem = async (e, productId) => {
         e.preventDefault();
-        try {
-            const userRef = doc(fireStore, "users", user.uid);
-            const userDoc = await getDoc(userRef);
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
 
-            if (userDoc.exists()) {
-                const updatedCart = userDoc.data().cart.filter(
-                    (item) => item.productId !== productId
-                );
-                await updateDoc(userRef, { cart: updatedCart });
-                setCartItems(updatedCart);
-                calculateTotal(updatedCart);
-            }
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
+        try {
+            // Get user document reference
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Remove item from cart array in Firestore
+            await updateDoc(userRef, {
+                cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+            });
+
+            // Update local state
+            setCartItems(cartItems.filter(item => item.productId !== productId));
+
+            console.log(`Removed item with productId: ${productId}`);
         } catch (error) {
-            console.error("Error removing item from cart: ", error);
+            console.error("Error removing item from cart:", error);
         }
     }
 
     const handleQuantityChange = async (productId, newQuantity, e) => {
         e.preventDefault();
+        if (newQuantity < 1) {
+            alert("Quantity cannot be less than 1.");
+            return;
+        }
+
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
+
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
         try {
+            // Get user document reference
             const userRef = doc(fireStore, "users", user.uid);
-            const userDoc = await getDoc(userRef);
 
-            if (userDoc.exists()) {
-                const updatedCart = userDoc.data().cart.map((item) => {
-                    if (item.productId === productId) {
-                        item.quantity = newQuantity;
-                    }
-                    return item;
-                });
+            // Find the item to update
+            const updatedCart = cartItems.map(item =>
+                item.productId === productId ? { ...item, quantity: newQuantity } : item
+            );
 
-                await updateDoc(userRef, { cart: updatedCart });
-                setCartItems(updatedCart);
-                calculateTotal(updatedCart);
-            }
+            // Update Firestore with new quantity
+            await updateDoc(userRef, {
+                cart: updatedCart
+            });
+
+            // Update local state
+            setCartItems(updatedCart);
+
+            console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
         } catch (error) {
-            console.error("Error updating quantity: ", error);
+            console.error("Error updating quantity in cart:", error);
         }
     }
+
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    };
 
     const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent the default link behavior
         const user = JSON.parse(localStorage.getItem('currentUser')); // Assuming user info is stored in localStorage
-
-
 
         if (!user) {
             alert("Please log in first.");
@@ -401,78 +427,90 @@ const cart = () => {
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                {cartItems.map((item) => (
-                                                                    <tr key={item.productId} className="cart_item">
-                                                                        <td className="product-remove">
-                                                                            <button
-                                                                                aria-label={`Remove ${item.productName}`}
-                                                                                className="remove"
-                                                                                onClick={(e) => handleRemoveItem(item.productId, e)}
-                                                                            >
-                                                                                ×
-                                                                            </button>
-                                                                        </td>
-                                                                        <td className="product-thumbnail">
-                                                                            <a href={item.productUrl}>
-                                                                                <img
-                                                                                    src={item.productImage}
-                                                                                    alt={item.productName}
-                                                                                    width="430"
-                                                                                    height="491"
-                                                                                />
-                                                                            </a>
-                                                                        </td>
-                                                                        <td className="product-name" data-title="Product">
-                                                                            <a href={item.productUrl}>{item.productName}</a>
-                                                                        </td>
-                                                                        <td className="product-price" data-title="Price">
-                                                                            <span className="woocommerce-Price-amount amount">
-                                                                                <bdi>
-                                                                                    <span className="woocommerce-Price-currencySymbol">
-                                                                                        $
-                                                                                    </span>
-                                                                                    {item.price}
-                                                                                </bdi>
-                                                                            </span>
-                                                                        </td>
-                                                                        <td className="product-quantity" data-title="Quantity">
-                                                                            <div className="quantity">
+
+                                                                {/* Added */}
+
+                                                                {cartItems.length > 0 ? (
+                                                                    cartItems.map((item) => (
+                                                                        <tr key={item.productId} className="cart_item">
+                                                                            <td className="product-remove">
                                                                                 <button
-                                                                                    className="minus btn"
-                                                                                    onClick={(e) => handleQuantityChange(item.productId, item.quantity - 1, e)}
+                                                                                    aria-label={`Remove ${item.productName}`}
+                                                                                    className="remove"
+                                                                                    onClick={(e) => handleRemoveItem(item.productId, e)}
                                                                                 >
-                                                                                    -
+                                                                                    ×
                                                                                 </button>
-                                                                                <input
-                                                                                    type="number"
-                                                                                    value={item.quantity}
-                                                                                    onChange={(e) =>
-                                                                                        handleQuantityChange(item.productId, parseInt(e.target.value))
-                                                                                    }
-                                                                                    min="1"
-                                                                                    max="99"
-                                                                                    className="input-text qty text"
-                                                                                />
-                                                                                <button
-                                                                                    className="plus btn"
-                                                                                    onClick={(e) => handleQuantityChange(item.productId, item.quantity + 1, e)}
-                                                                                >
-                                                                                    +
-                                                                                </button>
-                                                                            </div>
-                                                                        </td>
-                                                                        <td className="product-subtotal" data-title="Subtotal">
-                                                                            <span className="woocommerce-Price-amount amount">
-                                                                                <bdi>
-                                                                                    <span className="woocommerce-Price-currencySymbol">
-                                                                                        $
-                                                                                    </span>
-                                                                                    {(item.price * item.quantity).toFixed(2)}
-                                                                                </bdi>
-                                                                            </span>
-                                                                        </td>
-                                                                    </tr>
-                                                                ))}
+                                                                            </td>
+                                                                            <td className="product-thumbnail">
+                                                                                <a href={item.productUrl}>
+                                                                                    <img
+                                                                                        src={item.imageUrls}
+                                                                                        alt={item.productName}
+                                                                                        width="430"
+                                                                                        height="491"
+                                                                                    />
+                                                                                </a>
+                                                                            </td>
+                                                                            <td className="product-name" data-title="Product">
+                                                                                <a href={item.productUrl}>{item.productName}</a>
+                                                                            </td>
+                                                                            <td className="product-price" data-title="Price">
+                                                                                <span className="woocommerce-Price-amount amount">
+                                                                                    <bdi>
+                                                                                        <span className="woocommerce-Price-currencySymbol">
+                                                                                            $
+                                                                                        </span>
+                                                                                        {item.price}
+                                                                                    </bdi>
+                                                                                </span>
+                                                                            </td>
+                                                                            <td className="product-quantity" data-title="Quantity">
+                                                                                <div className="quantity">
+                                                                                    <button
+                                                                                        className="minus btn"
+                                                                                        onClick={(e) => handleQuantityChange(item.productId, item.quantity - 1, e)}
+                                                                                    >
+                                                                                        -
+                                                                                    </button>
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        value={item.quantity}
+                                                                                        onChange={(e) =>
+                                                                                            handleQuantityChange(item.productId, parseInt(e.target.value))
+                                                                                        }
+                                                                                        min="1"
+                                                                                        max="99"
+                                                                                        className="input-text qty text"
+                                                                                    />
+                                                                                    <button
+                                                                                        className="plus btn"
+                                                                                        onClick={(e) => handleQuantityChange(item.productId, item.quantity + 1, e)}
+                                                                                    >
+                                                                                        +
+                                                                                    </button>
+                                                                                </div>
+                                                                            </td>
+                                                                            <td className="product-subtotal" data-title="Subtotal">
+                                                                                <span className="woocommerce-Price-amount amount">
+                                                                                    <bdi>
+                                                                                        <span className="woocommerce-Price-currencySymbol">
+                                                                                            $
+                                                                                        </span>
+                                                                                        {(item.price * item.quantity).toFixed(2)}
+                                                                                    </bdi>
+                                                                                </span>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))
+                                                                ) : (
+                                                                    <li>No items in your cart</li>
+                                                                )}
+
+
+
+                                                                {/* Adeed end */}
+
                                                                 <tr className="wd-cart-action-row">
                                                                     <td className="actions" colSpan="12">
                                                                         <div className="cart-actions">
@@ -566,7 +604,7 @@ const cart = () => {
 
                                                                                 <div className="product-element-top wd-quick-shop">
                                                                                     <a className="product-image-link" >
-                                                                                        <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.brand)}>
+                                                                                        <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
                                                                                             {/* {offer.image_urls.map((url, imageIndex) => (
                                                                                                 <div
                                                                                                     className="wd-product-grid-slide"
@@ -772,7 +810,7 @@ const cart = () => {
                                                                                                     <span className="woocommerce-Price-currencySymbol">
                                                                                                         $
                                                                                                     </span>
-                                                                                                    1,347.00
+                                                                                                    {calculateSubtotal()}
                                                                                                 </bdi>
                                                                                             </span>
                                                                                         </td>
@@ -962,7 +1000,7 @@ const cart = () => {
                                                                                                         <span className="woocommerce-Price-currencySymbol">
                                                                                                             $
                                                                                                         </span>
-                                                                                                        1,367.00
+                                                                                                        {calculateSubtotal()}
                                                                                                     </bdi>
                                                                                                 </span>
                                                                                             </strong>

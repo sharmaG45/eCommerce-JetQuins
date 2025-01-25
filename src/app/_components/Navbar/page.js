@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import SignIn from '../SignIn/page';
 import { doc, getDoc, arrayRemove, updateDoc } from 'firebase/firestore';
 import { fireStore } from '../../_components/firebase/config';
+import bestOffer from '@/app/assets/scraped_products.json';
 
 const Navbar = () => {
 
@@ -19,11 +20,14 @@ const Navbar = () => {
     const [isShopOpen, setShopOpen] = useState(false);
     const [cartItems, setCartItems] = useState([]);
     const [activeSection, setActiveSection] = useState(menuItems[0]?.id);
-    
+
     const [wishlistCount, setWishlistCount] = useState(0);
     const [cartCount, setCartCount] = useState(0);
     const [cartTotal, setCartTotal] = useState(0.0);
     const router = useRouter();
+
+    console.log(cartItems, "Carts Items");
+
 
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
@@ -174,6 +178,10 @@ const Navbar = () => {
         }
     };
 
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    };
+
     // Header wishlist count and cart count
 
     useEffect(() => {
@@ -208,7 +216,43 @@ const Navbar = () => {
 
             fetchUserData();
         }
-    }, []); 
+    }, []);
+
+    console.log(cartItems, "cart Details");
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    // const router = useRouter();
+
+    useEffect(() => {
+        if (searchQuery.trim()) {
+            const filtered = bestOffer.filter((product) =>
+                product.productName.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredProducts(filtered);
+            setShowSuggestions(true); // Show suggestions if query is non-empty
+        } else {
+            setFilteredProducts([]); // Clear suggestions when query is empty
+            setShowSuggestions(false); // Hide suggestions if query is empty
+        }
+    }, [searchQuery, bestOffer]); // This effect runs whenever searchQuery or bestOffer changes
+
+    const handleSearchChange = (event) => {
+        setSearchQuery(event.target.value);
+    };
+
+    console.log(filteredProducts, "Filtered Data");
+    console.log(showSuggestions,"open ho rha hai ya nahi");
+    
+
+    // Handle form submit (Search button click)
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (searchQuery.trim()) {
+            router.push(`/home/productCategory?title=${encodeURIComponent(searchQuery)}`);
+        }
+    };
 
     return <>
         <header className="whb-header whb-header_469459 whb-sticky-shadow whb-scroll-stick whb-sticky-real whb-hide-on-scroll whb-sticky-prepared">
@@ -240,36 +284,62 @@ const Navbar = () => {
                                 <div className="wd-search-form wd-header-search-form wd-display-form whb-1yjd6g8pvqgh79uo6oce">
                                     <form
                                         role="search"
-                                        method="get"
-                                        className="searchform  wd-style-with-bg-2 wd-cat-style-default woodmart-ajax-search"
-                                        action="https://woodmart.xtemos.com/mega-electronics/"
-                                        data-thumbnail={1}
-                                        data-price={1}
-                                        data-post_type="product"
-                                        data-count={20}
-                                        data-sku={0}
-                                        data-symbols_count={3}
+                                        className="searchform wd-style-with-bg-2 wd-cat-style-default woodmart-ajax-search"
+                                        onSubmit={handleSubmit}
                                     >
                                         <input
                                             type="text"
                                             className="s"
                                             placeholder="Search for products"
-                                            defaultValue=""
+                                            value={searchQuery}
+                                            onChange={(event)=>{setSearchQuery(event.target.value);}}
                                             name="s"
                                             aria-label="Search"
                                             title="Search for products"
-                                            required=""
+                                            required
                                         />
-                                        <input type="hidden" name="post_type" defaultValue="product" />
+                                        <input type="hidden" name="post_type" value="product" />
                                         <button type="submit" className="searchsubmit">
-                                            <span>Search </span>
+                                            <span>Search</span>
                                         </button>
                                     </form>
-                                    <div className="search-results-wrapper">
-                                        <div className="wd-dropdown-results wd-scroll wd-dropdown">
-                                            <div className="wd-scroll-content" />
+
+                                    {showSuggestions && searchQuery.trim() && (
+                                        <div className="search-results-wrapper">
+                                            <div className="wd-dropdown-results wd-scroll wd-dropdown">
+                                                <div className="wd-scroll-content">
+                                                    <div className="autocomplete-suggestions">
+                                                        {filteredProducts.map((product, index) => (
+                                                            <div className="autocomplete-suggestion" key={index}>
+                                                                <div className="suggestion-thumb">
+                                                                    <img
+                                                                        width={430}
+                                                                        height={491}
+                                                                        src={product.imageUrl || "https://example.com/default-image.jpg"} // Placeholder if product image is missing
+                                                                        className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
+                                                                        alt={product.productName}
+                                                                        decoding="async"
+                                                                        loading="lazy"
+                                                                    />
+                                                                </div>
+                                                                <div className="suggestion-content wd-set-mb reset-last-child">
+                                                                    <h4 className="wd-entities-title">{product.productName}</h4>
+                                                                    <p className="price">
+                                                                        <span className="woocommerce-Price-amount amount">
+                                                                            <bdi>
+                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.price}
+                                                                            </bdi>
+                                                                        </span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
+
                                 </div>
                                 <div className="whb-space-element " style={{ width: 20 }} />
                             </div>
@@ -294,7 +364,7 @@ const Navbar = () => {
                                                         data-ll-status="loaded"
                                                         className="entered lazyloaded"
                                                     />
-                                                    
+
                                                 </div>
                                             </div>
                                         </div>
@@ -657,7 +727,7 @@ const Navbar = () => {
                                     role="navigation"
                                     aria-label="Secondary navigation"
                                 >
-                                    
+
                                 </div>
                                 <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-7 wd-account-style-icon login-side-opener whb-7qrb5r43fmh57lkx4dry" onClick={openModal}>
                                     <a
@@ -787,7 +857,7 @@ const Navbar = () => {
                                 {cartItems.length > 0 ? (
                                     cartItems.map((item, index) => (
                                         <li key={index} className="woocommerce-mini-cart-item mini_cart_item">
-                                            <a href={item.product_url} className="cart-item-link wd-fill">
+                                            <a href={item.productUrl} className="cart-item-link wd-fill">
                                                 Show
                                             </a>
                                             <a
@@ -798,12 +868,11 @@ const Navbar = () => {
                                             >
                                                 ×
                                             </a>
-                                            <a href={item.product_url} className="cart-item-image">
-                                                {/* Safe access to image_urls, with fallback to placeholder */}
+                                            <a href={item.productUrl} className="cart-item-image">
                                                 <img
                                                     width={430}
                                                     height={491}
-                                                    src={item.image_urls && item.image_urls.length > 0 ? item.image_urls[0] : 'https://via.placeholder.com/430x491?text=No+Image'}
+                                                    src={item.imageUrls}
                                                     className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
                                                     alt={item.productName}
                                                     decoding="async"
@@ -818,9 +887,9 @@ const Navbar = () => {
                                                 <div className="quantity">
                                                     <input
                                                         type="button"
-                                                        defaultValue="-"
+                                                        value="-"
                                                         className="minus btn"
-                                                        onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Implement quantity change
+                                                        onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Decrease quantity
                                                     />
                                                     <label
                                                         className="screen-reader-text"
@@ -834,14 +903,14 @@ const Navbar = () => {
                                                         className="input-text qty text"
                                                         value={item.quantity}
                                                         aria-label="Product quantity"
-                                                        min={0}
-                                                        onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))}
+                                                        min={1}
+                                                        onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))} // Set new quantity
                                                     />
                                                     <input
                                                         type="button"
-                                                        defaultValue="+"
+                                                        value="+"
                                                         className="plus btn"
-                                                        onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Implement quantity change
+                                                        onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Increase quantity
                                                     />
                                                 </div>
                                                 <span className="quantity">
@@ -868,7 +937,7 @@ const Navbar = () => {
                             <span className="woocommerce-Price-amount amount">
                                 <bdi>
                                     <span className="woocommerce-Price-currencySymbol">$</span>
-                                    5,445.00
+                                    {calculateSubtotal()}
                                 </bdi>
                             </span>
                         </p>

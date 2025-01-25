@@ -255,6 +255,10 @@ const checkout = () => {
         }
     };
 
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    };
+
     // Fetch data (you can replace this with an API call or a database query)
     useEffect(() => {
         // Simulating a fetch call
@@ -12659,7 +12663,7 @@ const checkout = () => {
                                                                                                 <span className="woocommerce-Price-currencySymbol">
                                                                                                     $
                                                                                                 </span>
-                                                                                                5,730.00
+                                                                                                {calculateSubtotal()}
                                                                                             </bdi>
                                                                                         </span>
                                                                                     </td>
@@ -12738,7 +12742,7 @@ const checkout = () => {
                                                                                                     <span className="woocommerce-Price-currencySymbol">
                                                                                                         $
                                                                                                     </span>
-                                                                                                    5,750.00
+                                                                                                    {calculateSubtotal()}
                                                                                                 </bdi>
                                                                                             </span>
                                                                                         </strong>

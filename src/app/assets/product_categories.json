@@ -1,79 +1,51 @@
 [
   {
     "id": 1,
-    "title": "Bitdefender Antivirus",
+    "title": "Bitdefender",
     "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/f9cd39f5-eceb-4e21-9da8-29d57baa7787.jpg;maxHeight=150;maxWidth=225",
     "productsCount": 8,
     "link": "https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/mobile-phones/apple-iphone/"
   },
   {
     "id": 3,
-    "title": "Norton Antivirus",
+    "title": "Norton",
     "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
     "productsCount": 12,
     "link": "https://example.com/norton-antivirus"
   },
   {
     "id": 4,
-    "title": "McAfee Antivirus",
+    "title": "McAfee",
     "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/bf3543b5-2059-43a0-9f83-b9c35bf4cf29.jpg;maxHeight=150;maxWidth=225",
     "productsCount": 10,
     "link": "https://example.com/mcafee-antivirus"
   },
   {
     "id": 5,
-    "title": "Webroot Antivirus",
+    "title": "Webroot",
     "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/91134ad2-3809-4186-bff8-04e16cd944c4.jpg;maxHeight=150;maxWidth=225",
     "productsCount": 7,
     "link": "https://example.com/kaspersky-antivirus"
   },
   {
     "id": 6,
-    "title": "Avast Antivirus",
+    "title": "Avast",
     "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/f9cd39f5-eceb-4e21-9da8-29d57baa7787.jpg;maxHeight=150;maxWidth=225",
     "productsCount": 9,
     "link": "https://example.com/avast-antivirus"
   },
   {
     "id": 7,
-    "title": "Trend Micro Antivirus",
+    "title": "Trend Micro",
     "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/77158792-1df7-4d16-aa43-a8bf9019d899.jpg;maxHeight=150;maxWidth=225",
     "productsCount": 6,
     "link": "https://example.com/trendmicro-antivirus"
   },
   {
     "id": 8,
-    "title": "AVG Antivirus",
+    "title": "AVG",
     "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
     "productsCount": 15,
     "link": "https://example.com/avg-antivirus"
-  },
-  {
-    "id": 9,
-    "title": "ESET NOD32 Antivirus",
-    "image": "https://example.com/eset-image.jpg",
-    "productsCount": 14,
-    "link": "https://example.com/eset-antivirus"
-  },
-  {
-    "id": 10,
-    "title": "Sophos Antivirus",
-    "image": "https://example.com/sophos-image.jpg",
-    "productsCount": 11,
-    "link": "https://example.com/sophos-antivirus"
-  },
-  {
-    "id": 11,
-    "title": "Bitdefender Total Security",
-    "image": "https://example.com/bitdefender-total-security-image.jpg",
-    "productsCount": 9,
-    "link": "https://example.com/bitdefender-total-security"
-  },
-  {
-    "id": 12,
-    "title": "Panda Dome Antivirus",
-    "image": "https://example.com/panda-image.jpg",
-    "productsCount": 13,
-    "link": "https://example.com/panda-dome-antivirus"
   }
 ]

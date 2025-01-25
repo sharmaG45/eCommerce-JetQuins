@@ -145,7 +145,7 @@ export default function RootLayout({ children }) {
         <link rel='stylesheet' id='wd-woo-page-checkout-builder-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-page-checkout-builder.min.css?ver=8.0.4' type='text/css' media='all' />
         <link rel='stylesheet' id='wd-woo-opt-manage-checkout-prod-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-opt-manage-checkout-prod.min.css?ver=8.0.4' type='text/css' media='all' />
 
-        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/swiperInit.min.js?ver=8.0.4" id="wd-swiper-carousel-js"></script>
+        {/* <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/swiperInit.min.js?ver=8.0.4" id="wd-swiper-carousel-js"></script> */}
         <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/swiper.min.js?ver=8.0.4" id="wd-swiper-library-js"></script>
         <script src="/assets/wp-includes/js/jquery/jquery.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/autocomplete.min.js"></script>
@@ -154,11 +154,11 @@ export default function RootLayout({ children }) {
         <script src="/assets/wp-content/themes/woodmart/js/libs/magnific-popup.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/tooltips.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/swiper.min.js"></script>
-        <script src="/assets/wp-content/themes/woodmart/js/scripts/header/headerBuilder.min.js"></script>
+        {/* <script src="/assets/wp-content/themes/woodmart/js/scripts/header/headerBuilder.min.js"></script> */}
         <script type="text/javascript"
           src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/add-to-cart.min.js?ver=9.1.4"
           id="wc-add-to-cart-js" data-wp-strategy="defer"></script>
-        <script type="text/javascript" src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/woocommerce.min.js?ver=9.1.4" id="woocommerce-js" defer="defer" data-wp-strategy="defer"></script>
+        {/* <script type="text/javascript" src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/woocommerce.min.js?ver=9.1.4" id="woocommerce-js" defer="defer" data-wp-strategy="defer"></script> */}
         <script data-minify="1" type="text/javascript" src="/assets/wp-content/plugins/js_composer/assets/js/vendors/woocommerce-add-to-cart.js?ver=1734449562" id="vc_woocommerce-add-to-cart-js-js" data-rocket-defer defer></script>
         <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/device.min.js?ver=8.0.4" id="wd-device-library-js" data-rocket-defer defer></script>
         <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/scrollBar.min.js?ver=8.0.4" id="wd-scrollbar-js" data-rocket-defer defer></script>

@@ -26,29 +26,14 @@ const Sidebar = () => {
                                 title="Laptops, Tablets & PC"
                                 width="18"
                             />
-                            {/* <noscript>
-                                <img
-                                    className="wd-nav-img"
-                                    height="18"
-                                    loading="lazy"
-                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Laptops-Tablets-PC.svg"
-                                    title="Laptops, Tablets & PC"
-                                    width="18"
-                                />
-                            </noscript> */}
-                            <span className="nav-link-text">Laptops, Tablets & PCs</span>
+
+                            <span className="nav-link-text">Bitdefender</span>
                         </a>
-                        <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
+                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
                             <div className="wd-scroll-content">
                                 <div className="wd-dropdown-inner">
                                     <div className="container wd-entry-content">
-                                        <style
-                                            dangerouslySetInnerHTML={{
-                                                __html:
-                                                    ".vc_custom_1668611600999{margin-top: -15px !important;margin-right: -30px !important;margin-bottom: 30px !important;margin-left: -30px !important;}.vc_custom_1730909790343{margin-bottom: 15px !important;}.vc_custom_1668516291881{margin-bottom: 10px !important;}.vc_custom_1730909796324{margin-bottom: 15px !important;}.vc_custom_1668516396162{margin-bottom: 10px !important;}.wd-rs-63ca6c4121c83{--wd-img-height: 340px;}#wd-63ca6c4121c83 .banner-title{line-height:30px;font-size:20px;}",
-                                            }}
-                                            data-type="vc_shortcodes-custom-css"
-                                        />
+                            
                                         <div className="wpb-content-wrapper">
                                             <div className="vc_row wpb_row vc_row-fluid vc_custom_1668611600999 wd-rs-6374fe0c003f8">
                                                 <div className="wpb_column vc_column_container vc_col-sm-12">
@@ -242,7 +227,7 @@ const Sidebar = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3558 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -262,19 +247,10 @@ const Sidebar = () => {
                                 title="Computer & Office"
                                 width="18"
                             />
-                            <noscript>
-                                <img
-                                    className="wd-nav-img"
-                                    height="18"
-                                    loading="lazy"
-                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Computer-Office.svg"
-                                    title="Computer & Office"
-                                    width="18"
-                                />
-                            </noscript>
-                            <span className="nav-link-text">Computer & Office</span>
+
+                            <span className="nav-link-text">Norton</span>
                         </a>
-                        <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
+                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
                             <div className="wd-scroll-content">
                                 <div className="wd-dropdown-inner">
                                     <div className="container wd-entry-content">
@@ -455,7 +431,7 @@ const Sidebar = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3559 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -475,19 +451,10 @@ const Sidebar = () => {
                                 title="Hardware & Components"
                                 width="18"
                             />
-                            <noscript>
-                                <img
-                                    className="wd-nav-img"
-                                    height="18"
-                                    loading="lazy"
-                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Hardware-Components.svg"
-                                    title="Hardware & Components"
-                                    width="18"
-                                />
-                            </noscript>
-                            <span className="nav-link-text">Hardware & Components</span>
+
+                            <span className="nav-link-text">McAfee</span>
                         </a>
-                        <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
+                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
                             <div className="wd-scroll-content">
                                 <div className="wd-dropdown-inner">
                                     <div className="container wd-entry-content">
@@ -689,7 +656,7 @@ const Sidebar = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3560 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -709,19 +676,10 @@ const Sidebar = () => {
                                 title="Smartphones"
                                 width="18"
                             />
-                            <noscript>
-                                <img
-                                    className="wd-nav-img"
-                                    height="18"
-                                    loading="lazy"
-                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones.svg"
-                                    title="Smartphones"
-                                    width="18"
-                                />
-                            </noscript>
-                            <span className="nav-link-text">Smartphones</span>
+
+                            <span className="nav-link-text">Webroot</span>
                         </a>
-                        <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
+                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
                             <div className="wd-scroll-content">
                                 <div className="wd-dropdown-inner">
                                     <div className="container wd-entry-content">
@@ -913,7 +871,7 @@ const Sidebar = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3561 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -933,19 +891,10 @@ const Sidebar = () => {
                                 title="Smartphones-1"
                                 width="18"
                             />
-                            <noscript>
-                                <img
-                                    className="wd-nav-img"
-                                    height="18"
-                                    loading="lazy"
-                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones-1.svg"
-                                    title="Smartphones-1"
-                                    width="18"
-                                />
-                            </noscript>
-                            <span className="nav-link-text">Games & Entertainment</span>
+
+                            <span className="nav-link-text">Avast</span>
                         </a>
-                        <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
+                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
                             <div className="wd-scroll-content">
                                 <div className="wd-dropdown-inner">
                                     <div className="container wd-entry-content">
@@ -1258,7 +1207,7 @@ const Sidebar = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3562 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -1278,19 +1227,10 @@ const Sidebar = () => {
                                 title="TV & HIFI"
                                 width="18"
                             />
-                            <noscript>
-                                <img
-                                    className="wd-nav-img"
-                                    height="18"
-                                    loading="lazy"
-                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/TV-HIFI.svg"
-                                    title="TV & HIFI"
-                                    width="18"
-                                />
-                            </noscript>
-                            <span className="nav-link-text">TV & Hi-Fi</span>
+
+                            <span className="nav-link-text">Trend Micro</span>
                         </a>
-                        <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
+                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
                             <div className="wd-scroll-content">
                                 <div className="wd-dropdown-inner">
                                     <div className="container wd-entry-content">
@@ -1762,7 +1702,7 @@ const Sidebar = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3563 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -1782,19 +1722,10 @@ const Sidebar = () => {
                                 title="Photo & Video"
                                 width="18"
                             />
-                            <noscript>
-                                <img
-                                    className="wd-nav-img"
-                                    height="18"
-                                    loading="lazy"
-                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Photo-Video.svg"
-                                    title="Photo & Video"
-                                    width="18"
-                                />
-                            </noscript>
-                            <span className="nav-link-text">Photo & Video</span>
+
+                            <span className="nav-link-text">AVG</span>
                         </a>
-                        <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
+                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
                             <div className="wd-scroll-content">
                                 <div className="wd-dropdown-inner">
                                     <div className="container wd-entry-content">
@@ -2133,245 +2064,9 @@ const Sidebar = () => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> */}
                     </li>
-                    <li
-                        className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3564 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
-                        id="menu-item-3564"
-                        style={{
-                            "--wd-dropdown-height": "900px",
-                            "--wd-dropdown-width": "275px",
-                        }}>
-                        <a
-                            className="woodmart-nav-link"
-                            href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/">
-                            <img
-                                className="wd-nav-img entered lazyloaded"
-                                data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Home-Appliance.svg"
-                                data-ll-status="loaded"
-                                height="18"
-                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Home-Appliance.svg"
-                                title="Home Appliance"
-                                width="18"
-                            />
-                            <noscript>
-                                <img
-                                    className="wd-nav-img"
-                                    height="18"
-                                    loading="lazy"
-                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Home-Appliance.svg"
-                                    title="Home Appliance"
-                                    width="18"
-                                />
-                            </noscript>
-                            <span className="nav-link-text">Home Appliance</span>
-                        </a>
-                        <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
-                            <div className="wd-scroll-content">
-                                <div className="wd-dropdown-inner">
-                                    <div className="container wd-entry-content">
-                                        <style
-                                            dangerouslySetInnerHTML={{
-                                                __html:
-                                                    ".vc_custom_1668611656731{margin-top: -15px !important;margin-right: -30px !important;margin-bottom: 30px !important;margin-left: -30px !important;}.vc_custom_1730909911227{margin-bottom: 15px !important;}.vc_custom_1668516291881{margin-bottom: 10px !important;}.vc_custom_1730909916850{margin-bottom: 15px !important;}.vc_custom_1668516396162{margin-bottom: 10px !important;}.wd-rs-63ca6c964a146{--wd-img-height: 340px;}#wd-63ca6c964a146 .banner-title{line-height:30px;font-size:20px;}",
-                                            }}
-                                            data-type="vc_shortcodes-custom-css"
-                                        />
-                                        <div className="wpb-content-wrapper">
-                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1668611656731 wd-rs-6374fe44704b5">
-                                                <div className="wpb_column vc_column_container vc_col-sm-12">
-                                                    <div className="vc_column-inner">
-                                                        <div className="wpb_wrapper">
-                                                            <ul className="wd-sub-menu wd-rs-672b96d39bbc4 mega-menu-list wd-sub-accented wd-wpb vc_custom_1730909911227">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/kitchen/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">Kitchen</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/kitchen/dishwashers/"
-                                                                                title="">
-                                                                                Dishwashers
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/kitchen/fridges/"
-                                                                                title="">
-                                                                                Fridges
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/kitchen/ovens/"
-                                                                                title="">
-                                                                                Ovens
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/kitchen/blenders/"
-                                                                                title="">
-                                                                                Blenders
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1668516291881">
-                                                                <span className="vc_sep_holder vc_sep_holder_l">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                                <span className="vc_sep_holder vc_sep_holder_r">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                            </div>
-                                                            <ul className="wd-sub-menu wd-rs-672b96d96559e mega-menu-list wd-sub-accented wd-wpb vc_custom_1730909916850">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/bathroom/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">Bathroom</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/bathroom/washing-machines/"
-                                                                                title="">
-                                                                                Washing Machines
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/bathroom/dryer/"
-                                                                                title="">
-                                                                                Dryer
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/bathroom/all-in-one-bathroom/"
-                                                                                title="">
-                                                                                All in one
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1668516396162">
-                                                                <span className="vc_sep_holder vc_sep_holder_l">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                                <span className="vc_sep_holder vc_sep_holder_r">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                            </div>
-                                                            <ul className="wd-sub-menu wd-rs-672b96df756a4 mega-menu-list wd-sub-accented wd-wpb">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/other/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">Other</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/other/vacuum-cleaners/"
-                                                                                title="">
-                                                                                Vacuum Cleaners
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/other/irons/"
-                                                                                title="">
-                                                                                Irons
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/other/air-conditioners/"
-                                                                                title="">
-                                                                                Air conditioners
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="promo-banner-wrapper  wd-rs-63ca6c964a146 ">
-                                                                <div
-                                                                    className="promo-banner  banner- banner-hover-zoom color-scheme-light banner-btn-size-default banner-btn-style-default  with-btn banner-btn-position-static wd-underline-colored"
-                                                                    id="wd-63ca6c964a146">
-                                                                    <div className="main-wrapp-img">
-                                                                        <div className="banner-image wd-bg-position-center">
-                                                                            <picture className="attachment-full size-full">
-                                                                                <source
-                                                                                    srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/comfort-and-cozy.jpg.webp"
-                                                                                    type="image/webp"
-                                                                                />
-                                                                                <img
-                                                                                    alt=""
-                                                                                    height="720"
-                                                                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/comfort-and-cozy.jpg"
-                                                                                    width="600"
-                                                                                />
-                                                                            </picture>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="wrapper-content-banner wd-fill  wd-items-top wd-justify-center">
-                                                                        <div className="content-banner  text-center">
-                                                                            <div className="banner-subtitle subtitle-color-default subtitle-style-default wd-fontsize-xs wd-font-weight-700 font-alt">
-                                                                                SERIES APPLIANCES
-                                                                            </div>
-                                                                            <h4 className="banner-title wd-font-weight- wd-fontsize-l">
-                                                                                Comfort and Cozy
-                                                                            </h4>
-                                                                            <div className="banner-btn-wrapper">
-                                                                                <div
-                                                                                    className="  wd-button-wrapper text-center"
-                                                                                    id="wd-678228d86f001">
-                                                                                    <a className="btn btn-color-primary btn-style-default btn-shape-semi-round btn-size-default">
-                                                                                        To Shop
-                                                                                    </a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
+
                 </ul>
             </div>
 

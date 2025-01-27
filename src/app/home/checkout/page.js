@@ -190,6 +190,7 @@ const checkout = () => {
     }, [])
 
     const removeFromCart = async (productId, e) => {
+        e.preventDefault();
         const userData = localStorage.getItem('currentUser');
         if (!userData) {
             alert("Please log in first.");
@@ -2078,7 +2079,7 @@ const checkout = () => {
                                                                                                 />
                                                                                             </div>
                                                                                         </div>
-                                                                                       
+
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-634ff2ae7a84a wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1666183861337 wd-underline-colored"
                                                                                             id="wd-634ff2ae7a84a">
@@ -2107,11 +2108,11 @@ const checkout = () => {
                                                                                                 </span>
                                                                                             </a>
                                                                                         </div>
-                                                                                       
+
                                                                                         <div
                                                                                             className="wd-products-element wd-rs-63e1023d7a64b wd-wpb"
                                                                                             id="">
-                                                                                            
+
                                                                                             <div
                                                                                                 className="products wd-products  grid-columns-5 elements-grid wd-grid-g title-line-one wd-stretch-cont-lg wd-products-with-bg"
                                                                                                 data-atts='{"post_type":"ids","spacing":"20","include":"182, 2435, 1476, 2564, 3110","items_per_page":"5","columns":"5","columns_tablet":"3","sale_countdown":"0","stock_progress_bar":"0","highlighted_products":"0","products_bordered_grid":"0","products_with_background":"1","products_shadow":"0","orderby":"post__in","img_size":"large","woodmart_css_id":"63e1023d7a64b","force_not_ajax":"no"}'
@@ -4422,7 +4423,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                       
+
                                                                                         <div className="promo-banner-wrapper  wd-rs-63d90c213c7b6 ">
                                                                                             <div
                                                                                                 className="promo-banner  banner- banner-hover-zoom color-scheme-light banner-btn-size-default banner-btn-style-default  with-btn banner-btn-position-static wd-underline-colored"
@@ -4466,7 +4467,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                       
+
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-634ff240c9859 wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1666183754887 wd-underline-colored"
                                                                                             id="wd-634ff240c9859">
@@ -7313,7 +7314,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                      
+
                                                                                         <div
                                                                                             className="wd-image wd-wpb wd-rs-63d90af56021f text-left vc_custom_1675168504439"
                                                                                             id="wd-63d90af56021f">
@@ -7328,7 +7329,7 @@ const checkout = () => {
                                                                                                 width="580"
                                                                                             />
                                                                                         </div>
-                                                                                       
+
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-6375053b71efb wd-title-color-default wd-title-style-default text-left vc_custom_1668613440554 wd-underline-colored"
                                                                                             id="wd-6375053b71efb">
@@ -7401,7 +7402,7 @@ const checkout = () => {
                                                                                                 </span>
                                                                                             </a>
                                                                                         </div>
-                                                                                        
+
                                                                                         <div
                                                                                             className="wd-carousel-container  wd-wpb wd-rs-64e4cbd0da5b4  wd-products-element wd-products products wd-products-with-bg title-line-one"
                                                                                             id="carousel-732">
@@ -7844,7 +7845,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                       
+
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63ca97e116739 wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1674221541822 wd-underline-colored"
                                                                                             id="wd-63ca97e116739">
@@ -9457,7 +9458,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                       
+
                                                                                         <div
                                                                                             className="wd-image wd-wpb wd-rs-637e438d6a0da text-left vc_custom_1669219219705"
                                                                                             id="wd-637e438d6a0da">
@@ -9472,7 +9473,7 @@ const checkout = () => {
                                                                                                 width="440"
                                                                                             />
                                                                                         </div>
-                                                                                       
+
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63da1ecf94050 wd-title-color-default wd-title-style-default text-left vc_custom_1675239125767 wd-width-custom wd-underline-colored"
                                                                                             id="wd-63da1ecf94050">
@@ -11259,7 +11260,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                       
+
                                                                                         <div
                                                                                             className="wd-carousel-container  wd-wpb with-title wd-rs-63e611509750d vc_custom_1676022104749 wd-products-element wd-products products wd-products-with-bg title-line-one"
                                                                                             id="carousel-384">
@@ -11421,7 +11422,7 @@ const checkout = () => {
                                                                                                 </h4>
                                                                                             </div>
                                                                                         </div>
-                                                                                        
+
                                                                                         <div
                                                                                             className="wd-carousel-container  wd-wpb wd-rs-66fd2a00761b7  wd-posts wd-blog-element title-line-one"
                                                                                             id="wd-6785f396247c9">

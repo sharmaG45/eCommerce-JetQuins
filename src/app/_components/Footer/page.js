@@ -49,7 +49,7 @@ const Footer = () => {
                                             <a
                                                 className="wd-info-box-link wd-fill"
                                                 aria-label="Infobox link"
-                                                href="https://woodmart.xtemos.com/mega-electronics/broadway-store/"
+                                                href="/"
                                                 title="Broadway Store"
                                             />
                                         </div>
@@ -98,7 +98,7 @@ const Footer = () => {
                                             <a
                                                 className="wd-info-box-link wd-fill"
                                                 aria-label="Infobox link"
-                                                href="https://woodmart.xtemos.com/mega-electronics/valencia-store-2/"
+                                                href="/"
                                                 title="Valencia Store"
                                             />
                                         </div>
@@ -147,7 +147,7 @@ const Footer = () => {
                                             <a
                                                 className="wd-info-box-link wd-fill"
                                                 aria-label="Infobox link"
-                                                href="https://woodmart.xtemos.com/mega-electronics/emeryville-store-2/"
+                                                href="/"
                                                 title="Alameda Store"
                                             />
                                         </div>
@@ -196,7 +196,7 @@ const Footer = () => {
                                             <a
                                                 className="wd-info-box-link wd-fill"
                                                 aria-label="Infobox link"
-                                                href="https://woodmart.xtemos.com/mega-electronics/alameda-store/"
+                                                href="/"
                                                 title="Alameda Store"
                                             />
                                         </div>
@@ -240,7 +240,7 @@ const Footer = () => {
                                         id="wd-6388ba0e775af"
                                         className="wd-image wd-wpb wd-rs-6388ba0e775af text-left vc_custom_1669904956863"
                                     >
-                                        <a href="https://woodmart.xtemos.com/mega-electronics/">
+                                        <a href="/">
                                             <img
                                                 src="/assets/wp-content/uploads/sites/9/2022/10/mega-electronics-logo.svg"
                                                 title="mega-electronics-logo"
@@ -270,7 +270,7 @@ const Footer = () => {
                                     >
                                         <a
                                             rel="noopener noreferrer nofollow"
-                                            href="https://www.facebook.com/sharer/sharer.php?u=https://woodmart.xtemos.com/mega-electronics/"
+                                            href="/"
                                             target="_blank"
                                             className=" wd-social-icon social-facebook"
                                             aria-label="Facebook social link"
@@ -279,7 +279,7 @@ const Footer = () => {
                                         </a>
                                         <a
                                             rel="noopener noreferrer nofollow"
-                                            href="https://x.com/share?url=https://woodmart.xtemos.com/mega-electronics/"
+                                            href="/"
                                             target="_blank"
                                             className=" wd-social-icon social-twitter"
                                             aria-label="X social link"
@@ -288,7 +288,7 @@ const Footer = () => {
                                         </a>
                                         <a
                                             rel="noopener noreferrer nofollow"
-                                            href="https://pinterest.com/pin/create/button/?url=https://woodmart.xtemos.com/mega-electronics/&media=https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event.jpg&description=Home"
+                                            href="/"
                                             target="_blank"
                                             className=" wd-social-icon social-pinterest"
                                             aria-label="Pinterest social link"
@@ -297,7 +297,7 @@ const Footer = () => {
                                         </a>
                                         <a
                                             rel="noopener noreferrer nofollow"
-                                            href="https://www.linkedin.com/shareArticle?mini=true&url=https://woodmart.xtemos.com/mega-electronics/"
+                                            href="/"
                                             target="_blank"
                                             className=" wd-social-icon social-linkedin"
                                             aria-label="Linkedin social link"
@@ -306,7 +306,7 @@ const Footer = () => {
                                         </a>
                                         <a
                                             rel="noopener noreferrer nofollow"
-                                            href="https://telegram.me/share/url?url=https://woodmart.xtemos.com/mega-electronics/"
+                                            href="/"
                                             target="_blank"
                                             className=" wd-social-icon social-tg"
                                             aria-label="Telegram social link"
@@ -453,7 +453,7 @@ const Footer = () => {
                                             <ul className="sub-sub-menu">
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/blog/"
+                                                        href="/"
                                                         title="Blog"
                                                     >
                                                         Blog
@@ -461,7 +461,7 @@ const Footer = () => {
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/our-contacts/"
+                                                        href="/"
                                                         title="Our Contacts"
                                                     >
                                                         Our contacts
@@ -469,7 +469,7 @@ const Footer = () => {
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/promotions/"
+                                                        href="/"
                                                         title="Promotions"
                                                     >
                                                         Promotions
@@ -482,7 +482,7 @@ const Footer = () => {
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="https://woodmart.xtemos.com/mega-electronics/delivery-return/"
+                                                        href="/"
                                                         title="Delivery & Return"
                                                     >
                                                         Delivery &amp; Return
@@ -559,11 +559,11 @@ const Footer = () => {
                 <div className="container wd-grid-g">
                     <div className="wd-col-start reset-last-child">
                         <small>
-                            <a href="https://woodmart.xtemos.com">
+                            <a href="/home">
                                 <strong>WOODMART</strong>
                             </a>
                             © 2025 CREATED BY
-                            <a href="http://xtemos.com">
+                            <a href="/">
                                 <strong>XTEMOS STUDIO</strong>
                             </a>
                             . PREMIUM E-COMMERCE SOLUTIONS.

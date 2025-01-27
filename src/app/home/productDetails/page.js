@@ -197,12 +197,20 @@ const productDetails = () => {
             // Get user document reference
             const userRef = doc(fireStore, "users", user.uid);
 
-            // Remove item from cart array in Firestore
+            // Find the item to be removed by matching the productId
+            const itemToRemove = cartItems.find(item => item.productId === productId);
+
+            if (!itemToRemove) {
+                console.log("Item not found in cart.");
+                return;
+            }
+
+            // Remove item from cart array in Firestore using arrayRemove
             await updateDoc(userRef, {
-                cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+                cart: arrayRemove(itemToRemove) // Ensure you're passing the whole object
             });
 
-            // Update local state
+            // Update local state by filtering out the item
             setCartItems(cartItems.filter(item => item.productId !== productId));
 
             console.log(`Removed item with productId: ${productId}`);
@@ -253,7 +261,7 @@ const productDetails = () => {
     };
 
     const handleCheckout = () => {
-       
+
         router.push('/home/checkout');
     };
 

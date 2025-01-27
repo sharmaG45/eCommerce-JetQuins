@@ -2,7 +2,7 @@
 
 import bestOffer from "../../assets/scraped_products.json";
 import { useEffect, useState } from "react";
-import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, updateDoc,arrayRemove  } from "firebase/firestore";
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import { useRouter } from "next/navigation";
 
@@ -98,6 +98,41 @@ const cart = () => {
             console.error("Error removing item from cart:", error);
         }
     }
+
+    const removeFromCart = async (productId) => {
+        const userData = localStorage.getItem('currentUser');
+        if (!userData) {
+            alert("Please log in first.");
+            return;
+        }
+
+        const user = JSON.parse(userData); // Parse the user data from localStorage
+
+        try {
+            // Get user document reference
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Find the item to be removed by matching the productId
+            const itemToRemove = cartItems.find(item => item.productId === productId);
+
+            if (!itemToRemove) {
+                console.log("Item not found in cart.");
+                return;
+            }
+
+            // Remove item from cart array in Firestore using arrayRemove
+            await updateDoc(userRef, {
+                cart: arrayRemove(itemToRemove) // Ensure you're passing the whole object
+            });
+
+            // Update local state by filtering out the item
+            setCartItems(cartItems.filter(item => item.productId !== productId));
+
+            console.log(`Removed item with productId: ${productId}`);
+        } catch (error) {
+            console.error("Error removing item from cart:", error);
+        }
+    };
 
     const handleQuantityChange = async (productId, newQuantity, e) => {
         e.preventDefault();
@@ -348,7 +383,7 @@ const cart = () => {
                                         <div className="vc_column-inner vc_custom_1668168534424">
                                             <div className="wpb_wrapper">
                                                 <link
-                                                    href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-page-title-builder.min.css?ver=8.0.4"
+                                                    href="/"
                                                     id="wd-el-page-title-builder-css"
                                                     media="all"
                                                     rel="stylesheet"
@@ -361,12 +396,12 @@ const cart = () => {
                                                         <div className="container">
                                                             <ul className="wd-checkout-steps">
                                                                 <li className="step-cart step-active">
-                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/home/cart/">
+                                                                    <a href="/">
                                                                         <span>Shopping cart</span>
                                                                     </a>
                                                                 </li>
                                                                 <li className="step-checkout step-inactive">
-                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/home/checkout/">
+                                                                    <a href="/">
                                                                         <span>Checkout</span>
                                                                     </a>
                                                                 </li>
@@ -629,25 +664,30 @@ const cart = () => {
                                                                                             <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
                                                                                         </div>
                                                                                         <picture decoding="async" className="attachment-large size-large">
-
+                                                                                            <source
+                                                                                                type="image/webp"
+                                                                                                data-lazy-srcset={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                                srcSet={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                                sizes="(max-width: 700px) 100vw, 700px"
+                                                                                            />
                                                                                             <img
                                                                                                 decoding="async"
                                                                                                 width={700}
                                                                                                 height={800}
-                                                                                                src={offer.image_urls}
+                                                                                                src={offer.image_url}
 
-                                                                                                data-lazy-srcset={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
+                                                                                                data-lazy-srcset={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                                 data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                                 className="entered lazyloaded"
                                                                                                 sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet={`${offer.image_urls} 700w, ${offer.image_urls} 263w`}
+                                                                                                srcSet={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                             />
                                                                                         </picture>
                                                                                     </a>
                                                                                     <div className="wd-buttons wd-pos-r-t">
                                                                                         <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
                                                                                             <a
-                                                                                                href={`https://woodmart.xtemos.com/mega-electronics/compare/?product_id=${offer.productId}`}
+                                                                                                href="/"
                                                                                                 data-id={offer.productId}
                                                                                                 rel="nofollow"
                                                                                                 data-added-text="Compare products"
@@ -770,13 +810,7 @@ const cart = () => {
                                                                 <div className="wd-arrow-inner" />
                                                             </div>
                                                         </div>
-                                                        <link
-                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/lib-swiper-arrows.min.css?ver=8.0.4"
-                                                            id="wd-swiper-arrows-css"
-                                                            media="all"
-                                                            rel="stylesheet"
-                                                            type="text/css"
-                                                        />
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -1012,7 +1046,7 @@ const cart = () => {
                                                                                 <a
                                                                                     className="checkout-button button alt wc-forward"
                                                                                     onClick={handleCheckout}
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/home/checkout/">
+                                                                                    href="/">
                                                                                     Proceed to checkout
                                                                                 </a>
                                                                             </div>
@@ -1036,20 +1070,7 @@ const cart = () => {
                                                                         </h4>
                                                                     </div>
                                                                 </div>
-                                                                <link
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-accordion.min.css?ver=8.0.4"
-                                                                    id="wd-accordion-css"
-                                                                    media="all"
-                                                                    rel="stylesheet"
-                                                                    type="text/css"
-                                                                />
-                                                                <link
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-accordion-wpb-elem.min.css?ver=8.0.4"
-                                                                    id="wd-accordion-elem-wpb-css"
-                                                                    media="all"
-                                                                    rel="stylesheet"
-                                                                    type="text/css"
-                                                                />
+
                                                                 <div
                                                                     className="wd-accordion wd-wpb wd-rs-63caae15ba090 vc_custom_1674227228977 wd-style-default wd-border-off wd-titles-left wd-opener-pos-right wd-opener-style-arrow wd-inited"
                                                                     data-state="first"
@@ -1202,164 +1223,80 @@ const cart = () => {
                         <div className="shopping-cart-widget-body wd-scroll">
                             <div className="wd-scroll-content">
                                 <ul className="cart_list product_list_widget woocommerce-mini-cart ">
-                                    <li
-                                        className="woocommerce-mini-cart-item mini_cart_item"
-                                        data-key="b1301141feffabac455e1f90a7de2054"
-                                    >
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                            className="cart-item-link wd-fill"
-                                        >
-                                            Show
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/home/cart/?remove_item=b1301141feffabac455e1f90a7de2054&_wpnonce=ee462b7815"
-                                            className="remove remove_from_cart_button"
-                                            aria-label="Remove Oculus Quest 2 from cart"
-                                            data-product_id={2435}
-                                            data-cart_item_key="b1301141feffabac455e1f90a7de2054"
-                                            data-product_sku={608069}
-                                            data-success_message="“Oculus Quest 2” has been removed from your cart"
-                                        >
-                                            ×
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
-                                            className="cart-item-image"
-                                        >
-                                            <img
-                                                width={430}
-                                                height={491}
-                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg"
-                                                className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                alt=""
-                                                decoding="async"
-                                                srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1-180x206.jpg 180w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg 700w"
-                                                sizes="(max-width: 430px) 100vw, 430px"
-                                            />
-                                        </a>
-                                        <div className="cart-info">
-                                            <span className="wd-entities-title">Oculus Quest 2 </span>
-                                            <div className="wd-product-detail wd-product-sku">
-                                                <span className="wd-label">SKU: </span>
-                                                <span>608069 </span>
-                                            </div>
-                                            <div className="quantity">
-                                                <input type="button" defaultValue="-" className="minus btn" />
-                                                <label
-                                                    className="screen-reader-text"
-                                                    htmlFor="quantity_6784e22dca593"
+                                    {cartItems.length > 0 ? (
+                                        cartItems.map((item, index) => (
+                                            <li key={index} className="woocommerce-mini-cart-item mini_cart_item">
+                                                <a href={item.productUrl} className="cart-item-link wd-fill">
+                                                    Show
+                                                </a>
+                                                <a
+                                                    href="#"
+                                                    className="remove remove_from_cart_button"
+                                                    aria-label={`Remove ${item.productName} from cart`}
+                                                    onClick={() => removeFromCart(item.productId)} // Implement remove functionality
                                                 >
-                                                    Oculus Quest 2 quantity
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    id="quantity_6784e22dca593"
-                                                    className="input-text qty text"
-                                                    defaultValue={5}
-                                                    aria-label="Product quantity"
-                                                    min={0}
-                                                    max=""
-                                                    name="cart[b1301141feffabac455e1f90a7de2054][qty]"
-                                                    step={1}
-                                                    placeholder=""
-                                                    inputMode="numeric"
-                                                    autoComplete="off"
-                                                />
-                                                <input type="button" defaultValue="+" className="plus btn" />
-                                            </div>
-                                            <span className="quantity">
-                                                5 ×
-                                                <span className="woocommerce-Price-amount amount">
-                                                    <bdi>
-                                                        <span className="woocommerce-Price-currencySymbol">
-                                                            $
+                                                    ×
+                                                </a>
+                                                <a href={item.productUrl} className="cart-item-image">
+                                                    <img
+                                                        width={430}
+                                                        height={491}
+                                                        src={item.imageUrls}
+                                                        className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
+                                                        alt={item.productName}
+                                                        decoding="async"
+                                                    />
+                                                </a>
+                                                <div className="cart-info">
+                                                    <span className="wd-entities-title">{item.productName}</span>
+                                                    <div className="wd-product-detail wd-product-sku">
+                                                        <span className="wd-label">SKU: </span>
+                                                        <span>{item.productSku}</span>
+                                                    </div>
+                                                    <div className="quantity">
+                                                        <input
+                                                            type="button"
+                                                            value="-"
+                                                            className="minus btn"
+                                                            onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Decrease quantity
+                                                        />
+                                                        <label
+                                                            className="screen-reader-text"
+                                                            htmlFor={`quantity_${item.productId}`}
+                                                        >
+                                                            {item.productName} quantity
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            id={`quantity_${item.productId}`}
+                                                            className="input-text qty text"
+                                                            value={item.quantity}
+                                                            aria-label="Product quantity"
+                                                            min={1}
+                                                            onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))} // Set new quantity
+                                                        />
+                                                        <input
+                                                            type="button"
+                                                            value="+"
+                                                            className="plus btn"
+                                                            onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Increase quantity
+                                                        />
+                                                    </div>
+                                                    <span className="quantity">
+                                                        {item.quantity} ×
+                                                        <span className="woocommerce-Price-amount amount">
+                                                            <bdi>
+                                                                <span className="woocommerce-Price-currencySymbol">$</span>
+                                                                {item.price * item.quantity}
+                                                            </bdi>
                                                         </span>
-                                                        449.00
-                                                    </bdi>
-                                                </span>
-                                            </span>
-                                        </div>
-                                    </li>
-                                    <li
-                                        className="woocommerce-mini-cart-item mini_cart_item"
-                                        data-key="26e359e83860db1d11b6acca57d8ea88"
-                                    >
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
-                                            className="cart-item-link wd-fill"
-                                        >
-                                            Show
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/home/cart/?remove_item=26e359e83860db1d11b6acca57d8ea88&_wpnonce=ee462b7815"
-                                            className="remove remove_from_cart_button"
-                                            aria-label="Remove ASUS ZenBook OLED 13 from cart"
-                                            data-product_id={298}
-                                            data-cart_item_key="26e359e83860db1d11b6acca57d8ea88"
-                                            data-product_sku={30884}
-                                            data-success_message="“ASUS ZenBook OLED 13” has been removed from your cart"
-                                        >
-                                            ×
-                                        </a>
-                                        <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
-                                            className="cart-item-image"
-                                        >
-                                            <img
-                                                width={430}
-                                                height={491}
-                                                src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-430x491.jpg"
-                                                className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                alt=""
-                                                decoding="async"
-                                                srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1-180x206.jpg 180w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/asus-zenbook-oled-13-1.jpg 700w"
-                                                sizes="(max-width: 430px) 100vw, 430px"
-                                            />
-                                        </a>
-                                        <div className="cart-info">
-                                            <span className="wd-entities-title">ASUS ZenBook OLED 13 </span>
-                                            <div className="wd-product-detail wd-product-sku">
-                                                <span className="wd-label">SKU: </span>
-                                                <span>30884 </span>
-                                            </div>
-                                            <div className="quantity">
-                                                <input type="button" defaultValue="-" className="minus btn" />
-                                                <label
-                                                    className="screen-reader-text"
-                                                    htmlFor="quantity_6784e22dcaabe"
-                                                >
-                                                    ASUS ZenBook OLED 13 quantity
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    id="quantity_6784e22dcaabe"
-                                                    className="input-text qty text"
-                                                    defaultValue={2}
-                                                    aria-label="Product quantity"
-                                                    min={0}
-                                                    max=""
-                                                    name="cart[26e359e83860db1d11b6acca57d8ea88][qty]"
-                                                    step={1}
-                                                    placeholder=""
-                                                    inputMode="numeric"
-                                                    autoComplete="off"
-                                                />
-                                                <input type="button" defaultValue="+" className="plus btn" />
-                                            </div>
-                                            <span className="quantity">
-                                                2 ×
-                                                <span className="woocommerce-Price-amount amount">
-                                                    <bdi>
-                                                        <span className="woocommerce-Price-currencySymbol">
-                                                            $
-                                                        </span>
-                                                        1,600.00
-                                                    </bdi>
-                                                </span>
-                                            </span>
-                                        </div>
-                                    </li>
+                                                    </span>
+                                                </div>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <li>No items in your cart</li>
+                                    )}
                                 </ul>
                             </div>
                         </div>
@@ -1369,7 +1306,7 @@ const cart = () => {
                                 <span className="woocommerce-Price-amount amount">
                                     <bdi>
                                         <span className="woocommerce-Price-currencySymbol">$</span>
-                                        5,445.00
+                                        {calculateSubtotal()}
                                     </bdi>
                                 </span>
                             </p>

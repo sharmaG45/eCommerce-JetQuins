@@ -13,6 +13,29 @@ const Navbar = () => {
         { id: "menu-mobile-menu-mega-electronics", label: "Categories", link: "#" },
     ];
 
+    const products = [
+        {
+            id: 1,
+            name: "Bitdefender Antivirus",
+            url: "/home/productCategory?title=Bitdefender" // Assuming the product URL for Bitdefender
+        },
+        {
+            id: 2,
+            name: "McAfee Antivirus",
+            url: "/home/productCategory?title=McAfee" // Assuming the product URL for McAfee
+        },
+        {
+            id: 3,
+            name: "Trend Micro",
+            url: "/home/productCategory?title=Trend Micro" // Assuming the product URL for Trend Micro
+        },
+        {
+            id: 4,
+            name: "Norton Antivirus",
+            url: "/home/productCategory?title=Norton" // Assuming the product URL for Norton
+        }
+    ];
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -127,12 +150,20 @@ const Navbar = () => {
             // Get user document reference
             const userRef = doc(fireStore, "users", user.uid);
 
-            // Remove item from cart array in Firestore
+            // Find the item to be removed by matching the productId
+            const itemToRemove = cartItems.find(item => item.productId === productId);
+
+            if (!itemToRemove) {
+                console.log("Item not found in cart.");
+                return;
+            }
+
+            // Remove item from cart array in Firestore using arrayRemove
             await updateDoc(userRef, {
-                cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+                cart: arrayRemove(itemToRemove) // Ensure you're passing the whole object
             });
 
-            // Update local state
+            // Update local state by filtering out the item
             setCartItems(cartItems.filter(item => item.productId !== productId));
 
             console.log(`Removed item with productId: ${productId}`);
@@ -140,6 +171,7 @@ const Navbar = () => {
             console.error("Error removing item from cart:", error);
         }
     };
+
 
     const changeQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
@@ -243,8 +275,13 @@ const Navbar = () => {
     };
 
     console.log(filteredProducts, "Filtered Data");
-    console.log(showSuggestions,"open ho rha hai ya nahi");
-    
+    console.log(showSuggestions, "open ho rha hai ya nahi");
+
+    const handleProductClick = (productUrl) => {
+        router.push(`${productUrl}`)
+        setShopOpen(false);
+    }
+
 
     // Handle form submit (Search button click)
     const handleSubmit = (event) => {
@@ -292,7 +329,7 @@ const Navbar = () => {
                                             className="s"
                                             placeholder="Search for products"
                                             value={searchQuery}
-                                            onChange={(event)=>{setSearchQuery(event.target.value);}}
+                                            onChange={(event) => { setSearchQuery(event.target.value); }}
                                             name="s"
                                             aria-label="Search"
                                             title="Search for products"
@@ -431,7 +468,7 @@ const Navbar = () => {
                             <div className="whb-column whb-mobile-center whb-hidden-lg">
                                 <div className="site-logo">
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/"
+                                        href="/"
                                         className="wd-logo wd-main-logo"
                                         rel="home"
                                         aria-label="Site logo"
@@ -447,13 +484,7 @@ const Navbar = () => {
                                 </div>
                             </div>
                             <div className="whb-column whb-mobile-right whb-hidden-lg">
-                                <link
-                                    rel="stylesheet"
-                                    id="wd-woo-mod-login-form-css"
-                                    href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-mod-login-form.min.css?ver=8.0.4"
-                                    type="text/css"
-                                    media="all"
-                                />
+
                                 <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-1 wd-account-style-icon login-side-opener whb-hehq7b9i6crxiw1rjzt3" onClick={openModal}>
                                     <a
 
@@ -521,17 +552,18 @@ const Navbar = () => {
                                                 onClick={(e) => {
                                                     e.preventDefault(); // Prevent default anchor behavior
                                                     toggleDropdown();
+                                                    setShopOpen(false);
                                                 }}
-                                                style={{
-                                                    textDecoration: "none",
-                                                    color: "#333",
-                                                    fontSize: "16px",
-                                                    padding: "10px 15px",
-                                                    background: "#f8f9fa",
-                                                    borderRadius: "5px",
-                                                    display: "inline-block",
-                                                    cursor: "pointer",
-                                                }}
+                                            // style={{
+                                            //     textDecoration: "none",
+                                            //     color: "#333",
+                                            //     fontSize: "16px",
+                                            //     padding: "10px 15px",
+                                            //     background: "#f8f9fa",
+                                            //     borderRadius: "5px",
+                                            //     display: "inline-block",
+                                            //     cursor: "pointer",
+                                            // }}
                                             >
                                                 <span className="nav-link-text">Site Policies</span>
                                             </a>
@@ -550,7 +582,7 @@ const Navbar = () => {
                                                         listStyleType: "none",
                                                         margin: "5px 0 0 0",
                                                         padding: "10px 0",
-                                                        minWidth: "150px",
+                                                        minWidth: "200px",
                                                         zIndex: 1000,
                                                     }}
                                                 >
@@ -610,17 +642,9 @@ const Navbar = () => {
                                                 onClick={(e) => {
                                                     e.preventDefault(); // Prevent default anchor behavior
                                                     shopDropdown();
+                                                    setIsOpen(false);
                                                 }}
-                                                style={{
-                                                    textDecoration: "none",
-                                                    color: "#333",
-                                                    fontSize: "16px",
-                                                    padding: "10px 15px",
-                                                    background: "#f8f9fa",
-                                                    borderRadius: "5px",
-                                                    display: "inline-block",
-                                                    cursor: "pointer",
-                                                }}
+
                                             >
                                                 <span className="nav-link-text">Shop</span>
                                             </a>
@@ -639,58 +663,28 @@ const Navbar = () => {
                                                         listStyleType: "none",
                                                         margin: "5px 0 0 0",
                                                         padding: "10px 0",
-                                                        minWidth: "150px",
+                                                        minWidth: "200px",
                                                         zIndex: 1000,
                                                     }}
                                                 >
-                                                    <li style={{ padding: "10px 20px" }}>
-                                                        <a
-                                                            href="/home/terms"
-                                                            style={{
-                                                                textDecoration: "none",
-                                                                color: "#333",
-                                                                display: "block",
-                                                            }}
-                                                        >
-                                                            Bitdefender Antivirus
-                                                        </a>
-                                                    </li>
-                                                    <li style={{ padding: "10px 20px" }}>
-                                                        <a
-                                                            href="/home/privacy"
-                                                            style={{
-                                                                textDecoration: "none",
-                                                                color: "#333",
-                                                                display: "block",
-                                                            }}
-                                                        >
-                                                            Mcafee Antivirus
-                                                        </a>
-                                                    </li>
-                                                    <li style={{ padding: "10px 20px" }}>
-                                                        <a
-                                                            href="/home/return"
-                                                            style={{
-                                                                textDecoration: "none",
-                                                                color: "#333",
-                                                                display: "block",
-                                                            }}
-                                                        >
-                                                            Trend Micro
-                                                        </a>
-                                                    </li>
-                                                    <li style={{ padding: "10px 20px" }}>
-                                                        <a
-                                                            href="/home/return"
-                                                            style={{
-                                                                textDecoration: "none",
-                                                                color: "#333",
-                                                                display: "block",
-                                                            }}
-                                                        >
-                                                            Norton Antivirus
-                                                        </a>
-                                                    </li>
+                                                    {products.map((product) => (
+                                                        <li key={product.id} style={{ padding: "10px 20px" }}>
+                                                            <a
+                                                                href="#"
+                                                                style={{
+                                                                    textDecoration: "none",
+                                                                    color: "#333",
+                                                                    display: "block",
+                                                                }}
+                                                                onClick={(e) => {
+                                                                    e.preventDefault(); // Prevent default link behavior
+                                                                    handleProductClick(product.url); // Redirect to the product URL
+                                                                }}
+                                                            >
+                                                                {product.name}
+                                                            </a>
+                                                        </li>
+                                                    ))}
                                                 </ul>
                                             )}
                                         </li>
@@ -1006,7 +1000,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-112 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <img
@@ -1029,7 +1023,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4684 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 Laptops
@@ -1044,7 +1038,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4685 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/apple-macbook/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Apple MacBook
@@ -1055,7 +1049,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4686 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/business-laptop/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Business Laptop
@@ -1066,7 +1060,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4687 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/gaming-laptop/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Gaming Laptop
@@ -1077,7 +1071,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4688 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/ultrabook/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Ultrabook
@@ -1091,7 +1085,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4689 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 Tablets
@@ -1106,7 +1100,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4690 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/apple-ipad/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Apple Ipad
@@ -1117,7 +1111,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4691 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/android-tablets/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Android Tablets
@@ -1128,7 +1122,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4692 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/windows-tablets/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Windows Tablets
@@ -1142,7 +1136,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4693 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 PCs
@@ -1157,7 +1151,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4694 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/gaming-pcs/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Gaming PCs
@@ -1168,7 +1162,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4695 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/office-pcs/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Office PCs
@@ -1179,7 +1173,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4696 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/all-in-one/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         All in one
@@ -1196,7 +1190,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-108 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <img
@@ -1219,7 +1213,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4697 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/monitors/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 Monitors
@@ -1230,7 +1224,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4698 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/printers-scanners/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 Printers &amp; Scanners
@@ -1241,7 +1235,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4699 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/input-devices/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 Input Devices
@@ -1255,7 +1249,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-110 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <img
@@ -1278,7 +1272,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4700 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 PC Components
@@ -1289,7 +1283,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4701 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/cooling/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 Cooling
@@ -1300,7 +1294,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4702 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/hardware-other/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 Hardware &amp; Other
@@ -1314,7 +1308,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-114 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <img
@@ -1333,7 +1327,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-109 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <img
@@ -1352,7 +1346,8 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-115 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/tv-hifi/"
+                        href="
+                        "
                         className="woodmart-nav-link"
                     >
                         <img
@@ -1371,7 +1366,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-113 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/photo-video/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <img
@@ -1390,7 +1385,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-111 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <img
@@ -1423,7 +1418,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4623 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/promotions/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">About Us</span>
@@ -1434,7 +1429,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4624 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/stores/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Stores</span>
@@ -1445,7 +1440,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4625 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/our-contacts/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Our Contacts</span>
@@ -1456,7 +1451,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-112 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         {/* <img
@@ -1479,7 +1474,7 @@ const Navbar = () => {
                             className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4684 item-level-1"
                         >
                             <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/"
+                                href="/"
                                 className="woodmart-nav-link"
                             >
                                 Laptops
@@ -1494,7 +1489,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4685 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/apple-macbook/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Apple MacBook
@@ -1505,7 +1500,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4686 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/business-laptop/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Business Laptop
@@ -1516,7 +1511,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4687 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/gaming-laptop/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Gaming Laptop
@@ -1527,7 +1522,7 @@ const Navbar = () => {
                                     className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4688 item-level-2"
                                 >
                                     <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/ultrabook/"
+                                        href="/"
                                         className="woodmart-nav-link"
                                     >
                                         Ultrabook
@@ -1646,7 +1641,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4627 item-level-0"
                 >
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/outlet/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Outlet</span>
@@ -1655,7 +1650,7 @@ const Navbar = () => {
                 <li className="menu-item menu-item-wishlist wd-with-icon item-level-0">
 
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Wishlist</span>
@@ -1663,7 +1658,7 @@ const Navbar = () => {
                 </li>
                 <li className="menu-item menu-item-compare wd-with-icon item-level-0">
                     <a
-                        href="https://woodmart.xtemos.com/mega-electronics/compare/"
+                        href="/"
                         className="woodmart-nav-link"
                     >
                         Compare

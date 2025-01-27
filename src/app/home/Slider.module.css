@@ -13,9 +13,12 @@
   color: #fff;
   text-align: center;
   position: relative;
-  background-size: cover; /* Ensures the background image is scaled properly */
-  background-position: center; /* Centers the image */
-  background-repeat: no-repeat; /* Prevents image tiling */
+  background-size: cover;
+  /* Ensures the background image is scaled properly */
+  background-position: center;
+  /* Centers the image */
+  background-repeat: no-repeat;
+  /* Prevents image tiling */
 }
 
 .slide::before {
@@ -25,12 +28,14 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4); /* Dark overlay for better text contrast */
+  background-color: rgba(0, 0, 0, 0.4);
+  /* Dark overlay for better text contrast */
   z-index: 1;
 }
 
 .content {
-  z-index: 2; /* Stays on top of the overlay */
+  z-index: 2;
+  /* Stays on top of the overlay */
   position: relative;
   max-width: 600px;
   margin: auto;
@@ -41,13 +46,15 @@
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #fff; /* Ensure text contrast */
+  color: #fff;
+  /* Ensure text contrast */
 }
 
 .description {
   font-size: 1.2rem;
   margin-bottom: 20px;
-  color: #ddd; /* Slightly muted text for better readability */
+  color: #ddd;
+  /* Slightly muted text for better readability */
 }
 
 .button {
@@ -58,7 +65,8 @@
   text-decoration: none;
   border-radius: 5px;
   font-size: 1rem;
-  transition: background-color 0.3s ease; /* Smooth hover effect */
+  transition: background-color 0.3s ease;
+  /* Smooth hover effect */
 }
 
 .button:hover {

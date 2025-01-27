@@ -332,7 +332,7 @@ const Contact = () => {
                                                                 >
                                                                     <a
                                                                         rel="noopener noreferrer nofollow"
-                                                                        href="https://www.facebook.com/sharer/sharer.php?u=https://woodmart.xtemos.com/mega-electronics/our-contacts/"
+                                                                        href="/"
                                                                         target="_blank"
                                                                         className=" wd-social-icon social-facebook"
                                                                         aria-label="Facebook social link"
@@ -341,7 +341,7 @@ const Contact = () => {
                                                                     </a>
                                                                     <a
                                                                         rel="noopener noreferrer nofollow"
-                                                                        href="https://x.com/share?url=https://woodmart.xtemos.com/mega-electronics/our-contacts/"
+                                                                        href="/"
                                                                         target="_blank"
                                                                         className=" wd-social-icon social-twitter"
                                                                         aria-label="X social link"
@@ -350,7 +350,7 @@ const Contact = () => {
                                                                     </a>
                                                                     <a
                                                                         rel="noopener noreferrer nofollow"
-                                                                        href="https://pinterest.com/pin/create/button/?url=https://woodmart.xtemos.com/mega-electronics/our-contacts/&media=https://woodmart.xtemos.com/mega-electronics/wp-includes/images/media/default.svg&description=Our+Contacts"
+                                                                        href="/"
                                                                         target="_blank"
                                                                         className=" wd-social-icon social-pinterest"
                                                                         aria-label="Pinterest social link"
@@ -359,7 +359,7 @@ const Contact = () => {
                                                                     </a>
                                                                     <a
                                                                         rel="noopener noreferrer nofollow"
-                                                                        href="https://www.linkedin.com/shareArticle?mini=true&url=https://woodmart.xtemos.com/mega-electronics/our-contacts/"
+                                                                        href="/"
                                                                         target="_blank"
                                                                         className=" wd-social-icon social-linkedin"
                                                                         aria-label="Linkedin social link"
@@ -368,7 +368,7 @@ const Contact = () => {
                                                                     </a>
                                                                     <a
                                                                         rel="noopener noreferrer nofollow"
-                                                                        href="https://telegram.me/share/url?url=https://woodmart.xtemos.com/mega-electronics/our-contacts/"
+                                                                        href="/"
                                                                         target="_blank"
                                                                         className=" wd-social-icon social-tg"
                                                                         aria-label="Telegram social link"

@@ -125,7 +125,7 @@ const signin = ({ isModalOpen, closeModal, setIsModalOpen }) => {
                     </p>
                     <p className="login-form-footer">
                         <a
-                            href="https://woodmart.xtemos.com/mega-electronics/my-account/lost-password/"
+                            href="/myAccount/forgetPassword/"
                             className="woocommerce-LostPassword lost_password"
                         >
                             Lost your password?

@@ -16,7 +16,7 @@ const Sidebar = () => {
                         }}>
                         <a
                             className="woodmart-nav-link"
-                            href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/">
+                            href="/">
                             <img
                                 className="wd-nav-img entered lazyloaded"
                                 data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Laptops-Tablets-PC.svg"
@@ -29,205 +29,7 @@ const Sidebar = () => {
 
                             <span className="nav-link-text">Bitdefender</span>
                         </a>
-                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
-                            <div className="wd-scroll-content">
-                                <div className="wd-dropdown-inner">
-                                    <div className="container wd-entry-content">
-                            
-                                        <div className="wpb-content-wrapper">
-                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1668611600999 wd-rs-6374fe0c003f8">
-                                                <div className="wpb_column vc_column_container vc_col-sm-12">
-                                                    <div className="vc_column-inner">
-                                                        <div className="wpb_wrapper">
-                                                            <ul className="wd-sub-menu wd-rs-672b965977c27 mega-menu-list wd-sub-accented wd-wpb vc_custom_1730909790343">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">Laptops</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/apple-macbook/"
-                                                                                title="">
-                                                                                Apple MacBook
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/business-laptop/"
-                                                                                title="">
-                                                                                Business Laptop
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/gaming-laptop/"
-                                                                                title="">
-                                                                                Gaming Laptop
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/ultrabook/"
-                                                                                title="">
-                                                                                Ultrabook
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1668516291881">
-                                                                <span className="vc_sep_holder vc_sep_holder_l">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                                <span className="vc_sep_holder vc_sep_holder_r">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                            </div>
-                                                            <ul className="wd-sub-menu wd-rs-672b966048ae3 mega-menu-list wd-sub-accented wd-wpb vc_custom_1730909796324">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">Tablets</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/apple-ipad/"
-                                                                                title="">
-                                                                                Apple Ipad
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/android-tablets/"
-                                                                                title="">
-                                                                                Android tablets
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/windows-tablets/"
-                                                                                title="">
-                                                                                Windows Tablets
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1668516396162">
-                                                                <span className="vc_sep_holder vc_sep_holder_l">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                                <span className="vc_sep_holder vc_sep_holder_r">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                            </div>
-                                                            <ul className="wd-sub-menu wd-rs-672b966669b3c mega-menu-list wd-sub-accented wd-wpb">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">PCs</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/gaming-pcs/"
-                                                                                title="">
-                                                                                Gaming PCs
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/office-pcs/"
-                                                                                title="">
-                                                                                Office PCs
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/all-in-one/"
-                                                                                title="">
-                                                                                All in one
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="promo-banner-wrapper  wd-rs-63ca6c4121c83 ">
-                                                                <div
-                                                                    className="promo-banner  banner- banner-hover-zoom color-scheme-light banner-btn-size-default banner-btn-style-default  with-btn banner-btn-position-static wd-underline-colored"
-                                                                    id="wd-63ca6c4121c83">
-                                                                    <div className="main-wrapp-img">
-                                                                        <div className="banner-image wd-bg-position-center">
-                                                                            <picture className="attachment-full size-full">
-                                                                                <source
-                                                                                    srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/hp-envy-34.jpg.webp"
-                                                                                    type="image/webp"
-                                                                                />
-                                                                                <img
-                                                                                    alt=""
-                                                                                    height="720"
-                                                                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/hp-envy-34.jpg"
-                                                                                    width="600"
-                                                                                />
-                                                                            </picture>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="wrapper-content-banner wd-fill  wd-items-top wd-justify-center">
-                                                                        <div className="content-banner  text-center">
-                                                                            <div className="banner-subtitle subtitle-color-default subtitle-style-default wd-fontsize-xs wd-font-weight-700 font-alt">
-                                                                                ON SALE
-                                                                            </div>
-                                                                            <h4 className="banner-title wd-font-weight- wd-fontsize-l">
-                                                                                HP Envy 34
-                                                                            </h4>
-                                                                            <div className="banner-btn-wrapper">
-                                                                                <div
-                                                                                    className="  wd-button-wrapper text-center"
-                                                                                    id="wd-678228d85de6b">
-                                                                                    <a className="btn btn-color-primary btn-style-default btn-shape-semi-round btn-size-default">
-                                                                                        To Shop
-                                                                                    </a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> */}
+                        
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3558 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -237,7 +39,7 @@ const Sidebar = () => {
                         }}>
                         <a
                             className="woodmart-nav-link"
-                            href="https://woodmart.xtemos.com/mega-electronics/product-category/computer-office/">
+                            href="/">
                             <img
                                 className="wd-nav-img entered lazyloaded"
                                 data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Computer-Office.svg"
@@ -441,7 +243,7 @@ const Sidebar = () => {
                         }}>
                         <a
                             className="woodmart-nav-link"
-                            href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/">
+                            href="/">
                             <img
                                 className="wd-nav-img entered lazyloaded"
                                 data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Hardware-Components.svg"
@@ -454,209 +256,7 @@ const Sidebar = () => {
 
                             <span className="nav-link-text">McAfee</span>
                         </a>
-                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
-                            <div className="wd-scroll-content">
-                                <div className="wd-dropdown-inner">
-                                    <div className="container wd-entry-content">
-                                        <style
-                                            dangerouslySetInnerHTML={{
-                                                __html:
-                                                    ".vc_custom_1668682665319{margin-top: -15px !important;margin-right: -30px !important;margin-bottom: 30px !important;margin-left: -30px !important;}.vc_custom_1730909826434{margin-bottom: 15px !important;}.vc_custom_1668516291881{margin-bottom: 10px !important;}.vc_custom_1730909833245{margin-bottom: 15px !important;}.vc_custom_1668516396162{margin-bottom: 10px !important;}",
-                                            }}
-                                            data-type="vc_shortcodes-custom-css"
-                                        />
-                                        <div className="wpb-content-wrapper">
-                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1668682665319 wd-rs-637613a5a718e">
-                                                <div className="wpb_column vc_column_container vc_col-sm-12">
-                                                    <div className="vc_column-inner">
-                                                        <div className="wpb_wrapper">
-                                                            <ul className="wd-sub-menu wd-rs-672b967eeba15 mega-menu-list wd-sub-accented wd-wpb vc_custom_1730909826434">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">
-                                                                            PC Components
-                                                                        </span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/cases/"
-                                                                                title="">
-                                                                                Cases
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/processors/"
-                                                                                title="">
-                                                                                Processors
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/graphics-cards/"
-                                                                                title="">
-                                                                                Graphics Cards
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/motherboards/"
-                                                                                title="">
-                                                                                Motherboards
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/memory-ram/"
-                                                                                title="">
-                                                                                Memory RAM
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/pc-power-supply-unit/"
-                                                                                title="">
-                                                                                PC Power Supply Unit
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/ssd-drive/"
-                                                                                title="">
-                                                                                SSD Drive
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/pc-components/hdd-drive/"
-                                                                                title="">
-                                                                                HDD Drive
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1668516291881">
-                                                                <span className="vc_sep_holder vc_sep_holder_l">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                                <span className="vc_sep_holder vc_sep_holder_r">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                            </div>
-                                                            <ul className="wd-sub-menu wd-rs-672b968497274 mega-menu-list wd-sub-accented wd-wpb vc_custom_1730909833245">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/cooling/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">Cooling</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/cooling/cpu-fan/"
-                                                                                title="">
-                                                                                CPU Fan
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/cooling/case-fan/"
-                                                                                title="">
-                                                                                Case Fan
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/cooling/thermal-paste/"
-                                                                                title="">
-                                                                                Thermal Paste
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1668516396162">
-                                                                <span className="vc_sep_holder vc_sep_holder_l">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                                <span className="vc_sep_holder vc_sep_holder_r">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                            </div>
-                                                            <ul className="wd-sub-menu wd-rs-672b968b50d82 mega-menu-list wd-sub-accented wd-wpb">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/hardware-other/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">
-                                                                            Hardware & Other
-                                                                        </span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/hardware-other/cables-adapters/"
-                                                                                title="">
-                                                                                Cables & Adapters
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/hardware-other/wifi-routers/"
-                                                                                title="">
-                                                                                WIFI Routers
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/hardware-other/wifi-sticks/"
-                                                                                title="">
-                                                                                WIFI Sticks
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/hardware-components/hardware-other/disc-drives/"
-                                                                                title="">
-                                                                                Disc Drives
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> */}
+                        
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3560 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -666,7 +266,7 @@ const Sidebar = () => {
                         }}>
                         <a
                             className="woodmart-nav-link"
-                            href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/">
+                            href="/">
                             <img
                                 className="wd-nav-img entered lazyloaded"
                                 data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones.svg"
@@ -679,199 +279,7 @@ const Sidebar = () => {
 
                             <span className="nav-link-text">Webroot</span>
                         </a>
-                        {/* <div className="wd-dropdown-menu wd-dropdown wd-design-full-height color-scheme-dark wd-scroll">
-                            <div className="wd-scroll-content">
-                                <div className="wd-dropdown-inner">
-                                    <div className="container wd-entry-content">
-                                        <style
-                                            dangerouslySetInnerHTML={{
-                                                __html:
-                                                    ".vc_custom_1668611629567{margin-top: -15px !important;margin-right: -30px !important;margin-bottom: 30px !important;margin-left: -30px !important;}.vc_custom_1730909847208{margin-bottom: 15px !important;}.vc_custom_1668516291881{margin-bottom: 10px !important;}.vc_custom_1730909852935{margin-bottom: 15px !important;}.vc_custom_1668516396162{margin-bottom: 10px !important;}.wd-rs-63ca6c643312b{--wd-img-height: 340px;}#wd-63ca6c643312b .banner-title{line-height:30px;font-size:20px;}",
-                                            }}
-                                            data-type="vc_shortcodes-custom-css"
-                                        />
-                                        <div className="wpb-content-wrapper">
-                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1668611629567 wd-rs-6374fe2b02174">
-                                                <div className="wpb_column vc_column_container vc_col-sm-12">
-                                                    <div className="vc_column-inner">
-                                                        <div className="wpb_wrapper">
-                                                            <ul className="wd-sub-menu wd-rs-672b96930d197 mega-menu-list wd-sub-accented wd-wpb vc_custom_1730909847208">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/mobile-phones/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">
-                                                                            Mobile Phones
-                                                                        </span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/mobile-phones/apple-iphone/"
-                                                                                title="">
-                                                                                Apple iPhone
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/mobile-phones/android-smartphone/"
-                                                                                title="">
-                                                                                Android Smartphone
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/mobile-phones/button-mobile-phones/"
-                                                                                title="">
-                                                                                Button Mobile Phones
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1668516291881">
-                                                                <span className="vc_sep_holder vc_sep_holder_l">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                                <span className="vc_sep_holder vc_sep_holder_r">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                            </div>
-                                                            <ul className="wd-sub-menu wd-rs-672b9698bdc2a mega-menu-list wd-sub-accented wd-wpb vc_custom_1730909852935">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/wearables/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">Wearables</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/wearables/smart-watches/"
-                                                                                title="">
-                                                                                Smart Watches
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/wearables/sport-watches/"
-                                                                                title="">
-                                                                                Sport Watches
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="vc_separator wpb_content_element vc_separator_align_center vc_sep_width_100 vc_sep_pos_align_center vc_separator_no_text vc_custom_1668516396162">
-                                                                <span className="vc_sep_holder vc_sep_holder_l">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                                <span className="vc_sep_holder vc_sep_holder_r">
-                                                                    <span
-                                                                        className="vc_sep_line"
-                                                                        style={{
-                                                                            borderColor: "rgba(0,0,0,0.11)",
-                                                                        }}
-                                                                    />
-                                                                </span>
-                                                            </div>
-                                                            <ul className="wd-sub-menu wd-rs-672b969fb008f mega-menu-list wd-sub-accented wd-wpb">
-                                                                <li className="">
-                                                                    <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/accessories/"
-                                                                        title="">
-                                                                        <span className="nav-link-text">Accessories</span>
-                                                                    </a>
-                                                                    <ul className="sub-sub-menu">
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/accessories/cases-accessories/"
-                                                                                title="">
-                                                                                Cases
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/accessories/powerbanks/"
-                                                                                title="">
-                                                                                Powerbanks
-                                                                            </a>
-                                                                        </li>
-                                                                        <li className="">
-                                                                            <a
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/accessories/watch-straps/"
-                                                                                title="">
-                                                                                Watch Straps
-                                                                            </a>
-                                                                        </li>
-                                                                    </ul>
-                                                                </li>
-                                                            </ul>
-                                                            <div className="promo-banner-wrapper  wd-rs-63ca6c643312b ">
-                                                                <div
-                                                                    className="promo-banner  banner- banner-hover-zoom color-scheme-light banner-btn-size-default banner-btn-style-default  with-btn banner-btn-position-static wd-underline-colored"
-                                                                    id="wd-63ca6c643312b">
-                                                                    <div className="main-wrapp-img">
-                                                                        <div className="banner-image wd-bg-position-center">
-                                                                            <picture className="attachment-full size-full">
-                                                                                <source
-                                                                                    srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/nothing-phone-1.jpg.webp"
-                                                                                    type="image/webp"
-                                                                                />
-                                                                                <img
-                                                                                    alt=""
-                                                                                    height="720"
-                                                                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/nothing-phone-1.jpg"
-                                                                                    width="600"
-                                                                                />
-                                                                            </picture>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="wrapper-content-banner wd-fill  wd-items-top wd-justify-center">
-                                                                        <div className="content-banner  text-center">
-                                                                            <div className="banner-subtitle subtitle-color-default subtitle-style-default wd-fontsize-xs wd-font-weight-700 font-alt">
-                                                                                AT A GOOD PRICE
-                                                                            </div>
-                                                                            <h4 className="banner-title wd-font-weight- wd-fontsize-l">
-                                                                                Nothing Phone 1
-                                                                            </h4>
-                                                                            <div className="banner-btn-wrapper">
-                                                                                <div
-                                                                                    className="  wd-button-wrapper text-center"
-                                                                                    id="wd-678228d860688">
-                                                                                    <a className="btn btn-color-primary btn-style-default btn-shape-semi-round btn-size-default">
-                                                                                        To Shop
-                                                                                    </a>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div> */}
+                        
                     </li>
                     <li
                         className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-3561 item-level-0 menu-mega-dropdown wd-event-hover menu-item-has-children"
@@ -881,7 +289,7 @@ const Sidebar = () => {
                         }}>
                         <a
                             className="woodmart-nav-link"
-                            href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/">
+                            href="/">
                             <img
                                 className="wd-nav-img entered lazyloaded"
                                 data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones-1.svg"
@@ -1217,7 +625,7 @@ const Sidebar = () => {
                         }}>
                         <a
                             className="woodmart-nav-link"
-                            href="https://woodmart.xtemos.com/mega-electronics/product-category/tv-hifi/">
+                            href="/">
                             <img
                                 className="wd-nav-img entered lazyloaded"
                                 data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/TV-HIFI.svg"
@@ -1712,7 +1120,7 @@ const Sidebar = () => {
                         }}>
                         <a
                             className="woodmart-nav-link"
-                            href="https://woodmart.xtemos.com/mega-electronics/product-category/photo-video/">
+                            href="/">
                             <img
                                 className="wd-nav-img entered lazyloaded"
                                 data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Photo-Video.svg"

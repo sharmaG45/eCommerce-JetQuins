@@ -981,7 +981,7 @@ const deliveryToRetur = () => {
                                                                     <a
                                                                         aria-label="Facebook social link"
                                                                         className=" wd-social-icon social-facebook"
-                                                                        href="https://www.facebook.com/sharer/sharer.php?u=https://woodmart.xtemos.com/mega-electronics/delivery-return/"
+                                                                        href="/"
                                                                         rel="noopener noreferrer nofollow"
                                                                         target="_blank">
                                                                         <span className="wd-icon" />
@@ -989,7 +989,7 @@ const deliveryToRetur = () => {
                                                                     <a
                                                                         aria-label="X social link"
                                                                         className=" wd-social-icon social-twitter"
-                                                                        href="https://x.com/share?url=https://woodmart.xtemos.com/mega-electronics/delivery-return/"
+                                                                        href="/"
                                                                         rel="noopener noreferrer nofollow"
                                                                         target="_blank">
                                                                         <span className="wd-icon" />
@@ -997,7 +997,7 @@ const deliveryToRetur = () => {
                                                                     <a
                                                                         aria-label="Pinterest social link"
                                                                         className=" wd-social-icon social-pinterest"
-                                                                        href="https://pinterest.com/pin/create/button/?url=https://woodmart.xtemos.com/mega-electronics/delivery-return/&media=https://woodmart.xtemos.com/mega-electronics/wp-includes/images/media/default.svg&description=Delivery+%26%23038%3B+Return"
+                                                                        href="/"
                                                                         rel="noopener noreferrer nofollow"
                                                                         target="_blank">
                                                                         <span className="wd-icon" />
@@ -1005,7 +1005,7 @@ const deliveryToRetur = () => {
                                                                     <a
                                                                         aria-label="Linkedin social link"
                                                                         className=" wd-social-icon social-linkedin"
-                                                                        href="https://www.linkedin.com/shareArticle?mini=true&url=https://woodmart.xtemos.com/mega-electronics/delivery-return/"
+                                                                        href="/"
                                                                         rel="noopener noreferrer nofollow"
                                                                         target="_blank">
                                                                         <span className="wd-icon" />
@@ -1013,7 +1013,7 @@ const deliveryToRetur = () => {
                                                                     <a
                                                                         aria-label="Telegram social link"
                                                                         className=" wd-social-icon social-tg"
-                                                                        href="https://telegram.me/share/url?url=https://woodmart.xtemos.com/mega-electronics/delivery-return/"
+                                                                        href="/"
                                                                         rel="noopener noreferrer nofollow"
                                                                         target="_blank">
                                                                         <span className="wd-icon" />

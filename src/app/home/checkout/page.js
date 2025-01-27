@@ -190,7 +190,6 @@ const checkout = () => {
     }, [])
 
     const removeFromCart = async (productId, e) => {
-        e.preventDefault()
         const userData = localStorage.getItem('currentUser');
         if (!userData) {
             alert("Please log in first.");
@@ -203,12 +202,20 @@ const checkout = () => {
             // Get user document reference
             const userRef = doc(fireStore, "users", user.uid);
 
-            // Remove item from cart array in Firestore
+            // Find the item to be removed by matching the productId
+            const itemToRemove = cartItems.find(item => item.productId === productId);
+
+            if (!itemToRemove) {
+                console.log("Item not found in cart.");
+                return;
+            }
+
+            // Remove item from cart array in Firestore using arrayRemove
             await updateDoc(userRef, {
-                cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+                cart: arrayRemove(itemToRemove) // Ensure you're passing the whole object
             });
 
-            // Update local state
+            // Update local state by filtering out the item
             setCartItems(cartItems.filter(item => item.productId !== productId));
 
             console.log(`Removed item with productId: ${productId}`);
@@ -216,6 +223,34 @@ const checkout = () => {
             console.error("Error removing item from cart:", error);
         }
     };
+
+    // const removeFromCart = async (productId, e) => {
+    //     e.preventDefault()
+    //     const userData = localStorage.getItem('currentUser');
+    //     if (!userData) {
+    //         alert("Please log in first.");
+    //         return;
+    //     }
+
+    //     const user = JSON.parse(userData); // Parse the user data from localStorage
+
+    //     try {
+    //         // Get user document reference
+    //         const userRef = doc(fireStore, "users", user.uid);
+
+    //         // Remove item from cart array in Firestore
+    //         await updateDoc(userRef, {
+    //             cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+    //         });
+
+    //         // Update local state
+    //         setCartItems(cartItems.filter(item => item.productId !== productId));
+
+    //         console.log(`Removed item with productId: ${productId}`);
+    //     } catch (error) {
+    //         console.error("Error removing item from cart:", error);
+    //     }
+    // };
 
     const changeQuantity = async (productId, newQuantity, e) => {
         e.preventDefault()
@@ -294,12 +329,12 @@ const checkout = () => {
                                                         <div className="container">
                                                             <ul className="wd-checkout-steps">
                                                                 <li className="step-cart step-inactive">
-                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/home/cart/">
+                                                                    <a href="/">
                                                                         <span>Shopping cart</span>
                                                                     </a>
                                                                 </li>
                                                                 <li className="step-checkout step-active">
-                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/home/checkout/">
+                                                                    <a href="/">
                                                                         <span>Checkout</span>
                                                                     </a>
                                                                 </li>
@@ -410,7 +445,7 @@ const checkout = () => {
                                                             <p className="login-form-footer">
                                                                 <a
                                                                     className="woocommerce-LostPassword lost_password"
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/my-account/lost-password/"
+                                                                    href="/"
                                                                 >
                                                                     Lost your password?
                                                                 </a>
@@ -1369,13 +1404,7 @@ const checkout = () => {
                                                                                 </noscript>
                                                                                 <div className="woocommerce-terms-and-conditions-wrapper">
                                                                                     <div className="woocommerce-privacy-policy-text" />
-                                                                                    <link
-                                                                                        href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-countdown-timer.min.css?ver=8.0.4"
-                                                                                        id="wd-countdown-css"
-                                                                                        media="all"
-                                                                                        rel="stylesheet"
-                                                                                        type="text/css"
-                                                                                    />
+
                                                                                     <div
                                                                                         className="woocommerce-terms-and-conditions"
                                                                                         style={{
@@ -1384,42 +1413,8 @@ const checkout = () => {
                                                                                             overflow: "auto",
                                                                                         }}>
                                                                                         <p>
-                                                                                            {`[vc_row css=”.vc_custom_1668613203662{margin-top: -20px !important;margin-right: -10px !important;margin-bottom: 60px !important;margin-left: -10px !important;}” woodmart_css_id=”63750447ba1c2″ responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDQ0N2JhMWMyIiwic2hvcnRjb2RlIjoidmNfcm93IiwiZGF0YSI6eyJ0YWJsZXQiOnsibWFyZ2luLWJvdHRvbSI6IjYwIn0sIm1vYmlsZSI6eyJtYXJnaW4tYm90dG9tIjoiNDAifX19″ mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column css=”.vc_custom_1668613113545{margin-bottom: 20px !important;padding-top: 0px !important;padding-right: 10px !important;padding-left: 10px !important;}” woodmart_css_id=”637503f5909fc” parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDNmNTkwOWZjIiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnsibWFyZ2luLWJvdHRvbSI6IjIwcHgifX19″ mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no” offset=”vc_col-lg-6 vc_col-md-6″]			`}
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/lib-swiper.min.css?ver=8.0.4"
-                                                                                                id="wd-swiper-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-slider.min.css?ver=8.0.4"
-                                                                                                id="wd-slider-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-slider-dots-style-3.min.css?ver=8.0.4"
-                                                                                                id="wd-slider-dots-style-3-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
-                                                                                            <style
-                                                                                                dangerouslySetInnerHTML={{
-                                                                                                    __html:
-                                                                                                        "        #slider-305 .wd-slide {  min-height: 460px;}@media (max-width: 1024px) {  #slider-305 .wd-slide {    min-height: 460px;  }}@media (max-width: 767px) {  #slider-305 .wd-slide {    min-height: 460px;  }}      ",
-                                                                                                }}
-                                                                                                data-type="wd-style-term-305"
-                                                                                                id="wd-style-term-305-css"
-                                                                                            />
-                                                                                            <style
-                                                                                                dangerouslySetInnerHTML={{
-                                                                                                    __html:
-                                                                                                        "              #slide-131 .wd-slide-container {                    --wd-align-items: flex-start;                              --wd-justify-content: center;                  }                #slide-131.woodmart-loaded .wd-slide-bg {        background-image:url(https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event.jpg);        }        #slide-131 .wd-slide-bg {        background-color:rgb(106,37,96);        background-size:cover;                    background-position:center center;                  }                  #slide-131 .wd-slide-inner {            max-width:1200px;          }                @media (max-width: 1024px) {                                    #slide-131 .wd-slide-inner {              max-width:1200px;            }                    #slide-131 .wd-slide-bg {                                                                                  }        }        @media (max-width: 767px) {                                    #slide-131 .wd-slide-inner {              max-width:500px;            }                    #slide-131 .wd-slide-bg {                                                                                  }        }                    .vc_custom_1666017975236{margin-bottom: 10px !important;}.vc_custom_1675238809961{margin-bottom: 10px !important;}                                        #slide-136 .wd-slide-container {                    --wd-align-items: flex-start;                              --wd-justify-content: center;                  }                #slide-136.woodmart-loaded .wd-slide-bg {        background-image:url(https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/pre-order-g-pixel-7.jpg);        }        #slide-136 .wd-slide-bg {        background-color:rgb(35,54,71);        background-size:cover;                    background-position:center center;                  }                  #slide-136 .wd-slide-inner {            max-width:1200px;          }                @media (max-width: 1024px) {                                    #slide-136 .wd-slide-inner {              max-width:1200px;            }                    #slide-136 .wd-slide-bg {                                                                                  }        }        @media (max-width: 767px) {                                    #slide-136 .wd-slide-inner {              max-width:500px;            }                    #slide-136 .wd-slide-bg {                                                                                  }        }                    .vc_custom_1666018272850{margin-bottom: 10px !important;}.vc_custom_1675238993981{margin-bottom: 10px !important;}                                        #slide-139 .wd-slide-container {                    --wd-align-items: flex-start;                              --wd-justify-content: center;                  }                #slide-139.woodmart-loaded .wd-slide-bg {        background-image:url(https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/discount-on-all-smart-appliances.jpg);        }        #slide-139 .wd-slide-bg {        background-color:rgb(46,45,43);        background-size:cover;                    background-position:center center;                  }                  #slide-139 .wd-slide-inner {            max-width:1200px;          }                @media (max-width: 1024px) {                                    #slide-139 .wd-slide-inner {              max-width:1200px;            }                    #slide-139 .wd-slide-bg {                                                                                  }        }        @media (max-width: 767px) {                                    #slide-139 .wd-slide-inner {              max-width:500px;            }                    #slide-139 .wd-slide-bg {                                                                                  }        }                    .vc_custom_1666018394235{margin-bottom: 10px !important;}.vc_custom_1675238985117{margin-bottom: 10px !important;}                              #wd-634d6c1ec1f70{--wd-max-width:554px;}                ",
-                                                                                                }}
-                                                                                            />
+
+
                                                                                         </p>
                                                                                         <div
                                                                                             className="wd-slider wd-carousel-container wd-anim-slide wd-section-container"
@@ -1446,31 +1441,9 @@ const checkout = () => {
                                                                                                             id="slide-131">
                                                                                                             <div className="container wd-slide-container content-fixed">
                                                                                                                 <div className="wd-slide-inner ">
-                                                                                                                    <link
-                                                                                                                        href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-button.min.css?ver=8.0.4"
-                                                                                                                        id="wd-button-css"
-                                                                                                                        media="all"
-                                                                                                                        rel="stylesheet"
-                                                                                                                        type="text/css"
-                                                                                                                    />
+
                                                                                                                     <div className="wpb-content-wrapper">
-                                                                                                                        <p>
-                                                                                                                            [vc_row][vc_column]
-                                                                                                                            <link
-                                                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-section-title.min.css?ver=8.0.4"
-                                                                                                                                id="wd-section-title-css"
-                                                                                                                                media="all"
-                                                                                                                                rel="stylesheet"
-                                                                                                                                type="text/css"
-                                                                                                                            />
-                                                                                                                            <link
-                                                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/mod-highlighted-text.min.css?ver=8.0.4"
-                                                                                                                                id="wd-mod-highlighted-text-css"
-                                                                                                                                media="all"
-                                                                                                                                rel="stylesheet"
-                                                                                                                                type="text/css"
-                                                                                                                            />
-                                                                                                                        </p>
+
                                                                                                                         <div
                                                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-634d6aa1cedd8 wd-title-color-white wd-title-style-default text-center vc_custom_1666017975236 wd-underline-colored"
                                                                                                                             id="wd-634d6aa1cedd8">
@@ -1480,13 +1453,7 @@ const checkout = () => {
                                                                                                                                 </h4>
                                                                                                                             </div>
                                                                                                                         </div>
-                                                                                                                        <link
-                                                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-text-block.min.css?ver=8.0.4"
-                                                                                                                            id="wd-text-block-css"
-                                                                                                                            media="all"
-                                                                                                                            rel="stylesheet"
-                                                                                                                            type="text/css"
-                                                                                                                        />
+
                                                                                                                         <div
                                                                                                                             className="wd-text-block wd-wpb reset-last-child wd-rs-63da1d928d488 text-center color-scheme-light vc_custom_1675238809961"
                                                                                                                             id="wd-63da1d928d488">
@@ -1501,12 +1468,12 @@ const checkout = () => {
                                                                                                                             id="wd-637788de20f6e">
                                                                                                                             <a
                                                                                                                                 className="btn btn-color-primary btn-style-default btn-shape-semi-round btn-size-default"
-                                                                                                                                href="https://woodmart.xtemos.com/mega-electronics/shop/?filter_brand=apple"
+                                                                                                                                href="/"
                                                                                                                                 title="Shop">
                                                                                                                                 Shop Now
                                                                                                                             </a>
                                                                                                                         </div>
-                                                                                                                        [/vc_column][/vc_row]
+
                                                                                                                         <p />
                                                                                                                     </div>
                                                                                                                 </div>
@@ -1544,7 +1511,7 @@ const checkout = () => {
                                                                                                                             id="wd-6377893d58c5b">
                                                                                                                             <a
                                                                                                                                 className="btn btn-color-primary btn-style-default btn-shape-semi-round btn-size-default"
-                                                                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/smartphones/mobile-phones/android-smartphone/"
+                                                                                                                                href="/"
                                                                                                                                 title="Shop">
                                                                                                                                 Pre-Order Now
                                                                                                                             </a>
@@ -1588,7 +1555,7 @@ const checkout = () => {
                                                                                                                             id="wd-63778925baa5f">
                                                                                                                             <a
                                                                                                                                 className="btn btn-color-primary btn-style-default btn-shape-semi-round btn-size-default"
-                                                                                                                                href="https://woodmart.xtemos.com/mega-electronics/product-category/home-appliance/"
+                                                                                                                                href="/"
                                                                                                                                 title="Shop">
                                                                                                                                 Shop Now
                                                                                                                             </a>
@@ -1603,32 +1570,12 @@ const checkout = () => {
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </div>
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/lib-swiper-pagin.min.css?ver=8.0.4"
-                                                                                                id="wd-swiper-pagin-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
+
                                                                                             <div className="wd-nav-pagin-wrap wd-slider-pagin wd-custom-style wd-style-shape-3 text-center color-scheme-dark">
                                                                                                 <ul className="wd-nav-pagin" />
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`		[/vc_column][vc_column css=”.vc_custom_1668613087144{padding-top: 0px !important;padding-right: 10px !important;padding-left: 10px !important;}” woodmart_css_id=”637503d76ccce” parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDNkNzZjY2NlIiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no” offset=”vc_col-lg-6 vc_col-md-6″]			`}
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/wpb-el-banner.min.css?ver=8.0.4"
-                                                                                            id="wd-banner-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/el-banner-hover-zoom.min.css?ver=8.0.4"
-                                                                                            id="wd-banner-hover-zoom-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
+
                                                                                         <div className="promo-banner-wrapper  wd-rs-63ea2fd96aefb vc_custom_1676292217902">
                                                                                             <div
                                                                                                 className="promo-banner  banner- banner-hover-zoom color-scheme-light banner-btn-size-default banner-btn-style-default  with-btn banner-btn-position-static wd-with-link wd-underline-colored"
@@ -1711,7 +1658,7 @@ const checkout = () => {
                                                                                                 />
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`		[vc_row_inner css=”.vc_custom_1668613125864{margin-right: -10px !important;margin-left: -10px !important;}” woodmart_css_id=”63750403d75aa” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDQwM2Q3NWFhIiwic2hvcnRjb2RlIjoidmNfcm93X2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column_inner width=”1/2″ css=”.vc_custom_1668613132751{padding-top: 0px !important;padding-right: 10px !important;padding-left: 10px !important;}” woodmart_css_id=”6375040adba21″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDQwYWRiYTIxIiwic2hvcnRjb2RlIjoidmNfY29sdW1uX2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnsibWFyZ2luLWJvdHRvbSI6IjIwcHgifX19″ wd_z_index=”no”]		`}
+
                                                                                         <div className="promo-banner-wrapper  wd-rs-63da1e8527594 ">
                                                                                             <div
                                                                                                 className="promo-banner  banner- banner-hover-zoom color-scheme-light banner-btn-size-small banner-btn-style-default  with-btn banner-btn-position-static wd-underline-colored"
@@ -1748,7 +1695,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`		[/vc_column_inner][vc_column_inner width=”1/2″ css=”.vc_custom_1666020059902{padding-top: 0px !important;padding-right: 10px !important;padding-left: 10px !important;}” woodmart_css_id=”634d72d8656b9″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzRkNzJkODY1NmI5Iiwic2hvcnRjb2RlIjoidmNfY29sdW1uX2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” wd_z_index=”no”]		`}
+
                                                                                         <div className="promo-banner-wrapper  wd-rs-63da1e90a33bb ">
                                                                                             <div
                                                                                                 className="promo-banner  banner- banner-hover-zoom color-scheme-light banner-btn-size-small banner-btn-style-default  with-btn banner-btn-position-static wd-underline-colored"
@@ -1785,7 +1732,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`		[/vc_column_inner][/vc_row_inner][/vc_column][/vc_row][vc_row css=”.vc_custom_1666183160320{margin-bottom: 50px !important;}” woodmart_css_id=”634fefed87ae9″ responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzRmZWZlZDg3YWU5Iiwic2hvcnRjb2RlIjoidmNfcm93IiwiZGF0YSI6eyJ0YWJsZXQiOnsibWFyZ2luLWJvdHRvbSI6IjMwcHgifSwibW9iaWxlIjp7Im1hcmdpbi1ib3R0b20iOiIyMHB4In19fQ==” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column css=”.vc_custom_1666183127613{padding-top: 0px !important;}” woodmart_css_id=”634fefd25f329″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzRmZWZkMjVmMzI5Iiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no”]		`}
+
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-634d675b41324 wd-title-color-default wd-title-style-default text-left vc_custom_1666017138726 wd-underline-colored"
                                                                                             id="wd-634d675b41324">
@@ -1795,27 +1742,7 @@ const checkout = () => {
                                                                                                 </h4>
                                                                                             </div>
                                                                                         </div>
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-categories-loop-layout-masonry.min.css?ver=8.0.4"
-                                                                                            id="wd-woo-categories-loop-layout-masonry-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-categories-loop.min.css?ver=8.0.4"
-                                                                                            id="wd-woo-categories-loop-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-categories-loop-old.min.css?ver=8.0.4"
-                                                                                            id="wd-categories-loop-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
+
                                                                                         <div
                                                                                             className="products woocommerce wd-carousel-container wd-cats-element wd-rs-637e42d972764 wd-wpb wd-img-width wd-cats"
                                                                                             id="wd-6785f395b0e10">
@@ -2151,7 +2078,7 @@ const checkout = () => {
                                                                                                 />
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`				[/vc_column][/vc_row][vc_row css=”.vc_custom_1666183170575{margin-bottom: 50px !important;}” woodmart_css_id=”634feff906542″ responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzRmZWZmOTA2NTQyIiwic2hvcnRjb2RlIjoidmNfcm93IiwiZGF0YSI6eyJ0YWJsZXQiOnsibWFyZ2luLWJvdHRvbSI6IjMwcHgifSwibW9iaWxlIjp7Im1hcmdpbi1ib3R0b20iOiIyMHB4In19fQ==” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column vertical_alignment=”eyJkZXZpY2VzIjp7ImRlc2t0b3AiOnsidmFsdWUiOiJjZW50ZXIifSwidGFibGV0Ijp7InZhbHVlIjoiIn0sIm1vYmlsZSI6eyJ2YWx1ZSI6IiJ9fX0=” horizontal_alignment=”eyJkZXZpY2VzIjp7ImRlc2t0b3AiOnsidmFsdWUiOiJzcGFjZS1iZXR3ZWVuIn0sInRhYmxldCI6eyJ2YWx1ZSI6IiJ9LCJtb2JpbGUiOnsidmFsdWUiOiIifX19″ css=”.vc_custom_1666183867410{padding-top: 0px !important;}” woodmart_css_id=”634ff2b59ca25″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzRmZjJiNTljYTI1Iiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no”]		`}
+                                                                                       
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-634ff2ae7a84a wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1666183861337 wd-underline-colored"
                                                                                             id="wd-634ff2ae7a84a">
@@ -2180,65 +2107,11 @@ const checkout = () => {
                                                                                                 </span>
                                                                                             </a>
                                                                                         </div>
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-opt-title-limit.min.css?ver=8.0.4"
-                                                                                            id="wd-woo-opt-title-limit-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-opt-stretch-cont.min.css?ver=8.0.4"
-                                                                                            id="wd-woo-opt-stretch-cont-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-opt-products-bg.min.css?ver=8.0.4"
-                                                                                            id="wd-woo-opt-products-bg-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
+                                                                                       
                                                                                         <div
                                                                                             className="wd-products-element wd-rs-63e1023d7a64b wd-wpb"
                                                                                             id="">
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-product-loop.min.css?ver=8.0.4"
-                                                                                                id="wd-product-loop-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-prod-loop-fw-button.min.css?ver=8.0.4"
-                                                                                                id="wd-product-loop-fw-button-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-mod-add-btn-replace.min.css?ver=8.0.4"
-                                                                                                id="wd-woo-mod-add-btn-replace-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-mod-swatches-base.min.css?ver=8.0.4"
-                                                                                                id="wd-woo-mod-swatches-base-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
-                                                                                            <link
-                                                                                                href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/mod-more-description.min.css?ver=8.0.4"
-                                                                                                id="wd-mod-more-description-css"
-                                                                                                media="all"
-                                                                                                rel="stylesheet"
-                                                                                                type="text/css"
-                                                                                            />
+                                                                                            
                                                                                             <div
                                                                                                 className="products wd-products  grid-columns-5 elements-grid wd-grid-g title-line-one wd-stretch-cont-lg wd-products-with-bg"
                                                                                                 data-atts='{"post_type":"ids","spacing":"20","include":"182, 2435, 1476, 2564, 3110","items_per_page":"5","columns":"5","columns_tablet":"3","sale_countdown":"0","stock_progress_bar":"0","highlighted_products":"0","products_bordered_grid":"0","products_with_background":"1","products_shadow":"0","orderby":"post__in","img_size":"large","woodmart_css_id":"63e1023d7a64b","force_not_ajax":"no"}'
@@ -4549,7 +4422,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`[/vc_column][/vc_row][vc_row css=”.vc_custom_1669208804222{margin-right: -10px !important;margin-bottom: 80px !important;margin-left: -10px !important;}” woodmart_css_id=”637e1ae2b109c” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzdlMWFlMmIxMDljIiwic2hvcnRjb2RlIjoidmNfcm93IiwiZGF0YSI6eyJ0YWJsZXQiOnsibWFyZ2luLWJvdHRvbSI6IjYwcHgifSwibW9iaWxlIjp7Im1hcmdpbi1ib3R0b20iOiI0MHB4In19fQ==” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column width=”1/4″ woodmart_css_id=”637502f36f06d” parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDJmMzZmMDZkIiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no” css=”.vc_custom_1668612856492{padding-right: 10px !important;padding-left: 10px !important;}” offset=”vc_hidden-sm vc_hidden-xs”]		`}
+                                                                                       
                                                                                         <div className="promo-banner-wrapper  wd-rs-63d90c213c7b6 ">
                                                                                             <div
                                                                                                 className="promo-banner  banner- banner-hover-zoom color-scheme-light banner-btn-size-default banner-btn-style-default  with-btn banner-btn-position-static wd-underline-colored"
@@ -4593,7 +4466,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`		[/vc_column][vc_column vertical_alignment=”eyJkZXZpY2VzIjp7ImRlc2t0b3AiOnsidmFsdWUiOiJjZW50ZXIifSwidGFibGV0Ijp7InZhbHVlIjoiIn0sIm1vYmlsZSI6eyJ2YWx1ZSI6IiJ9fX0=” horizontal_alignment=”eyJkZXZpY2VzIjp7ImRlc2t0b3AiOnsidmFsdWUiOiJzcGFjZS1iZXR3ZWVuIn0sInRhYmxldCI6eyJ2YWx1ZSI6IiJ9LCJtb2JpbGUiOnsidmFsdWUiOiIifX19″ woodmart_css_id=”637502fa312e0″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDJmYTMxMmUwIiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no” css=”.vc_custom_1668612867432{padding-right: 10px !important;padding-left: 10px !important;}” offset=”vc_col-lg-9 vc_col-md-9″]		`}
+                                                                                       
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-634ff240c9859 wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1666183754887 wd-underline-colored"
                                                                                             id="wd-634ff240c9859">
@@ -7440,7 +7313,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`[/vc_column][/vc_row][vc_row woodmart_stretch_content=”section-stretch” woodmart_bg_position=”center-center” css=”.vc_custom_1669208808246{margin-bottom: 80px !important;padding-top: 50px !important;padding-bottom: 50px !important;background-image: url(https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Content.jpg?id=1385) !important;background-position: center !important;background-repeat: no-repeat !important;background-size: cover !important;}” woodmart_css_id=”637e1ae60fd2e” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzdlMWFlNjBmZDJlIiwic2hvcnRjb2RlIjoidmNfcm93IiwiZGF0YSI6eyJ0YWJsZXQiOnsibWFyZ2luLWJvdHRvbSI6IjYwcHgiLCJwYWRkaW5nLXRvcCI6IjQwcHgiLCJwYWRkaW5nLWJvdHRvbSI6IjQwcHgifSwibW9iaWxlIjp7Im1hcmdpbi1ib3R0b20iOiI0MHB4IiwicGFkZGluZy10b3AiOiIyMHB4IiwicGFkZGluZy1ib3R0b20iOiIyMHB4In19fQ==” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column css=”.vc_custom_1666184018278{padding-top: 0px !important;}” woodmart_css_id=”634ff34d0b9f1″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzRmZjM0ZDBiOWYxIiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no”][vc_row_inner content_placement=”middle” woodmart_css_id=”637257b9e47aa” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzcyNTdiOWU0N2FhIiwic2hvcnRjb2RlIjoidmNfcm93X2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column_inner width=”5/12″ css=”.vc_custom_1666184560776{padding-top: 0px !important;}” woodmart_css_id=”634ff56bbfb53″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzRmZjU2YmJmYjUzIiwic2hvcnRjb2RlIjoidmNfY29sdW1uX2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” wd_z_index=”no”]		`}
+                                                                                      
                                                                                         <div
                                                                                             className="wd-image wd-wpb wd-rs-63d90af56021f text-left vc_custom_1675168504439"
                                                                                             id="wd-63d90af56021f">
@@ -7455,7 +7328,7 @@ const checkout = () => {
                                                                                                 width="580"
                                                                                             />
                                                                                         </div>
-                                                                                        {`		[/vc_column_inner][vc_column_inner width=”7/12″ css=”.vc_custom_1666184565547{padding-top: 0px !important;}” woodmart_css_id=”634ff570a667b” parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzRmZjU3MGE2NjdiIiwic2hvcnRjb2RlIjoidmNfY29sdW1uX2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” wd_z_index=”no”]		`}
+                                                                                       
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-6375053b71efb wd-title-color-default wd-title-style-default text-left vc_custom_1668613440554 wd-underline-colored"
                                                                                             id="wd-6375053b71efb">
@@ -7528,14 +7401,7 @@ const checkout = () => {
                                                                                                 </span>
                                                                                             </a>
                                                                                         </div>
-                                                                                        [/vc_column_inner][/vc_row_inner]
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-prod-loop-small.min.css?ver=8.0.4"
-                                                                                            id="wd-woo-prod-loop-small-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
+                                                                                        
                                                                                         <div
                                                                                             className="wd-carousel-container  wd-wpb wd-rs-64e4cbd0da5b4  wd-products-element wd-products products wd-products-with-bg title-line-one"
                                                                                             id="carousel-732">
@@ -7978,7 +7844,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`			[/vc_column][/vc_row][vc_row css=”.vc_custom_1669208817052{margin-bottom: 80px !important;}” woodmart_css_id=”637e1aefc8b3e” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzdlMWFlZmM4YjNlIiwic2hvcnRjb2RlIjoidmNfcm93IiwiZGF0YSI6eyJ0YWJsZXQiOnsibWFyZ2luLWJvdHRvbSI6IjYwcHgifSwibW9iaWxlIjp7Im1hcmdpbi1ib3R0b20iOiI0MHB4In19fQ==” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column vertical_alignment=”eyJkZXZpY2VzIjp7ImRlc2t0b3AiOnsidmFsdWUiOiJjZW50ZXIifSwidGFibGV0Ijp7InZhbHVlIjoiIn0sIm1vYmlsZSI6eyJ2YWx1ZSI6IiJ9fX0=” horizontal_alignment=”eyJkZXZpY2VzIjp7ImRlc2t0b3AiOnsidmFsdWUiOiJzcGFjZS1iZXR3ZWVuIn0sInRhYmxldCI6eyJ2YWx1ZSI6IiJ9LCJtb2JpbGUiOnsidmFsdWUiOiIifX19″ css=”.vc_custom_1674221560298{padding-top: 0px !important;}” woodmart_css_id=”63ca97f31e225″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2M2NhOTdmMzFlMjI1Iiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no”]		`}
+                                                                                       
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63ca97e116739 wd-enabled-width wd-title-color-default wd-title-style-default text-left vc_custom_1674221541822 wd-underline-colored"
                                                                                             id="wd-63ca97e116739">
@@ -9591,7 +9457,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        {`[/vc_column][/vc_row][vc_row css=”.vc_custom_1669208819847{margin-right: -10px !important;margin-bottom: 60px !important;margin-left: -10px !important;}” woodmart_css_id=”637e1af24f630″ responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzdlMWFmMjRmNjMwIiwic2hvcnRjb2RlIjoidmNfcm93IiwiZGF0YSI6eyJ0YWJsZXQiOnsibWFyZ2luLWJvdHRvbSI6IjQwcHgifSwibW9iaWxlIjp7Im1hcmdpbi1ib3R0b20iOiIyMHB4In19fQ==” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column css=”.vc_custom_1668612935300{padding-top: 0px !important;padding-right: 10px !important;padding-left: 10px !important;}” woodmart_css_id=”6375033b497d4″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDMzYjQ5N2Q0Iiwic2hvcnRjb2RlIjoidmNfY29sdW1uIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” mobile_reset_margin=”no” tablet_reset_margin=”no” wd_z_index=”no” offset=”vc_col-lg-9 vc_col-md-9″][vc_row_inner content_placement=”middle” css=”.vc_custom_1675239179381{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: 0px !important;padding-top: 76px !important;padding-bottom: 76px !important;background-color: #ffffff !important;border-radius: 10px !important;}” woodmart_css_id=”63da1f0545dd5″ responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2M2RhMWYwNTQ1ZGQ1Iiwic2hvcnRjb2RlIjoidmNfcm93X2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnsicGFkZGluZy10b3AiOiI0MHB4IiwicGFkZGluZy1ib3R0b20iOiI0MHB4In0sIm1vYmlsZSI6e319fQ==” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_gradient_switch=”no” woodmart_box_shadow=”no” wd_z_index=”no” woodmart_disable_overflow=”0″ row_reverse_mobile=”0″ row_reverse_tablet=”0″][vc_column_inner width=”5/12″ css=”.vc_custom_1668613379313{padding-top: 0px !important;}” woodmart_css_id=”637504fdd1574″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzc1MDRmZGQxNTc0Iiwic2hvcnRjb2RlIjoidmNfY29sdW1uX2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnsibWFyZ2luLWJvdHRvbSI6IjIwIn19fQ==” wd_z_index=”no”]		`}
+                                                                                       
                                                                                         <div
                                                                                             className="wd-image wd-wpb wd-rs-637e438d6a0da text-left vc_custom_1669219219705"
                                                                                             id="wd-637e438d6a0da">
@@ -9606,7 +9472,7 @@ const checkout = () => {
                                                                                                 width="440"
                                                                                             />
                                                                                         </div>
-                                                                                        {`		[/vc_column_inner][vc_column_inner width=”7/12″ css=”.vc_custom_1666191647608{padding-top: 0px !important;}” woodmart_css_id=”6350111a4eac2″ parallax_scroll=”no” woodmart_sticky_column=”false” wd_collapsible_content_switcher=”no” wd_column_role_offcanvas_desktop=”no” wd_column_role_offcanvas_tablet=”no” wd_column_role_offcanvas_mobile=”no” wd_column_role_content_desktop=”no” wd_column_role_content_tablet=”no” wd_column_role_content_mobile=”no” mobile_bg_img_hidden=”no” tablet_bg_img_hidden=”no” woodmart_parallax=”0″ woodmart_box_shadow=”no” responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2MzUwMTExYTRlYWMyIiwic2hvcnRjb2RlIjoidmNfY29sdW1uX2lubmVyIiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=” wd_z_index=”no”]		`}
+                                                                                       
                                                                                         <div
                                                                                             className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63da1ecf94050 wd-title-color-default wd-title-style-default text-left vc_custom_1675239125767 wd-width-custom wd-underline-colored"
                                                                                             id="wd-63da1ecf94050">
@@ -11393,17 +11259,7 @@ const checkout = () => {
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
-                                                                                        [/vc_column][/vc_row][vc_row
-                                                                                        woodmart_css_id=”639884e116a87″
-                                                                                        responsive_spacing=”eyJwYXJhbV90eXBlIjoid29vZG1hcnRfcmVzcG9uc2l2ZV9zcGFjaW5nIiwic2VsZWN0b3JfaWQiOiI2Mzk4ODRlMTE2YTg3Iiwic2hvcnRjb2RlIjoidmNfcm93IiwiZGF0YSI6eyJ0YWJsZXQiOnt9LCJtb2JpbGUiOnt9fX0=”
-                                                                                        mobile_bg_img_hidden=”no”
-                                                                                        tablet_bg_img_hidden=”no”
-                                                                                        woodmart_parallax=”0″
-                                                                                        woodmart_gradient_switch=”no”
-                                                                                        woodmart_box_shadow=”no” wd_z_index=”no”
-                                                                                        woodmart_disable_overflow=”0″
-                                                                                        row_reverse_mobile=”0″
-                                                                                        row_reverse_tablet=”0″][vc_column]
+                                                                                       
                                                                                         <div
                                                                                             className="wd-carousel-container  wd-wpb with-title wd-rs-63e611509750d vc_custom_1676022104749 wd-products-element wd-products products wd-products-with-bg title-line-one"
                                                                                             id="carousel-384">
@@ -11565,27 +11421,7 @@ const checkout = () => {
                                                                                                 </h4>
                                                                                             </div>
                                                                                         </div>
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/blog-base.min.css?ver=8.0.4"
-                                                                                            id="wd-blog-base-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/blog-loop-base.min.css?ver=8.0.4"
-                                                                                            id="wd-blog-loop-base-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
-                                                                                        <link
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/blog-loop-design-meta-image.min.css?ver=8.0.4"
-                                                                                            id="wd-blog-loop-design-meta-image-css"
-                                                                                            media="all"
-                                                                                            rel="stylesheet"
-                                                                                            type="text/css"
-                                                                                        />
+                                                                                        
                                                                                         <div
                                                                                             className="wd-carousel-container  wd-wpb wd-rs-66fd2a00761b7  wd-posts wd-blog-element title-line-one"
                                                                                             id="wd-6785f396247c9">

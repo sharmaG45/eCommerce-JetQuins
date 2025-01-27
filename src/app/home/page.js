@@ -13,6 +13,7 @@ import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firest
 const HomePage = () => {
 
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isReadMore, setIsReadMore] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
     const [cartItems, setCartItems] = useState([]);
     const router = useRouter();
@@ -232,7 +233,7 @@ const HomePage = () => {
         router.push('/home/checkout'); // Navigate to the checkout page
         setIsCartOpen(false); // Close the cart (if you have this state)
     };
-
+//comment added
     const handleViewCart = (e) => {
         e.preventDefault();
         router.push('/home/cart');
@@ -272,8 +273,6 @@ const HomePage = () => {
 
     console.log(cartItems, "Carts Data");
 
-
-
     // SLider
     const sliderSettings = {
         dots: true,
@@ -294,7 +293,7 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Shop Now",
             buttonLink: "#",
-            backgroundImage: "/public/assets/Images/backgound-1.jpg",
+            backgroundImage: "/assets/Images/backgound-1.jpg",
         },
         {
             id: "slide-2",
@@ -302,7 +301,7 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Pre-Order Now",
             buttonLink: "#",
-            backgroundImage: "/public/assets/Images/backgound-2.jpg",
+            backgroundImage: "/assets/Images/backgound-2.jpg",
         },
         {
             id: "slide-3",
@@ -310,9 +309,12 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Shop Now",
             buttonLink: "#",
-            backgroundImage: "/public/assets/Images/backgound-3.jpg",
+            backgroundImage: "/assets/Images/backgound-3.jpg",
         },
     ];
+
+    console.log(slides, "json data for slider");
+
 
     const goToNext = () => {
         if (sliderRef.current) {
@@ -339,12 +341,20 @@ const HomePage = () => {
             // Get user document reference
             const userRef = doc(fireStore, "users", user.uid);
 
-            // Remove item from cart array in Firestore
+            // Find the item to be removed by matching the productId
+            const itemToRemove = cartItems.find(item => item.productId === productId);
+
+            if (!itemToRemove) {
+                console.log("Item not found in cart.");
+                return;
+            }
+
+            // Remove item from cart array in Firestore using arrayRemove
             await updateDoc(userRef, {
-                cart: arrayRemove({ productId }) // Remove item by productId from the cart array
+                cart: arrayRemove(itemToRemove) // Ensure you're passing the whole object
             });
 
-            // Update local state
+            // Update local state by filtering out the item
             setCartItems(cartItems.filter(item => item.productId !== productId));
 
             console.log(`Removed item with productId: ${productId}`);
@@ -416,6 +426,10 @@ const HomePage = () => {
     const bestOffers2 = bestOffer.slice(0, visibleProducts2);
     const bestOffers3 = bestOffer.slice(0, visibleProducts3);
 
+    const handleReadMore = () => {
+        setIsReadMore(!isReadMore);
+    }
+
     return (
         <>
             <div className="wd-page-content main-page-wrapper">
@@ -441,11 +455,13 @@ const HomePage = () => {
                                                                 key={slide.id}
                                                                 className={styles.slide}
                                                                 style={{
-                                                                    backgroundImage: `url(${slide.backgroundImage})`,
-                                                                    backgroundSize: "cover",
-                                                                    backgroundPosition: "center",
+                                                                    backgroundImage: `url(${slide.backgroundImage || '/assets/Images/default.jpg'})`,
+                                                                    backgroundSize: 'cover',
+                                                                    backgroundPosition: 'center',
+                                                                    backgroundRepeat: 'no-repeat',
                                                                 }}
                                                             >
+                                                                {/* <img src="/assets/Images/backgound-1.jpg" alt="image loaded"></img> */}
                                                                 <div className={styles.content}>
                                                                     <h4 className={styles.title}>{slide.title}</h4>
                                                                     <p className={styles.description}>{slide.description}</p>
@@ -1246,7 +1262,7 @@ const HomePage = () => {
                                                                         <div className="product-wrapper">
                                                                             <div className="product-element-top">
                                                                                 <a
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/ipad-mini/"
+                                                                                    href="/"
                                                                                     className="product-image-link"
                                                                                 >
                                                                                     <img
@@ -1264,7 +1280,7 @@ const HomePage = () => {
                                                                             </div>
                                                                             <div className="product-element-bottom">
                                                                                 <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/ipad-mini/">
+                                                                                    <a href="/">
                                                                                         iPad Mini
                                                                                     </a>
                                                                                 </h3>
@@ -1559,7 +1575,7 @@ const HomePage = () => {
                                     </div>
                                 </div>
                                 <div className="vc_row wpb_row vc_row-fluid vc_custom_1668612970168 vc_row-has-fill wd-rs-6375035fb3c7d">
-                                    <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63ca988e4d43a wd-collapsible-content">
+                                    <div className={`wpb_column vc_column_container vc_col-sm-12 wd-rs-63ca988e4d43a wd-collapsible-content ${isReadMore ? 'wd-opened' : ''}`}>
                                         <div className="vc_column-inner vc_custom_1674221725280">
                                             <div className="wpb_wrapper">
                                                 <div
@@ -1604,9 +1620,9 @@ const HomePage = () => {
                                                 </div>
                                                 <div
                                                     id="wd-63c1303864fc7"
-                                                    className=" wd-rs-63c1303864fc7  wd-button-wrapper text-left wd-collapsible-button"
+                                                    className="wd-rs-63c1303864fc7  wd-button-wrapper text-left wd-collapsible-button"
                                                 >
-                                                    <a className="btn btn-style-default btn-shape-semi-round btn-size-small btn-icon-pos-right">
+                                                    <a className="btn btn-style-default btn-shape-semi-round btn-size-small btn-icon-pos-right" onClick={handleReadMore}>
                                                         Read More
                                                         <span className="wd-btn-icon">
                                                             <img

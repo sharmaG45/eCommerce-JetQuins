@@ -1,6 +1,6 @@
 [
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/norton-360-deluxe/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/f9cd39f5-eceb-4e21-9da8-29d57baa7787.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "HOT",
@@ -32,7 +32,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/norton-360-premium/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "NEW"
@@ -63,7 +63,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/norton-360-standard/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "SALE"
@@ -94,7 +94,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/norton-security-anti-virus/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "NEW"
@@ -125,7 +125,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/norton-360-advanced/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "HOT"
@@ -156,7 +156,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/mcafee-total-protection/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/bf3543b5-2059-43a0-9f83-b9c35bf4cf29.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "NEW"
@@ -187,7 +187,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/mcafee-total-protection-advanced/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/bf3543b5-2059-43a0-9f83-b9c35bf4cf29.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "HOT",
@@ -219,7 +219,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/bitdefender-total-security/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/f9cd39f5-eceb-4e21-9da8-29d57baa7787.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "SALE",
@@ -251,7 +251,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/webroot-internet-security-plus/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/91134ad2-3809-4186-bff8-04e16cd944c4.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "NEW"
@@ -282,7 +282,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/avg-ultimate/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "HOT"
@@ -313,7 +313,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/avast-premium-security/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/f9cd39f5-eceb-4e21-9da8-29d57baa7787.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "SALE",
@@ -345,7 +345,7 @@
         ]
     },
     {
-        "product_url": "https://woodmart.xtemos.com/mega-electronics/product/trend-micro-maximum-security/",
+        "product_url": "/",
         "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/77158792-1df7-4d16-aa43-a8bf9019d899.jpg;maxHeight=150;maxWidth=225",
         "labels": [
             "NEW"

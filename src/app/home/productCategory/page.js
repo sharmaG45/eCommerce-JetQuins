@@ -149,7 +149,7 @@ const smartPhone = () => {
                                                                             data-product_id={product.productId}
                                                                             data-product_sku={product.productSku}
                                                                             data-quantity="1"
-                                                                            href="/home/productDetails"
+                                                                            onClick={()=>{handleProductClick(product)}}
                                                                             rel="nofollow">
                                                                             <span>Buy Now</span>
                                                                         </a>

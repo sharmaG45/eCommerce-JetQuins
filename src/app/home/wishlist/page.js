@@ -139,7 +139,7 @@ const wishlist = () => {
                                                             <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
                                                             <div className="product-element-top wd-quick-shop">
                                                                 <a
-                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/"
+                                                                    href="/"
                                                                     className="product-image-link"
                                                                 >
                                                                     <picture
@@ -165,7 +165,7 @@ const wishlist = () => {
                                                                 <div className="wd-buttons wd-pos-r-t">
                                                                     <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
                                                                         <a
-                                                                            href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=182"
+                                                                            href="/"
                                                                             data-id={182}
                                                                             rel="nofollow"
                                                                             data-added-text="Compare products"
@@ -175,7 +175,7 @@ const wishlist = () => {
                                                                     </div>
                                                                     <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
                                                                         <a
-                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/"
+                                                                            href="/"
                                                                             className="open-quick-view quick-view-button"
                                                                             rel="nofollow"
                                                                             data-id={182}
@@ -186,7 +186,7 @@ const wishlist = () => {
                                                                     <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
                                                                         <a
                                                                             className=""
-                                                                            href="https://woodmart.xtemos.com/mega-electronics/wishlist/"
+                                                                            href="/"
                                                                             data-key="757556bfa1"
                                                                             data-product-id={182}
                                                                             rel="nofollow"
@@ -199,13 +199,13 @@ const wishlist = () => {
                                                             </div>
                                                             <div className="product-element-bottom">
                                                                 <h3 className="wd-entities-title">
-                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/">
+                                                                    <a href="/">
                                                                         {offer.productName}
                                                                     </a>
                                                                 </h3>
                                                                 <div className="wd-product-cats">
                                                                     <a
-                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/laptops/apple-macbook/"
+                                                                        href="/"
                                                                         rel="tag"
                                                                     >
                                                                         {offer.productName}
@@ -299,13 +299,13 @@ const wishlist = () => {
                                         data-key="b1301141feffabac455e1f90a7de2054"
                                     >
                                         <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                            href="/"
                                             className="cart-item-link wd-fill"
                                         >
                                             Show
                                         </a>
                                         <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/home/cart/?remove_item=b1301141feffabac455e1f90a7de2054&_wpnonce=ee462b7815"
+                                            href="/"
                                             className="remove remove_from_cart_button"
                                             aria-label="Remove Oculus Quest 2 from cart"
                                             data-product_id={2435}
@@ -316,7 +316,7 @@ const wishlist = () => {
                                             ×
                                         </a>
                                         <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                            href="/"
                                             className="cart-item-image"
                                         >
                                             <img
@@ -378,13 +378,13 @@ const wishlist = () => {
                                         data-key="26e359e83860db1d11b6acca57d8ea88"
                                     >
                                         <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
+                                            href="/"
                                             className="cart-item-link wd-fill"
                                         >
                                             Show
                                         </a>
                                         <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/home/cart/?remove_item=26e359e83860db1d11b6acca57d8ea88&_wpnonce=ee462b7815"
+                                            href="/"
                                             className="remove remove_from_cart_button"
                                             aria-label="Remove ASUS ZenBook OLED 13 from cart"
                                             data-product_id={298}
@@ -395,7 +395,7 @@ const wishlist = () => {
                                             ×
                                         </a>
                                         <a
-                                            href="https://woodmart.xtemos.com/mega-electronics/product/asus-zenbook-oled-13/"
+                                            href="/"
                                             className="cart-item-image"
                                         >
                                             <img

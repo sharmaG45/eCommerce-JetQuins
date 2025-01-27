@@ -1938,7 +1938,7 @@ const productDetails = () => {
                                                                         Clear filters
                                                                     </a>
                                                                 </div>
-                                                                <form className="wd-reviews-tools wd-reviews-filters">
+                                                                {/* <form className="wd-reviews-tools wd-reviews-filters">
                                                                     <div className="wd-with-image">
                                                                         <input
                                                                             id="wd-with-image-checkbox"
@@ -1965,7 +1965,7 @@ const productDetails = () => {
                                                                         </option>
                                                                         <option value="lowest_rated">Lowest rated</option>
                                                                     </select>
-                                                                </form>
+                                                                </form> */}
                                                             </div>
                                                             <div className="wd-reviews-content">
                                                                 <ol
@@ -2201,7 +2201,7 @@ const productDetails = () => {
                                                                             </a>
                                                                         </small>
                                                                     </span>
-                                                                    <form
+                                                                    {/* <form
                                                                         action="https://woodmart.xtemos.com/mega-electronics/wp-comments-post.php"
                                                                         className="comment-form"
                                                                         id="commentform"
@@ -2395,7 +2395,7 @@ const productDetails = () => {
                                                                         <p className="comment-form-pros">
                                                                             <label htmlFor="pros">Pros</label>
                                                                             <input
-                                                                                defaultValue=""
+                                                                                
                                                                                 id="pros"
                                                                                 name="pros"
                                                                                 size="30"
@@ -2405,7 +2405,7 @@ const productDetails = () => {
                                                                         <p className="comment-form-cons">
                                                                             <label htmlFor="cons">Cons</label>
                                                                             <input
-                                                                                defaultValue=""
+                                                                                
                                                                                 id="cons"
                                                                                 name="cons"
                                                                                 size="30"
@@ -2418,7 +2418,7 @@ const productDetails = () => {
                                                                                 <span className="required">*</span>
                                                                             </label>
                                                                             <input
-                                                                                defaultValue=""
+                                                                                
                                                                                 id="author"
                                                                                 name="author"
                                                                                 required
@@ -2432,7 +2432,7 @@ const productDetails = () => {
                                                                                 <span className="required">*</span>
                                                                             </label>
                                                                             <input
-                                                                                defaultValue=""
+                                                                                
                                                                                 id="email"
                                                                                 name="email"
                                                                                 required
@@ -2440,7 +2440,7 @@ const productDetails = () => {
                                                                                 type="email"
                                                                             />
                                                                         </p>
-                                                                        {/* <p className="comment-form-cookies-consent">
+                                                                        <p className="comment-form-cookies-consent">
                                                                             <input
                                                                                 defaultValue="yes"
                                                                                 id="wp-comment-cookies-consent"
@@ -2451,7 +2451,7 @@ const productDetails = () => {
                                                                                 Save my name, email, and website in this
                                                                                 browser for the next time I comment.
                                                                             </label>
-                                                                        </p> */}
+                                                                        </p>
                                                                         <p className="comment-form-img-message">
                                                                             You have to be logged in to be able to add
                                                                             photos to your review.
@@ -2477,7 +2477,7 @@ const productDetails = () => {
                                                                                 type="hidden"
                                                                             />
                                                                         </p>
-                                                                    </form>
+                                                                    </form> */}
                                                                 </div>
                                                             </div>
                                                         </div>

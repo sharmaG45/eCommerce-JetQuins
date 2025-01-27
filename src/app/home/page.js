@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import styles from './Slider.module.css'
 import Slider from "react-slick";
-import { doc, getDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 // import img from "../../../public/assets/Images/"
 
 const HomePage = () => {
@@ -294,7 +294,7 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Shop Now",
             buttonLink: "#",
-            backgroundImage: "/assets/Images/backgound-1.jpg",
+            backgroundImage: "/public/assets/Images/backgound-1.jpg",
         },
         {
             id: "slide-2",
@@ -302,7 +302,7 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Pre-Order Now",
             buttonLink: "#",
-            backgroundImage: "/assets/Images/backgound-2.jpg",
+            backgroundImage: "/public/assets/Images/backgound-2.jpg",
         },
         {
             id: "slide-3",
@@ -310,7 +310,7 @@ const HomePage = () => {
             description: "Shop great deals on MacBook, iPad, iPhone and more.",
             buttonText: "Shop Now",
             buttonLink: "#",
-            backgroundImage: "/assets/Images/backgound-3.jpg",
+            backgroundImage: "/public/assets/Images/backgound-3.jpg",
         },
     ];
 
@@ -441,7 +441,7 @@ const HomePage = () => {
                                                                 key={slide.id}
                                                                 className={styles.slide}
                                                                 style={{
-                                                                    backgroundImage: `url(/assets/Images/backgound-1.jpg)`,
+                                                                    backgroundImage: `url(${slide.backgroundImage})`,
                                                                     backgroundSize: "cover",
                                                                     backgroundPosition: "center",
                                                                 }}
@@ -457,7 +457,7 @@ const HomePage = () => {
                                                         ))}
                                                     </Slider>
 
-                                                    {/* Next and Previous Buttons */}
+
                                                     <button className={styles.prevButton} onClick={goToPrev}>
                                                         Previous
                                                     </button>
@@ -701,7 +701,7 @@ const HomePage = () => {
                                                                         <div className="wd-buttons wd-pos-r-t">
                                                                             <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
                                                                                 <a
-                                                                                    href={`https://woodmart.xtemos.com/mega-electronics/compare/?product_id=${offer.productId}`}
+                                                                                    href="#"
                                                                                     data-id={offer.productId}
                                                                                     rel="nofollow"
                                                                                     data-added-text="Compare products"
@@ -835,7 +835,7 @@ const HomePage = () => {
                                                                     height={720}
                                                                     src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/nothing-phone-1-600x720.jpg"
                                                                     className="attachment-600x720 size-600x720 entered lazyloaded"
-                                                                    alt
+                                                                    alt=""
                                                                     data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/nothing-phone-1-600x720.jpg"
                                                                     data-ll-status="loaded"
                                                                 />
@@ -990,7 +990,7 @@ const HomePage = () => {
                                                                         <div className="wd-buttons wd-pos-r-t">
                                                                             <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
                                                                                 <a
-                                                                                    href={`https://woodmart.xtemos.com/mega-electronics/compare/?product_id=${offer.productId}`}
+                                                                                    href="#"
                                                                                     data-id={offer.productId}
                                                                                     rel="nofollow"
                                                                                     data-added-text="Compare products"
@@ -1198,6 +1198,7 @@ const HomePage = () => {
                                                                             <img
                                                                                 decoding="async"
                                                                                 src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-right-white.svg"
+                                                                                alt="image not found"
                                                                                 title="chevron-right-white"
                                                                                 width={14}
                                                                                 height={14}
@@ -1205,7 +1206,6 @@ const HomePage = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-
                                                                         </span>
                                                                     </a>
                                                                 </div>
@@ -1441,7 +1441,7 @@ const HomePage = () => {
                                                                         <div className="wd-buttons wd-pos-r-t">
                                                                             <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
                                                                                 <a
-                                                                                    href={`https://woodmart.xtemos.com/mega-electronics/compare/?product_id=${offer.productId}`}
+                                                                                    href="#"
                                                                                     data-id={offer.productId}
                                                                                     rel="nofollow"
                                                                                     data-added-text="Compare products"

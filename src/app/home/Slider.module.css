@@ -1,90 +1,99 @@
 .sliderContainer {
-    max-width: 100%;
-    overflow: hidden;
-    margin: 0 auto;
-    position: relative;
-  }
-  
-  .slide {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 460px;
-    color: #fff;
-    text-align: center;
-    position: relative;
-  }
-  
-  .slide::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.4); /* Optional: adds a dark overlay */
-    z-index: 1;
-  }
-  
-  .content {
-    z-index: 2;
-    position: relative;
-    max-width: 600px;
-    margin: auto;
-  }
-  
-  .title {
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  
-  .description {
-    font-size: 1.2rem;
-    margin-bottom: 20px;
-  }
-  
-  .button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
-    font-size: 1rem;
-  }
-  
-  .button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Custom Navigation Buttons */
-  .prevButton,
-  .nextButton {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
-    cursor: pointer;
-    z-index: 10;
-  }
-  
-  .prevButton {
-    left: 10px;
-  }
-  
-  .nextButton {
-    right: 10px;
-  }
-  
-  .prevButton:hover,
-  .nextButton:hover {
-    background-color: rgba(0, 0, 0, 0.8);
-  }
-  
+  max-width: 100%;
+  overflow: hidden;
+  margin: 0 auto;
+  position: relative;
+}
+
+.slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 460px;
+  color: #fff;
+  text-align: center;
+  position: relative;
+  background-size: cover; /* Ensures the background image is scaled properly */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents image tiling */
+}
+
+.slide::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4); /* Dark overlay for better text contrast */
+  z-index: 1;
+}
+
+.content {
+  z-index: 2; /* Stays on top of the overlay */
+  position: relative;
+  max-width: 600px;
+  margin: auto;
+  text-align: center;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #fff; /* Ensure text contrast */
+}
+
+.description {
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  color: #ddd; /* Slightly muted text for better readability */
+}
+
+.button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 5px;
+  font-size: 1rem;
+  transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.button:hover {
+  background-color: #0056b3;
+}
+
+/* Custom Navigation Buttons */
+.prevButton,
+.nextButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prevButton {
+  left: 10px;
+}
+
+.nextButton {
+  right: 10px;
+}
+
+.prevButton:hover,
+.nextButton:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}

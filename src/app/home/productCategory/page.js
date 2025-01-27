@@ -1,61 +1,15 @@
 'use client';
 
 import bestOffer from "../../assets/scraped_products.json";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+
 
 const smartPhone = () => {
 
-    const searchParams = new URLSearchParams(window.location.search); // You can get the search params from the URL
-    const router = useRouter();
-    const [products, setProducts] = useState([]);
     const [filteredProducts, setFilteredProducts] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-
-    // Start
-
-
-    // useEffect(() => {
-    //     const fetchAndFilter = () => {
-    //         const brand = searchParams.get('title');
-    //         console.log('Title from URL:', brand);
-
-    //         let filtered = bestOffer;
-
-    //         if (searchQuery) {
-    //             filtered = bestOffer.filter((product) => {
-    //                 const productName = product.productName || ''; // Default to empty string if missing
-    //                 return productName.toLowerCase().includes(searchQuery.toLowerCase());
-    //             });
-    //         }
-
-    //         if (brand) {
-    //             filtered = filtered.filter((product) => {
-    //                 const brandName = product.brand || ''; // Default to empty string if missing
-    //                 return brandName.toLowerCase().includes(brand.toLowerCase());
-    //             });
-    //         }
-
-    //         // If no products match the filter, display all products
-    //         if (filtered.length === 0) {
-    //             console.warn('No matching products found. Displaying all products.');
-    //             setFilteredProducts(bestOffer);
-    //         } else {
-    //             setFilteredProducts(filtered);
-    //         }
-
-    //         setProducts(bestOffer); // Set the initial products (can be modified later)
-    //     };
-
-    //     fetchAndFilter();
-    // }, [searchParams, searchQuery]); // Re-run whenever the search query or searchParams change
-
-    // const handleSearchChange = (event) => {
-    //     setSearchQuery(event.target.value);
-    // };
-
-
-    // End
+    const router = useRouter();
+    const searchParams = useSearchParams();// You can get the search params from the URL
 
     useEffect(() => {
         const fetchAndFilter = () => {
@@ -87,6 +41,7 @@ const smartPhone = () => {
 
     return (
         <>
+        <Suspense fallback={<p>Loading...</p>}></Suspense>
             <div className="wd-page-content main-page-wrapper">
                 <main
                     className="wd-content-layout content-layout-wrapper container wd-builder-on wd-sidebar-hidden-sm"

@@ -4,6 +4,7 @@ import Footer from "./_components/Footer/page";
 import Sidebar from "./_components/Sidebar/page";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { Suspense } from 'react';
 
 export const metadata = {
   title: "Cheap Flights, Compare Flights & Airline Deals - onlineflightreservations.com",
@@ -146,7 +147,7 @@ export default function RootLayout({ children }) {
         <link rel='stylesheet' id='wd-woo-opt-manage-checkout-prod-css' href='/assets/wp-content/themes/woodmart/css/parts/woo-opt-manage-checkout-prod.min.css?ver=8.0.4' type='text/css' media='all' />
 
         {/* <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/swiperInit.min.js?ver=8.0.4" id="wd-swiper-carousel-js"></script> */}
-        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/swiper.min.js?ver=8.0.4" id="wd-swiper-library-js"></script>
+        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/swiper.min.js?ver=8.0.4" ></script>
         <script src="/assets/wp-includes/js/jquery/jquery.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/autocomplete.min.js"></script>
         <script src="/assets/wp-content/themes/woodmart/js/libs/countdown-bundle.min.js"></script>
@@ -157,25 +158,28 @@ export default function RootLayout({ children }) {
         {/* <script src="/assets/wp-content/themes/woodmart/js/scripts/header/headerBuilder.min.js"></script> */}
         <script type="text/javascript"
           src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/add-to-cart.min.js?ver=9.1.4"
-          id="wc-add-to-cart-js" data-wp-strategy="defer"></script>
+        ></script>
         {/* <script type="text/javascript" src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/woocommerce.min.js?ver=9.1.4" id="woocommerce-js" defer="defer" data-wp-strategy="defer"></script> */}
-        <script data-minify="1" type="text/javascript" src="/assets/wp-content/plugins/js_composer/assets/js/vendors/woocommerce-add-to-cart.js?ver=1734449562" id="vc_woocommerce-add-to-cart-js-js" data-rocket-defer defer></script>
-        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/device.min.js?ver=8.0.4" id="wd-device-library-js" data-rocket-defer defer></script>
-        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/scrollBar.min.js?ver=8.0.4" id="wd-scrollbar-js" data-rocket-defer defer></script>
+        <script data-minify="1" type="text/javascript" src="/assets/wp-content/plugins/js_composer/assets/js/vendors/woocommerce-add-to-cart.js?ver=1734449562"  ></script>
+        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/libs/device.min.js?ver=8.0.4"  ></script>
+        <script type="text/javascript" src="/assets/wp-content/themes/woodmart/js/scripts/global/scrollBar.min.js?ver=8.0.4"  ></script>
         {/* <script type="text/javascript" src="/assets/wp-content/plugins/woocommerce/assets/js/frontend/single-product.min.js?ver=9.1.4" id="wc-single-product-js" defer="defer" data-wp-strategy="defer"></script> */}
       </head>
       <body
         className="home page-template-default page page-id-15 theme-woodmart woocommerce-js wrapper-custom  categories-accordion-on woodmart-ajax-shop-on sticky-toolbar-on hide-larger-price wd-sticky-nav-enabled wpb-js-composer js-comp-ver-7.8 vc_responsiv"
       >
+        <Suspense fallback={<p>Loading...</p>}>
+          <Sidebar />
+          <div className="wd-page-wrapper website-wrapper">
+            <Navbar />
+            {children}
+            <a className="scrollToTop" aria-label="Scroll to top button" />
+            <Footer />
 
-        <Sidebar />
-        <div className="wd-page-wrapper website-wrapper">
-          <Navbar />
-          {children}
-          <a className="scrollToTop" aria-label="Scroll to top button" />
-          <Footer />
+          </div>
+        </Suspense>
 
-        </div>
+
 
 
       </body>

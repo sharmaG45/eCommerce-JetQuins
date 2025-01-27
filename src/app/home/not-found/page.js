@@ -1,4 +1,4 @@
-const notFound = () => {
+const NotFound = () => {
     return (
         <div className="wd-page-content main-page-wrapper">
             <main
@@ -41,6 +41,7 @@ const notFound = () => {
                 </div>
             </main>
         </div>
+        // Added new things
     )
 }
-export default notFound;
+export default NotFound;

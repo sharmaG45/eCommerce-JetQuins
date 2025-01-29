@@ -398,7 +398,7 @@ const productDetails = () => {
             router.push('/myAccount/SignUp');
         }
         setIsCartOpen(false); // Close the cart (if you have this state)
-        // add
+        // add new code
     };
 
     const handleViewCart = () => {

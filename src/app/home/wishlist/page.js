@@ -103,7 +103,7 @@ const wishlist = () => {
                                         <h4 className="title">Your products wishlist</h4>
                                     </div>
 
-                                   
+
 
                                     <div className="wd-products-element wd-wpb">
                                         <div
@@ -117,7 +117,54 @@ const wishlist = () => {
                                             }}
                                         >
                                             {wishlist.length === 0 ? (
-                                                <p>Your wishlist is empty.</p>
+                                                <div className="wd-page-content main-page-wrapper">
+                                                    <main
+                                                        className="wd-content-layout content-layout-wrapper container"
+                                                        role="main"
+                                                    >
+                                                        <div className="wd-content-area site-content">
+                                                            <article
+                                                                id="post-30"
+                                                                className="entry-content post-30 page type-page status-publish hentry"
+                                                            >
+                                                                <div className="">
+                                                                    <div className="wd-wishlist-content">
+                                                                        <link
+                                                                            rel="stylesheet"
+                                                                            id="wd-page-wishlist-bulk-css"
+                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-page-wishlist-bulk.min.css?ver=8.0.4"
+                                                                            type="text/css"
+                                                                            media="all"
+                                                                        />
+                                                                        <link
+                                                                            rel="stylesheet"
+                                                                            id="wd-woo-opt-products-bg-css"
+                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-opt-products-bg.min.css?ver=8.0.4"
+                                                                            type="text/css"
+                                                                            media="all"
+                                                                        />{" "}
+                                                                        <p className="wd-empty-wishlist wd-empty-page">
+                                                                            This wishlist is empty.{" "}
+                                                                        </p>
+                                                                        <div className="wd-empty-page-text">
+                                                                            You don't have any products in the wishlist yet. <br /> You will
+                                                                            find a lot of interesting products on our "Shop" page.{" "}
+                                                                        </div>
+                                                                        <p className="return-to-shop">
+                                                                            <a
+                                                                                className="button"
+                                                                                href="https://woodmart.xtemos.com/mega-electronics/shop/"
+                                                                            >
+                                                                                Return to shop{" "}
+                                                                            </a>
+                                                                        </p>{" "}
+                                                                    </div>
+                                                                </div>
+                                                            </article>
+                                                        </div>
+                                                    </main>
+                                                </div>
+
                                             ) : (
                                                 wishlist.map((offer, index) => (
                                                     <div

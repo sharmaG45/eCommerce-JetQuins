@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SignIn from '../SignIn/page';
 import { doc, getDoc, arrayRemove, updateDoc } from 'firebase/firestore';
-import { fireStore } from '../../_components/firebase/config';
+import { fireStore, auth } from '../../_components/firebase/config';
 import bestOffer from '@/app/assets/scraped_products.json';
+import { signOut } from "firebase/auth";
+import { toast } from 'react-toastify';
 
 const Navbar = () => {
 
@@ -33,6 +35,12 @@ const Navbar = () => {
             id: 4,
             name: "Norton Antivirus",
             url: "/home/productCategory?title=Norton" // Assuming the product URL for Norton
+
+        },
+        {
+            id: 5,
+            name: "Webroot Antivirus",
+            url: "/home/productCategory?title=Webroot" // Assuming the product URL for Norton
         }
     ];
 
@@ -43,13 +51,43 @@ const Navbar = () => {
     const [isShopOpen, setShopOpen] = useState(false);
     const [cartItems, setCartItems] = useState([]);
     const [activeSection, setActiveSection] = useState(menuItems[0]?.id);
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
+    const [user, setUser] = useState(null);
 
     const [wishlistCount, setWishlistCount] = useState(0);
     const [cartCount, setCartCount] = useState(0);
     const [cartTotal, setCartTotal] = useState(0.0);
     const router = useRouter();
 
-    console.log(cartItems, "Carts Items");
+    // console.log(cartItems, "Carts Items");
+
+    useEffect(() => {
+
+        const userData = localStorage.getItem('currentUser');
+        const user = JSON.parse(userData);
+        if (user) {
+            setIsUserLoggedIn(true); // true or false based on your logic
+        }
+        setUser(user);
+    }, []);
+
+    const handleSignOut = (e) => {
+        e.preventDefault();
+        signOut(auth)
+            .then(() => {
+                // Remove user session info from sessionStorage
+                localStorage.removeItem("currentUser");
+                setIsUserLoggedIn(false);
+
+                // Show success toast message
+                toast.success("You have successfully signed out.");
+            })
+            .catch((error) => {
+                // Show error message if sign-out fails
+                console.error("Sign-out error: ", error);
+                toast.error("An error occurred while signing out. Please try again.");
+            });
+    }
 
 
     const toggleDropdown = () => {
@@ -95,9 +133,15 @@ const Navbar = () => {
     };
 
     const handleCheckout = (e) => {
-        e.preventDefault();
-        router.push('/home/checkout');
-        setIsCartOpen(false);
+        e.preventDefault(); // Prevent the default link navigation
+        const storedUser = localStorage.getItem("currentUser");
+        if (storedUser) {
+            router.push('/home/checkout'); // Navigate to the checkout page
+        } else {
+            toast.error("Please log in to proceed to checkout.");
+            router.push('/myAccount/SignUp');
+        }
+        setIsCartOpen(false); // Close the cart (if you have this state)
     };
 
     const handleViewCart = (e) => {
@@ -109,16 +153,24 @@ const Navbar = () => {
     useEffect(() => {
         // Fetch the current user's cart items
         const fetchCart = async () => {
-            const userData = localStorage.getItem('currentUser');
-
-            if (!userData) {
-                alert("Please log in first.");
-                return; // Exit if no user is logged in
-            }
-
-            const user = JSON.parse(userData); // Parse the user data from localStorage
-
             try {
+                // Get user data from localStorage
+                const userData = localStorage.getItem("currentUser");
+
+                // If no user data, exit early
+                if (!userData) {
+                    console.log("No user logged in. Skipping cart fetch.");
+                    return;
+                }
+
+                const user = JSON.parse(userData);
+
+                // Validate user object
+                if (!user || !user.uid) {
+                    console.error("Invalid user data.");
+                    return;
+                }
+
                 // Get the user's cart data from Firestore
                 const userRef = doc(fireStore, "users", user.uid);
                 const userDoc = await getDoc(userRef);
@@ -137,12 +189,13 @@ const Navbar = () => {
         fetchCart(); // Call the fetchCart function to retrieve cart items
     }, []);
 
+
     const removeFromCart = async (productId) => {
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -172,7 +225,6 @@ const Navbar = () => {
         }
     };
 
-
     const changeQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
             alert("Quantity cannot be less than 1.");
@@ -180,10 +232,10 @@ const Navbar = () => {
         }
 
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -217,38 +269,52 @@ const Navbar = () => {
     // Header wishlist count and cart count
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem("currentUser"));
-        if (user && user.uid) {
-            const userId = user.uid;
+        const fetchUserData = async () => {
+            try {
+                const storedUser = localStorage.getItem("currentUser");
 
-            const fetchUserData = async () => {
-                try {
-                    // Fetch user data from Firestore
-                    const userRef = doc(fireStore, "users", userId);
+                if (storedUser) {
+
+                    const user = JSON.parse(storedUser);
+                    if (!user || !user.uid) {
+                        console.log("Invalid user data.");
+                        return;
+                    }
+
+                    const userRef = doc(fireStore, "users", user.uid);
                     const userDoc = await getDoc(userRef);
 
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
 
-                        // Set the wishlist count
-                        const wishlistItems = userData.wishlist || [];
-                        setWishlistCount(wishlistItems.length);
 
-                        // Set the cart count and total price
+                        setWishlistCount(userData.wishlist?.length || 0);
+
                         const cartItems = userData.cart || [];
                         setCartCount(cartItems.length);
-
-                        const total = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-                        setCartTotal(total);
+                        setCartTotal(cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0));
                     }
-                } catch (error) {
-                    console.error("Error fetching user data:", error);
-                }
-            };
+                } else {
+                    // 🔹 User is NOT logged in - Fetch from localStorage
+                    console.log("User not logged in. Fetching from localStorage...");
 
-            fetchUserData();
-        }
+                    // Get wishlist from localStorage
+                    const localWishlist = JSON.parse(localStorage.getItem("guestWishlist")) || [];
+                    setWishlistCount(localWishlist.length);
+
+                    // Get cart from localStorage
+                    const localCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+                    setCartCount(localCart.length);
+                    setCartTotal(localCart.reduce((acc, item) => acc + item.price * item.quantity, 0));
+                }
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+            }
+        };
+
+        fetchUserData();
     }, []);
+
 
     console.log(cartItems, "cart Details");
 
@@ -270,10 +336,6 @@ const Navbar = () => {
         }
     }, [searchQuery, bestOffer]); // This effect runs whenever searchQuery or bestOffer changes
 
-    const handleSearchChange = (event) => {
-        setSearchQuery(event.target.value);
-    };
-
     console.log(filteredProducts, "Filtered Data");
     console.log(showSuggestions, "open ho rha hai ya nahi");
 
@@ -281,7 +343,6 @@ const Navbar = () => {
         router.push(`${productUrl}`)
         setShopOpen(false);
     }
-
 
     // Handle form submit (Search button click)
     const handleSubmit = (event) => {
@@ -494,6 +555,8 @@ const Navbar = () => {
                                         <span className="wd-tools-text">Login / Register </span>
                                     </a>
                                 </div>
+
+
                             </div>
 
                         </div>
@@ -723,14 +786,61 @@ const Navbar = () => {
                                 >
 
                                 </div>
-                                <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-7 wd-account-style-icon login-side-opener whb-7qrb5r43fmh57lkx4dry" onClick={openModal}>
-                                    <a
-
-                                        title="My account"
-                                    >
-                                        <span className="wd-tools-icon"></span>
-                                        <span className="wd-tools-text">Login / Register </span>
-                                    </a>
+                                <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-7 wd-account-style-icon whb-7qrb5r43fmh57lkx4dry">
+                                    {isUserLoggedIn ? (
+                                        <>
+                                            <a href="/">
+                                                <span className="wd-tools-icon"></span>
+                                                <span className="wd-tools-text">My Account</span>
+                                            </a>
+                                            <div className="wd-dropdown wd-dropdown-menu wd-dropdown-my-account wd-design-default">
+                                                <ul className="wd-sub-menu">
+                                                    <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--dashboard is-active">
+                                                        <a href="/home/userDashboard">
+                                                            <span>Dashboard</span>
+                                                        </a>
+                                                    </li>
+                                                    <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--orders">
+                                                        <a href="/">
+                                                            <span>Orders</span>
+                                                        </a>
+                                                    </li>
+                                                    <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--downloads">
+                                                        <a href="/">
+                                                            <span>Downloads</span>
+                                                        </a>
+                                                    </li>
+                                                    <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--edit-address">
+                                                        <a href="/">
+                                                            <span>Addresses</span>
+                                                        </a>
+                                                    </li>
+                                                    <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--edit-account">
+                                                        <a href="/">
+                                                            <span>Account details</span>
+                                                        </a>
+                                                    </li>
+                                                    <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--wishlist">
+                                                        <a href="/">
+                                                            <span>Wishlist</span>
+                                                        </a>
+                                                    </li>
+                                                    <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--customer-logout">
+                                                        <a href='/' onClick={(e) => handleSignOut(e)}>
+                                                            <span>Logout</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-7 wd-account-style-icon login-side-opener whb-7qrb5r43fmh57lkx4dry" onClick={openModal}>
+                                            <a title="My account" style={{ cursor: "pointer" }}>
+                                                <span className="wd-tools-icon"></span>
+                                                <span className="wd-tools-text">Login / Register</span>
+                                            </a>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="wd-header-compare wd-tools-element wd-style-icon wd-with-count wd-design-7 whb-efvne7ivyjilpk6crr69">
                                     <a
@@ -761,9 +871,10 @@ const Navbar = () => {
                                     <a
 
                                         title="Shopping cart"
+                                        style={{ cursor: "pointer" }}
                                     >
                                         <span className="wd-tools-icon">
-                                            <span className="wd-cart-number wd-tools-count">
+                                            <span className="wd-cart-number wd-tools-count" >
                                                 {cartCount} <span>items</span>
                                             </span>
                                         </span>
@@ -1011,179 +1122,9 @@ const Navbar = () => {
                             width={18}
                             height={18}
                         />
-                        <span className="nav-link-text">Laptops, Tablets &amp; PCs</span>
+                        <span className="nav-link-text">Webroot</span>
                     </a>
-                    <ul className="wd-sub-menu">
-                        <li className="wd-drilldown-back">
-                            <span className="wd-nav-opener" />
-                            <a >Back </a>
-                        </li>
-                        <li
-                            id="menu-item-4684"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4684 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                Laptops
-                            </a>
-                            <ul className="sub-sub-menu">
-                                <li className="wd-drilldown-back">
-                                    <span className="wd-nav-opener" />
-                                    <a >Back </a>
-                                </li>
-                                <li
-                                    id="menu-item-4685"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4685 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Apple MacBook
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4686"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4686 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Business Laptop
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4687"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4687 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Gaming Laptop
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4688"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4688 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Ultrabook
-                                    </a>
-                                </li>
-                            </ul>
-                            <span className="wd-nav-opener" />
-                        </li>
-                        <li
-                            id="menu-item-4689"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4689 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                Tablets
-                            </a>
-                            <ul className="sub-sub-menu">
-                                <li className="wd-drilldown-back">
-                                    <span className="wd-nav-opener" />
-                                    <a >Back </a>
-                                </li>
-                                <li
-                                    id="menu-item-4690"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4690 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Apple Ipad
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4691"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4691 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Android Tablets
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4692"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4692 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Windows Tablets
-                                    </a>
-                                </li>
-                            </ul>
-                            <span className="wd-nav-opener" />
-                        </li>
-                        <li
-                            id="menu-item-4693"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4693 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                PCs
-                            </a>
-                            <ul className="sub-sub-menu">
-                                <li className="wd-drilldown-back">
-                                    <span className="wd-nav-opener" />
-                                    <a >Back </a>
-                                </li>
-                                <li
-                                    id="menu-item-4694"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4694 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Gaming PCs
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4695"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4695 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Office PCs
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4696"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4696 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        All in one
-                                    </a>
-                                </li>
-                            </ul>
-                            <span className="wd-nav-opener" />
-                        </li>
-                    </ul>
-                    <span className="wd-nav-opener" />
+
                 </li>
                 <li
                     id="menu-item-108"
@@ -1201,48 +1142,9 @@ const Navbar = () => {
                             width={18}
                             height={18}
                         />
-                        <span className="nav-link-text">Computer &amp; Office</span>
+                        <span className="nav-link-text">McAfee</span>
                     </a>
-                    <ul className="wd-sub-menu">
-                        <li className="wd-drilldown-back">
-                            <span className="wd-nav-opener" />
-                            <a >Back </a>
-                        </li>
-                        <li
-                            id="menu-item-4697"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4697 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                Monitors
-                            </a>
-                        </li>
-                        <li
-                            id="menu-item-4698"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4698 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                Printers &amp; Scanners
-                            </a>
-                        </li>
-                        <li
-                            id="menu-item-4699"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4699 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                Input Devices
-                            </a>
-                        </li>
-                    </ul>
-                    <span className="wd-nav-opener" />
+
                 </li>
                 <li
                     id="menu-item-110"
@@ -1260,48 +1162,9 @@ const Navbar = () => {
                             width={18}
                             height={18}
                         />
-                        <span className="nav-link-text">Hardware &amp; Components</span>
+                        <span className="nav-link-text">Norton</span>
                     </a>
-                    <ul className="wd-sub-menu">
-                        <li className="wd-drilldown-back">
-                            <span className="wd-nav-opener" />
-                            <a >Back </a>
-                        </li>
-                        <li
-                            id="menu-item-4700"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4700 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                PC Components
-                            </a>
-                        </li>
-                        <li
-                            id="menu-item-4701"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4701 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                Cooling
-                            </a>
-                        </li>
-                        <li
-                            id="menu-item-4702"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4702 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                Hardware &amp; Other
-                            </a>
-                        </li>
-                    </ul>
-                    <span className="wd-nav-opener" />
+
                 </li>
                 <li
                     id="menu-item-114"
@@ -1319,7 +1182,7 @@ const Navbar = () => {
                             width={18}
                             height={18}
                         />
-                        <span className="nav-link-text">Smartphones</span>
+                        <span className="nav-link-text">AVG</span>
                     </a>
                 </li>
                 <li
@@ -1338,65 +1201,7 @@ const Navbar = () => {
                             width={18}
                             height={18}
                         />
-                        <span className="nav-link-text">Games &amp; Entertainment</span>
-                    </a>
-                </li>
-                <li
-                    id="menu-item-115"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-115 item-level-0"
-                >
-                    <a
-                        href="
-                        "
-                        className="woodmart-nav-link"
-                    >
-                        <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/TV-HIFI.svg"
-                            title="TV & HIFI"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        />
-                        <span className="nav-link-text">TV &amp; Hi-Fi</span>
-                    </a>
-                </li>
-                <li
-                    id="menu-item-113"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-113 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-                        <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Photo-Video.svg"
-                            title="Photo & Video"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        />
-                        <span className="nav-link-text">Photo &amp; Video</span>
-                    </a>
-                </li>
-                <li
-                    id="menu-item-111"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-111 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-                        <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Home-Appliance.svg"
-                            title="Home Appliance"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        />
-                        <span className="nav-link-text">Home Appliance</span>
+                        <span className="nav-link-text">Avast</span>
                     </a>
                 </li>
             </ul>
@@ -1405,20 +1210,13 @@ const Navbar = () => {
                 className={`mobile-categories-menu menu wd-nav wd-nav-mobile wd-layout-drilldown wd-drilldown-slide ${activeSection === "menu-mobile-categories-mega-electronics" ? "wd-active" : "wd-hidden"
                     }`}
             >
-                <li
-                    id="menu-item-4628"
-                    className="xtemos-show-demos menu-item menu-item-type-custom menu-item-object-custom menu-item-4628 item-level-0"
-                >
-                    <a className="woodmart-nav-link">
-                        <span className="nav-link-text">Demos</span>
-                    </a>
-                </li>
+
                 <li
                     id="menu-item-4623"
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4623 item-level-0"
                 >
                     <a
-                        href="/"
+                        href="/home/"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">About Us</span>
@@ -1429,7 +1227,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4624 item-level-0"
                 >
                     <a
-                        href="/"
+                        href="/home/stores"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Stores</span>
@@ -1440,7 +1238,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4625 item-level-0"
                 >
                     <a
-                        href="/"
+                        href="/home/ourContact"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Our Contacts</span>
@@ -1454,216 +1252,22 @@ const Navbar = () => {
                         href="/"
                         className="woodmart-nav-link"
                     >
-                        {/* <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Laptops-Tablets-PC.svg"
-                            title="Laptops, Tablets & PC"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        /> */}
+
                         <span className="nav-link-text">Products</span>
                     </a>
-                    <ul className="wd-sub-menu">
-                        <li className="wd-drilldown-back">
-                            <span className="wd-nav-opener" />
-                            <a >Back </a>
-                        </li>
-                        <li
-                            id="menu-item-4684"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4684 item-level-1"
-                        >
-                            <a
-                                href="/"
-                                className="woodmart-nav-link"
-                            >
-                                Laptops
-                            </a>
-                            <ul className="sub-sub-menu">
-                                <li className="wd-drilldown-back">
-                                    <span className="wd-nav-opener" />
-                                    <a >Back </a>
-                                </li>
-                                <li
-                                    id="menu-item-4685"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4685 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Apple MacBook
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4686"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4686 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Business Laptop
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4687"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4687 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Gaming Laptop
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4688"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4688 item-level-2"
-                                >
-                                    <a
-                                        href="/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Ultrabook
-                                    </a>
-                                </li>
-                            </ul>
-                            <span className="wd-nav-opener" />
-                        </li>
-                        {/* <li
-                            id="menu-item-4689"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4689 item-level-1"
-                        >
-                            <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/"
-                                className="woodmart-nav-link"
-                            >
-                                Tablets
-                            </a>
-                            <ul className="sub-sub-menu">
-                                <li className="wd-drilldown-back">
-                                    <span className="wd-nav-opener" />
-                                    <a >Back </a>
-                                </li>
-                                <li
-                                    id="menu-item-4690"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4690 item-level-2"
-                                >
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/apple-ipad/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Apple Ipad
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4691"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4691 item-level-2"
-                                >
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/android-tablets/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Android Tablets
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4692"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4692 item-level-2"
-                                >
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/tablets/windows-tablets/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Windows Tablets
-                                    </a>
-                                </li>
-                            </ul>
-                            <span className="wd-nav-opener" />
-                        </li>
-                        <li
-                            id="menu-item-4693"
-                            className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-4693 item-level-1"
-                        >
-                            <a
-                                href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/"
-                                className="woodmart-nav-link"
-                            >
-                                PCs
-                            </a>
-                            <ul className="sub-sub-menu">
-                                <li className="wd-drilldown-back">
-                                    <span className="wd-nav-opener" />
-                                    <a >Back </a>
-                                </li>
-                                <li
-                                    id="menu-item-4694"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4694 item-level-2"
-                                >
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/gaming-pcs/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Gaming PCs
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4695"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4695 item-level-2"
-                                >
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/office-pcs/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        Office PCs
-                                    </a>
-                                </li>
-                                <li
-                                    id="menu-item-4696"
-                                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-4696 item-level-2"
-                                >
-                                    <a
-                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/laptops-tablets-pcs/pcs/all-in-one/"
-                                        className="woodmart-nav-link"
-                                    >
-                                        All in one
-                                    </a>
-                                </li>
-                            </ul>
-                            <span className="wd-nav-opener" />
-                        </li> */}
-                    </ul>
-                    <span className="wd-nav-opener" />
+
                 </li>
-                <li
-                    id="menu-item-4627"
-                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4627 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-                        <span className="nav-link-text">Outlet</span>
-                    </a>
-                </li>
+
                 <li className="menu-item menu-item-wishlist wd-with-icon item-level-0">
 
                     <a
-                        href="/"
+                        href="/home/wishlist"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Wishlist</span>
                     </a>
                 </li>
-                <li className="menu-item menu-item-compare wd-with-icon item-level-0">
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-                        Compare
-                    </a>
-                </li>
+
             </ul>
         </div>
 

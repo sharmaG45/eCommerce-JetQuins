@@ -5,6 +5,7 @@ import bestOffer from "../../assets/scraped_products.json";
 import { useRouter, useSearchParams } from "next/navigation";
 import { auth, fireStore } from "../../_components/firebase/config";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
+import { toast } from "react-toastify";
 
 const productDetails = () => {
     const [selectedOption, setSelectedOption] = useState("default");
@@ -12,17 +13,28 @@ const productDetails = () => {
     const [cartItems, setCartItems] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [products, setProducts] = useState([]);
+    const [isAdded, setIsAdded] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    // Function to open the Cart Modal
-    const openCart = async (e, offer) => {
+    const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent the default link behavior
 
+        // Try to get the user from localStorage
         const user = JSON.parse(localStorage.getItem('currentUser'));
 
         if (!user) {
-            alert("Please log in first.");
+            // If user is not logged in, store wishlist in localStorage
+            const guestWishlist = JSON.parse(localStorage.getItem('guestWishlist')) || [];
+
+            // Check if product already exists in the guest wishlist
+            if (guestWishlist.some(item => item.productId === offer.productId)) {
+                toast.success("Product is already in your wishlist!");
+            } else {
+                guestWishlist.push({ ...offer, timestamp: new Date() });
+                localStorage.setItem('guestWishlist', JSON.stringify(guestWishlist));
+                toast.success("Product added to your wishlist!");
+            }
             return;
         }
 
@@ -43,6 +55,96 @@ const productDetails = () => {
             productName: 'Default Product',
             productSku: 'DEFAULTSKU',
             price: 99.99,
+            discount: 0
+        };
+
+        // Use static data if any required fields are missing
+        const offerData = {
+            product_url: offer.product_url || staticData.product_url,
+            image_urls: offer.image_url && offer.image_url.length > 0 ? offer.image_url : staticData.image_urls,
+            productId: offer.productId || staticData.productId,
+            productName: offer.productName || staticData.productName,
+            productSku: offer.productSku || staticData.productSku,
+            price: offer.price || staticData.price,
+            discount: offer.discount || staticData.discount,
+        };
+
+        console.log('Final Offer Data:', offerData);
+
+        try {
+            // Get the user's ID safely
+            const userId = user?.uid;
+            if (!userId) {
+                toast.error("User ID is missing. Please log in.");
+                return;
+            }
+
+            // Reference to the user document in Firestore
+            const userRef = doc(fireStore, "users", userId);
+
+            // Fetch the current user data to check if the wishlist exists
+            const userDoc = await getDoc(userRef);
+            let userWishlist = userDoc.exists() ? userDoc.data().wishlist || [] : [];
+
+            // Check if the product is already in the wishlist
+            const existingProductIndex = userWishlist.findIndex(item => item.productId === offerData.productId);
+
+            if (existingProductIndex !== -1) {
+                toast.success("Product is already in your wishlist!");
+            } else {
+                // Add new product to wishlist
+                userWishlist.push({
+                    productUrls: offerData.product_url,
+                    productId: offerData.productId,
+                    productName: offerData.productName,
+                    productSku: offerData.productSku,
+                    imageUrls: offerData.image_urls,
+                    price: offerData.price,
+                    discount: offerData.discount,
+                    timestamp: new Date(),
+                });
+
+                // Update the user's wishlist in Firestore
+                await updateDoc(userRef, { wishlist: userWishlist });
+
+                console.log("Product added to wishlist for user:", userId);
+                toast.success("Product added to your wishlist!");
+            }
+
+        } catch (error) {
+            console.error("Error adding product to wishlist:", error);
+            toast.error(`Error adding product to wishlist. ${error.message}`);
+        }
+    };
+
+
+    const handleProductDetails = (brandDetails) => {
+        router.push(`/home/productDetails?brand=${brandDetails}`);
+    }
+
+    const openCart = async (e, offer) => {
+        e.preventDefault(); // Prevent the default link behavior
+
+        const userData = localStorage.getItem("currentUser");
+        const user = userData ? JSON.parse(userData) : null;
+
+        // Log the offer object to see if it's structured correctly
+        console.log("Offer:", offer);
+
+        // Static fallback data in case some fields are missing
+        const staticData = {
+            product_url: "https://defaultproducturl.com",
+            image_urls: [
+                "https://via.placeholder.com/430x491?text=Image+1",
+                "https://via.placeholder.com/430x491?text=Image+2",
+                "https://via.placeholder.com/430x491?text=Image+3",
+                "https://via.placeholder.com/430x491?text=Image+4"
+            ],
+            brand: "Default Brand",
+            productId: "00000",
+            productName: "Default Product",
+            productSku: "DEFAULTSKU",
+            price: 99.99,
             discount: 0,
             quantity: 1 // Ensuring default quantity is 1
         };
@@ -59,14 +161,36 @@ const productDetails = () => {
             quantity: offer.quantity || staticData.quantity // Default to 1 if quantity is missing
         };
 
-        // Log the final offer data (either user-provided or static)
-        console.log('Final Offer Data:', offerData);
+        console.log("Final Offer Data:", offerData);
 
+        if (!user || !user.uid) {
+            // If the user is not logged in, store the cart in localStorage
+            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+
+            // Check if the product already exists in the guest cart
+            const existingProductIndex = guestCart.findIndex(item => item.productId === offerData.productId);
+
+            if (existingProductIndex !== -1) {
+                // If product exists, increment quantity
+                guestCart[existingProductIndex].quantity += 1;
+                toast.success("Product quantity updated in your cart!");
+            } else {
+                // If not, add it as a new product
+                guestCart.push({ ...offerData, timestamp: new Date() });
+                toast.success("Product added to your cart!");
+            }
+
+            // Save updated cart to localStorage
+            localStorage.setItem("guestCart", JSON.stringify(guestCart));
+            setIsCartOpen(true); // Open the cart after adding
+            return;
+        }
+
+        // If the user is logged in, proceed with Firestore update
         try {
-            // Get the user's ID
             const userId = user.uid;
 
-            // Reference to the user document in the 'users' collection
+            // Reference to the user document in Firestore
             const userRef = doc(fireStore, "users", userId);
 
             // Fetch the current user data to check if the cart exists
@@ -77,17 +201,11 @@ const productDetails = () => {
             const existingProductIndex = userCart.findIndex(item => item.productId === offerData.productId);
 
             if (existingProductIndex !== -1) {
-                // If the product is found, increment the quantity in place
-                const updatedCart = [...userCart];
-                updatedCart[existingProductIndex].quantity = (updatedCart[existingProductIndex].quantity || 0) + 1;
-
-                // Update the user's cart document with the new quantity
-                await updateDoc(userRef, { cart: updatedCart });
-
-                console.log("Product quantity incremented in cart for user:", userId);
-                alert("Product quantity updated in your cart!");
+                // If the product exists, increment quantity
+                userCart[existingProductIndex].quantity += 1;
+                toast.success("Product quantity updated in your cart!");
             } else {
-                // If the product is not in the cart, add it as a new product
+                // If not, add a new product
                 userCart.push({
                     productUrls: offerData.product_url,
                     productId: offerData.productId,
@@ -97,22 +215,23 @@ const productDetails = () => {
                     price: offerData.price,
                     discount: offerData.discount,
                     quantity: 1, // Starting quantity
-                    timestamp: new Date(),
+                    timestamp: new Date()
                 });
-
-                // Update the user's cart document with the new product
-                await updateDoc(userRef, { cart: userCart });
-
-                console.log("Product added to cart for user:", userId);
-                alert("Product added to your cart!");
+                toast.success("Product added to your cart!");
             }
 
-            setIsCartOpen(true); // Open the cart after adding/updating
+            // Update the user's cart document in Firestore
+            await updateDoc(userRef, { cart: userCart });
+
+            console.log("Cart updated for user:", userId);
+            setIsCartOpen(true); // Open the cart after adding
+
         } catch (error) {
             console.error("Error adding product to cart:", error);
-            alert("Error adding product to cart.");
+            toast.error("Error adding product to cart.");
         }
     };
+
 
     const closeCart = () => {
         setIsCartOpen(false);
@@ -156,16 +275,24 @@ const productDetails = () => {
     useEffect(() => {
         // Fetch the current user's cart items
         const fetchCart = async () => {
-            const userData = localStorage.getItem('currentUser');
-
-            if (!userData) {
-                alert("Please log in first.");
-                return; // Exit if no user is logged in
-            }
-
-            const user = JSON.parse(userData); // Parse the user data from localStorage
-
             try {
+                // Get user data from localStorage
+                const userData = localStorage.getItem("currentUser");
+
+                // If no user data, exit early
+                if (!userData) {
+                    console.log("No user logged in. Skipping cart fetch.");
+                    return;
+                }
+
+                const user = JSON.parse(userData);
+
+                // Validate user object
+                if (!user || !user.uid) {
+                    console.error("Invalid user data.");
+                    return;
+                }
+
                 // Get the user's cart data from Firestore
                 const userRef = doc(fireStore, "users", user.uid);
                 const userDoc = await getDoc(userRef);
@@ -186,10 +313,10 @@ const productDetails = () => {
 
     const removeFromCart = async (productId) => {
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -219,17 +346,18 @@ const productDetails = () => {
         }
     };
 
-    const changeQuantity = async (productId, newQuantity) => {
+    const changeQuantity = async (productId, newQuantity, e) => {
+        e.preventDefault();
         if (newQuantity < 1) {
             alert("Quantity cannot be less than 1.");
             return;
         }
 
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -260,9 +388,16 @@ const productDetails = () => {
         return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
     };
 
-    const handleCheckout = () => {
-
-        router.push('/home/checkout');
+    const handleCheckout = (e) => {
+        e.preventDefault(); // Prevent the default link navigation
+        const storedUser = localStorage.getItem("currentUser");
+        if (storedUser) {
+            router.push('/home/checkout'); // Navigate to the checkout page
+        } else {
+            toast.error("Please log in to proceed to checkout.");
+            router.push('/myAccount/SignUp');
+        }
+        setIsCartOpen(false); // Close the cart (if you have this state)
     };
 
     const handleViewCart = () => {
@@ -314,6 +449,72 @@ const productDetails = () => {
                                     </div>
                                     {filteredProducts.map((item, index) => (
                                         <div className="vc_row wpb_row vc_row-fluid vc_row-o-equal-height vc_row-flex wd-rs-63c961a47cbd5" key={index}>
+                                            {/* <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column">
+      <div className="vc_column-inner">
+        <div className="wpb_wrapper">
+          <div className="woocommerce-product-gallery images wd-has-thumb thumbs-position-left wd-thumbs-wrap image-action-zoom">
+            <div className="wd-carousel-container wd-gallery-images">
+              <div className="wd-carousel-inner">
+                {product.discount && (
+                  <div className="product-labels labels-rounded-sm">
+                    <span className="onsale product-label">-{product.discount}%</span>
+                  </div>
+                )}
+                <figure className="woocommerce-product-gallery__wrapper wd-carousel wd-grid">
+                  <div className="wd-carousel-wrap">
+                    {product.images.map((image, index) => (
+                      <div key={index} className="wd-carousel-item">
+                        <figure className="woocommerce-product-gallery__image">
+                          <a data-elementor-open-lightbox="no" href={image.large}>
+                            <img
+                              decoding="async"
+                              width="700"
+                              height="800"
+                              src={image.large}
+                              className="wp-post-image imagify-no-webp"
+                              alt={image.alt || "Product Image"}
+                              title={image.title || "Product Image"}
+                              data-src={image.large}
+                              data-large_image={image.large}
+                              data-large_image_width="700"
+                              data-large_image_height="800"
+                            />
+                          </a>
+                        </figure>
+                      </div>
+                    ))}
+                  </div>
+                </figure>
+                <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-custom-style wd-icon-1">
+                  <div className="wd-btn-arrow wd-prev wd-disabled">
+                    <div className="wd-arrow-inner"></div>
+                  </div>
+                  <div className="wd-btn-arrow wd-next">
+                    <div className="wd-arrow-inner"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="wd-carousel-container wd-gallery-thumb">
+              <div className="wd-carousel-inner">
+                <div className="wd-carousel wd-grid" style={{ '--wd-col-lg': 3, '--wd-col-md': 4, '--wd-col-sm': 3 }}>
+                  <div className="wd-carousel-wrap">
+                    {product.images.map((image, index) => (
+                      <div key={index} className="wd-carousel-item">
+                        <picture>
+                          <img decoding="async" width="150" height="172" src={image.thumb} alt={image.alt || "Product Thumbnail"} />
+                        </picture>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+                                            </div> */}
+
                                             <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column wd_sticky_offset_150 wd-rs-63c80f01d23e4">
                                                 <div
                                                     className="vc_column-inner vc_custom_1674055430857"
@@ -522,31 +723,29 @@ const productDetails = () => {
                                                         <div className="wd-single-add-cart wd-wpb wd-rs-63e21fb628f6d wd-enabled-width vc_custom_1675763666068 text-left wd-btn-design-full wd-design-default wd-swatch-layout-default wd-stock-status-off">
                                                             <form className="cart" >
                                                                 <div className="quantity">
-                                                                    <button
-                                                                        className="minus btn"
-                                                                        onClick={(e) => {
-                                                                            e.preventDefault(); // Prevent default button action
-                                                                            changeQuantity(item.productId, item.quantity - 1);
-                                                                        }}
-                                                                    >
-                                                                        -
-                                                                    </button>
+                                                                    <input type="button" defaultValue="-" className="minus btn" onClick={(e) => changeQuantity(item.productId, item.quantity - 1, e)} />
+                                                                    <label className="screen-reader-text" htmlFor="quantity_679722f13d1f7">
+                                                                        {item.productName}
+                                                                    </label>
                                                                     <input
-                                                                        className="input-text qty text"
-                                                                        value={item.quantity}
-                                                                        onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))}
                                                                         type="number"
+                                                                        id="quantity_679722f13d1f7"
+                                                                        className="input-text qty text"
+
+                                                                        value={item.quantity}
+
+                                                                        onChange={(e) =>
+                                                                            changeQuantity(
+
+                                                                                item.productId,
+                                                                                parseInt(e.target.value),
+                                                                                e
+                                                                            )
+                                                                        }
                                                                     />
-                                                                    <button
-                                                                        className="plus btn"
-                                                                        onClick={(e) => {
-                                                                            e.preventDefault(); // Prevent default button action
-                                                                            changeQuantity(item.productId, item.quantity + 1);
-                                                                        }}
-                                                                    >
-                                                                        +
-                                                                    </button>
+                                                                    <input type="button" defaultValue="+" className="plus btn" onClick={(e) => changeQuantity(item.productId, item.quantity + 1, e)} />
                                                                 </div>
+
 
                                                                 <button
                                                                     className="single_add_to_cart_button button alt"
@@ -593,7 +792,7 @@ const productDetails = () => {
                                                                                 <a
                                                                                     data-added-text="Compare products"
                                                                                     data-id="2435"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2435"
+                                                                                    href="/"
                                                                                     rel="nofollow">
                                                                                     <span>Compare</span>
                                                                                 </a>
@@ -602,13 +801,14 @@ const productDetails = () => {
                                                                         <div className="wd-single-action-btn wd-single-wishlist-btn wd-wpb wd-rs-632daa24d1169 wd-enabled-width vc_custom_1663937064916 text-left">
                                                                             <div className="wd-wishlist-btn wd-action-btn wd-wishlist-icon wd-style-text">
                                                                                 <a
-                                                                                    className=""
+                                                                                    onClick={(e) => handleAddToWishlist(e, item)}
+                                                                                    href="/home/wishlist"
+                                                                                    data-key={item.productId}
+                                                                                    data-product-id={item.productId}
+                                                                                    rel="nofollow"
                                                                                     data-added-text="Browse Wishlist"
-                                                                                    data-key="44768c5fb7"
-                                                                                    data-product-id="2435"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
-                                                                                    rel="nofollow">
-                                                                                    <span>Add to wishlist</span>
+                                                                                >
+                                                                                    <span>{isAdded ? 'Added to Wishlist' : 'Add to Wishlist'}</span>
                                                                                 </a>
                                                                             </div>
                                                                         </div>
@@ -625,7 +825,7 @@ const productDetails = () => {
                                                                             <a
                                                                                 aria-label="Facebook social link"
                                                                                 className=" wd-social-icon social-facebook"
-                                                                                href="https://www.facebook.com/sharer/sharer.php?u=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                                                                href="/"
                                                                                 rel="noopener noreferrer nofollow"
                                                                                 target="_blank">
                                                                                 <span className="wd-icon" />
@@ -633,7 +833,7 @@ const productDetails = () => {
                                                                             <a
                                                                                 aria-label="X social link"
                                                                                 className=" wd-social-icon social-twitter"
-                                                                                href="https://x.com/share?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                                                                href="/"
                                                                                 rel="noopener noreferrer nofollow"
                                                                                 target="_blank">
                                                                                 <span className="wd-icon" />
@@ -641,7 +841,7 @@ const productDetails = () => {
                                                                             <a
                                                                                 aria-label="Pinterest social link"
                                                                                 className=" wd-social-icon social-pinterest"
-                                                                                href="https://pinterest.com/pin/create/button/?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/&media=https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-quest-2-1.jpg&description=Oculus+Quest+2"
+                                                                                href="/"
                                                                                 rel="noopener noreferrer nofollow"
                                                                                 target="_blank">
                                                                                 <span className="wd-icon" />
@@ -649,7 +849,7 @@ const productDetails = () => {
                                                                             <a
                                                                                 aria-label="Linkedin social link"
                                                                                 className=" wd-social-icon social-linkedin"
-                                                                                href="https://www.linkedin.com/shareArticle?mini=true&url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                                                                href="/"
                                                                                 rel="noopener noreferrer nofollow"
                                                                                 target="_blank">
                                                                                 <span className="wd-icon" />
@@ -657,7 +857,7 @@ const productDetails = () => {
                                                                             <a
                                                                                 aria-label="Telegram social link"
                                                                                 className=" wd-social-icon social-tg"
-                                                                                href="https://telegram.me/share/url?url=https://woodmart.xtemos.com/mega-electronics/product/oculus-quest-2/"
+                                                                                href="/"
                                                                                 rel="noopener noreferrer nofollow"
                                                                                 target="_blank">
                                                                                 <span className="wd-icon" />
@@ -1104,7 +1304,7 @@ const productDetails = () => {
                                                                             data-type="vc_shortcodes-custom-css"
                                                                         />
                                                                         <div className="wpb-content-wrapper">
-                                                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1669210741355 wd-rs-637e226b50438">
+                                                                            {/* <div className="vc_row wpb_row vc_row-fluid vc_custom_1669210741355 wd-rs-637e226b50438">
                                                                                 <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-637e20e92ddf2">
                                                                                     <div className="vc_column-inner vc_custom_1669210349060">
                                                                                         <div className="wpb_wrapper">
@@ -1167,8 +1367,8 @@ const productDetails = () => {
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1669037021051 wd-rs-637b7bd950bb2">
+                                                                            </div> */}
+                                                                            {/* <div className="vc_row wpb_row vc_row-fluid vc_custom_1669037021051 wd-rs-637b7bd950bb2">
                                                                                 <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63514c870daab">
                                                                                     <div className="vc_column-inner vc_custom_1666272395956">
                                                                                         <div className="wpb_wrapper">
@@ -1312,8 +1512,8 @@ const productDetails = () => {
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
-                                                                            <div className="vc_row wpb_row vc_row-fluid wd-rs-64e4c9ae2f9c5">
+                                                                            </div> */}
+                                                                            {/* <div className="vc_row wpb_row vc_row-fluid wd-rs-64e4c9ae2f9c5">
                                                                                 <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63514c8260958">
                                                                                     <div className="vc_column-inner vc_custom_1666272391679">
                                                                                         <div className="wpb_wrapper">
@@ -1566,7 +1766,7 @@ const productDetails = () => {
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div>
+                                                                            </div> */}
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2192,303 +2392,240 @@ const productDetails = () => {
                                                         </div>
                                                         <div id="review_form_wrapper">
                                                             <div id="review_form">
-                                                                <div className="comment-respond" id="respond">
-                                                                    <span
-                                                                        className="comment-reply-title title"
-                                                                        id="reply-title">
-                                                                        Add a review
+                                                                <div id="respond" className="comment-respond">
+                                                                    <span id="reply-title" className="comment-reply-title title">
+                                                                        Add a review{" "}
                                                                         <small>
                                                                             <a
-                                                                                href="/mega-electronics/product/oculus-quest-2/#respond"
-                                                                                id="cancel-comment-reply-link"
                                                                                 rel="nofollow"
-                                                                                style={{
-                                                                                    display: "none",
-                                                                                }}>
+                                                                                id="cancel-comment-reply-link"
+                                                                                href="/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/#respond"
+                                                                                style={{ display: "none" }}
+                                                                            >
                                                                                 Cancel reply
                                                                             </a>
                                                                         </small>
                                                                     </span>
-                                                                    {/* <form
+                                                                    <form
                                                                         action="https://woodmart.xtemos.com/mega-electronics/wp-comments-post.php"
-                                                                        className="comment-form"
-                                                                        id="commentform"
                                                                         method="post"
-                                                                        noValidate>
-                                                                        <p className="comment-notes">
-                                                                            <span id="email-notes">
-                                                                                Your email address will not be published.
-                                                                            </span>
-                                                                            <span className="required-field-message">
-                                                                                Required fields are marked
-                                                                                <span className="required">*</span>
-                                                                            </span>
-                                                                        </p>
+                                                                        id="commentform"
+                                                                        className="comment-form"
+                                                                        noValidate=""
+                                                                        encType="multipart/form-data"
+                                                                    >
+                                                                        {" "}
                                                                         <div className="wd-review-criteria-wrap">
                                                                             <div className="comment-form-rating">
                                                                                 <label htmlFor="rating">
-                                                                                    Your rating
-                                                                                    <span className="required">*</span>
+                                                                                    Your rating &nbsp;<span className="required">*</span>
                                                                                 </label>
                                                                                 <p className="stars">
+                                                                                    {" "}
                                                                                     <span>
-                                                                                        <a className="star-1" >
+                                                                                        {" "}
+                                                                                        <a className="star-1" href="#">
                                                                                             1
-                                                                                        </a>
-                                                                                        <a className="star-2" >
+                                                                                        </a>{" "}
+                                                                                        <a className="star-2" href="#">
                                                                                             2
-                                                                                        </a>
-                                                                                        <a className="star-3" >
+                                                                                        </a>{" "}
+                                                                                        <a className="star-3" href="#">
                                                                                             3
-                                                                                        </a>
-                                                                                        <a className="star-4" >
+                                                                                        </a>{" "}
+                                                                                        <a className="star-4" href="#">
                                                                                             4
-                                                                                        </a>
-                                                                                        <a className="star-5" >
+                                                                                        </a>{" "}
+                                                                                        <a className="star-5" href="#">
                                                                                             5
-                                                                                        </a>
-                                                                                    </span>
+                                                                                        </a>{" "}
+                                                                                    </span>{" "}
                                                                                 </p>
                                                                                 <select
-                                                                                    id="rating"
                                                                                     name="rating"
-                                                                                    value={selectedOption}
-                                                                                    onChange={handleChange}
-                                                                                    required
-                                                                                    style={{
-                                                                                        display: "none",
-                                                                                    }}>
-                                                                                    <option value="">Rate…</option>
-                                                                                    <option value="5">Perfect</option>
-                                                                                    <option value="4">Good</option>
-                                                                                    <option value="3">Average</option>
-                                                                                    <option value="2">Not that bad</option>
-                                                                                    <option value="1">Very poor</option>
+                                                                                    id="rating"
+                                                                                    required=""
+                                                                                    style={{ display: "none" }}
+                                                                                >
+                                                                                    <option value="">Rate… </option>
+                                                                                    <option value={5}>Perfect </option>
+                                                                                    <option value={4}>Good </option>
+                                                                                    <option value={3}>Average </option>
+                                                                                    <option value={2}>Not that bad </option>
+                                                                                    <option value={1}>Very poor </option>
                                                                                 </select>
                                                                             </div>
                                                                             <div
                                                                                 className="wd-review-criteria comment-form-rating"
-                                                                                data-criteria-id="value_for_money">
-                                                                                <label htmlFor="value_for_money">
-                                                                                    Value for money
-                                                                                </label>
+                                                                                data-criteria-id="value_for_money"
+                                                                            >
+                                                                                <label htmlFor="value_for_money">Value for money </label>
                                                                                 <div className="stars">
                                                                                     <span>
-                                                                                        <a className="star-1" >
+                                                                                        <a className="star-1" href="#">
                                                                                             1
                                                                                         </a>
-                                                                                        <a className="star-2" >
+                                                                                        <a className="star-2" href="#">
                                                                                             2
                                                                                         </a>
-                                                                                        <a className="star-3" >
+                                                                                        <a className="star-3" href="#">
                                                                                             3
                                                                                         </a>
-                                                                                        <a className="star-4" >
+                                                                                        <a className="star-4" href="#">
                                                                                             4
                                                                                         </a>
-                                                                                        <a className="star-5" >
+                                                                                        <a className="star-5" href="#">
                                                                                             5
                                                                                         </a>
                                                                                     </span>
                                                                                 </div>
-                                                                                <select
-                                                                                    id="value_for_money"
-                                                                                    name="value_for_money"
-                                                                                    value={selectedOption}
-                                                                                    onChange={handleChange}
-                                                                                    required>
-                                                                                    <option value="">Rate…</option>
-                                                                                    <option value="5">Perfect</option>
-                                                                                    <option value="4">Good</option>
-                                                                                    <option value="3">Average</option>
-                                                                                    <option value="2">Not that bad</option>
-                                                                                    <option value="1">Very poor</option>
+                                                                                <select name="value_for_money" id="value_for_money" required="">
+                                                                                    <option value="">Rate… </option>
+                                                                                    <option value={5}>Perfect </option>
+                                                                                    <option value={4}>Good </option>
+                                                                                    <option value={3}>Average </option>
+                                                                                    <option value={2}>Not that bad </option>
+                                                                                    <option value={1}>Very poor </option>
                                                                                 </select>
                                                                             </div>
                                                                             <div
                                                                                 className="wd-review-criteria comment-form-rating"
-                                                                                data-criteria-id="durability">
-                                                                                <label htmlFor="durability">Durability</label>
+                                                                                data-criteria-id="durability"
+                                                                            >
+                                                                                <label htmlFor="durability">Durability </label>
                                                                                 <div className="stars">
                                                                                     <span>
-                                                                                        <a className="star-1" >
+                                                                                        <a className="star-1" href="#">
                                                                                             1
                                                                                         </a>
-                                                                                        <a className="star-2" >
+                                                                                        <a className="star-2" href="#">
                                                                                             2
                                                                                         </a>
-                                                                                        <a className="star-3" >
+                                                                                        <a className="star-3" href="#">
                                                                                             3
                                                                                         </a>
-                                                                                        <a className="star-4" >
+                                                                                        <a className="star-4" href="#">
                                                                                             4
                                                                                         </a>
-                                                                                        <a className="star-5" >
+                                                                                        <a className="star-5" href="#">
                                                                                             5
                                                                                         </a>
                                                                                     </span>
                                                                                 </div>
-                                                                                <select
-                                                                                    id="durability"
-                                                                                    name="durability"
-                                                                                    value={selectedOption}
-                                                                                    onChange={handleChange}
-                                                                                    required>
-                                                                                    <option value="">Rate…</option>
-                                                                                    <option value="5">Perfect</option>
-                                                                                    <option value="4">Good</option>
-                                                                                    <option value="3">Average</option>
-                                                                                    <option value="2">Not that bad</option>
-                                                                                    <option value="1">Very poor</option>
+                                                                                <select name="durability" id="durability" required="">
+                                                                                    <option value="">Rate… </option>
+                                                                                    <option value={5}>Perfect </option>
+                                                                                    <option value={4}>Good </option>
+                                                                                    <option value={3}>Average </option>
+                                                                                    <option value={2}>Not that bad </option>
+                                                                                    <option value={1}>Very poor </option>
                                                                                 </select>
                                                                             </div>
                                                                             <div
                                                                                 className="wd-review-criteria comment-form-rating"
-                                                                                data-criteria-id="delivery_speed">
-                                                                                <label htmlFor="delivery_speed">
-                                                                                    Delivery speed
-                                                                                </label>
+                                                                                data-criteria-id="delivery_speed"
+                                                                            >
+                                                                                <label htmlFor="delivery_speed">Delivery speed </label>
                                                                                 <div className="stars">
                                                                                     <span>
-                                                                                        <a className="star-1" >
+                                                                                        <a className="star-1" href="#">
                                                                                             1
                                                                                         </a>
-                                                                                        <a className="star-2" >
+                                                                                        <a className="star-2" href="#">
                                                                                             2
                                                                                         </a>
-                                                                                        <a className="star-3" >
+                                                                                        <a className="star-3" href="#">
                                                                                             3
                                                                                         </a>
-                                                                                        <a className="star-4" >
+                                                                                        <a className="star-4" href="#">
                                                                                             4
                                                                                         </a>
-                                                                                        <a className="star-5" >
+                                                                                        <a className="star-5" href="#">
                                                                                             5
                                                                                         </a>
                                                                                     </span>
                                                                                 </div>
-                                                                                <select
-                                                                                    id="delivery_speed"
-                                                                                    name="delivery_speed"
-                                                                                    value={selectedOption}
-                                                                                    onChange={handleChange}
-                                                                                    required>
-                                                                                    <option value="">Rate…</option>
-                                                                                    <option value="5">Perfect</option>
-                                                                                    <option value="4">Good</option>
-                                                                                    <option value="3">Average</option>
-                                                                                    <option value="2">Not that bad</option>
-                                                                                    <option value="1">Very poor</option>
+                                                                                <select name="delivery_speed" id="delivery_speed" required="">
+                                                                                    <option value="">Rate… </option>
+                                                                                    <option value={5}>Perfect </option>
+                                                                                    <option value={4}>Good </option>
+                                                                                    <option value={3}>Average </option>
+                                                                                    <option value={2}>Not that bad </option>
+                                                                                    <option value={1}>Very poor </option>
                                                                                 </select>
                                                                             </div>
                                                                             <input
-                                                                                defaultValue="value_for_money,durability,delivery_speed"
-                                                                                name="summary_criteria_ids"
                                                                                 type="hidden"
+                                                                                name="summary_criteria_ids"
+                                                                                defaultValue="value_for_money,durability,delivery_speed"
                                                                             />
                                                                         </div>
                                                                         <p className="comment-form-comment">
                                                                             <label htmlFor="comment">
-                                                                                Your review
-                                                                                <span className="required">*</span>
+                                                                                Your review&nbsp;<span className="required">*</span>
                                                                             </label>
                                                                             <textarea
-                                                                                cols="45"
                                                                                 id="comment"
                                                                                 name="comment"
-                                                                                required
-                                                                                rows="8"
+                                                                                cols={45}
+                                                                                rows={8}
+                                                                                required=""
+                                                                                defaultValue={""}
                                                                             />
                                                                         </p>
                                                                         <p className="comment-form-pros">
                                                                             <label htmlFor="pros">Pros</label>
-                                                                            <input
-                                                                                
-                                                                                id="pros"
-                                                                                name="pros"
-                                                                                size="30"
-                                                                                type="text"
-                                                                            />
+                                                                            <input id="pros" name="pros" type="text" defaultValue="" size={30} />
                                                                         </p>
                                                                         <p className="comment-form-cons">
                                                                             <label htmlFor="cons">Cons</label>
-                                                                            <input
-                                                                                
-                                                                                id="cons"
-                                                                                name="cons"
-                                                                                size="30"
-                                                                                type="text"
-                                                                            />
-                                                                        </p>
-                                                                        <p className="comment-form-author">
-                                                                            <label htmlFor="author">
-                                                                                Name
-                                                                                <span className="required">*</span>
-                                                                            </label>
-                                                                            <input
-                                                                                
-                                                                                id="author"
-                                                                                name="author"
-                                                                                required
-                                                                                size="30"
-                                                                                type="text"
-                                                                            />
-                                                                        </p>
-                                                                        <p className="comment-form-email">
-                                                                            <label htmlFor="email">
-                                                                                Email
-                                                                                <span className="required">*</span>
-                                                                            </label>
-                                                                            <input
-                                                                                
-                                                                                id="email"
-                                                                                name="email"
-                                                                                required
-                                                                                size="30"
-                                                                                type="email"
-                                                                            />
-                                                                        </p>
-                                                                        <p className="comment-form-cookies-consent">
-                                                                            <input
-                                                                                defaultValue="yes"
-                                                                                id="wp-comment-cookies-consent"
-                                                                                name="wp-comment-cookies-consent"
-                                                                                type="checkbox"
-                                                                            />
-                                                                            <label htmlFor="wp-comment-cookies-consent">
-                                                                                Save my name, email, and website in this
-                                                                                browser for the next time I comment.
-                                                                            </label>
-                                                                        </p>
-                                                                        <p className="comment-form-img-message">
-                                                                            You have to be logged in to be able to add
-                                                                            photos to your review.
-                                                                        </p>
+                                                                            <input id="cons" name="cons" type="text" defaultValue="" size={30} />
+                                                                        </p>{" "}
+
+                                                                        <div className="comment-form-images">
+                                                                            <div className="wd-add-img-btn-wrapper">
+                                                                                <label htmlFor="wd-add-img-btn">Click to add images </label>
+                                                                                <input
+                                                                                    id="wd-add-img-btn"
+                                                                                    name="woodmart_image[]"
+                                                                                    type="file"
+                                                                                    multiple=""
+                                                                                />
+                                                                                <div className="wd-add-img-msg wd-hint wd-tooltip">
+                                                                                    <div className="wd-add-img-msg-text">
+                                                                                        The maximum file size is 1 MB and you can upload up to 3 images.{" "}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="wd-add-img-count" />
+                                                                            </div>
+                                                                        </div>
                                                                         <p className="form-submit">
                                                                             <input
-                                                                                className="submit"
-                                                                                id="submit"
                                                                                 name="submit"
                                                                                 type="submit"
-                                                                                value="Submit"
-                                                                            />
+                                                                                id="submit"
+                                                                                className="submit"
+                                                                                defaultValue="Submit"
+                                                                            />{" "}
                                                                             <input
-                                                                                defaultValue="2435"
-                                                                                id="comment_post_ID"
+                                                                                type="hidden"
                                                                                 name="comment_post_ID"
-                                                                                type="hidden"
+                                                                                defaultValue={182}
+                                                                                id="comment_post_ID"
                                                                             />
                                                                             <input
-                                                                                defaultValue="0"
-                                                                                id="comment_parent"
-                                                                                name="comment_parent"
                                                                                 type="hidden"
+                                                                                name="comment_parent"
+                                                                                id="comment_parent"
+                                                                                defaultValue={0}
                                                                             />
                                                                         </p>
-                                                                    </form> */}
+                                                                    </form>{" "}
                                                                 </div>
+                                                                {/* #respond */}
                                                             </div>
                                                         </div>
+
                                                     </div>
                                                 </div>
                                             </div>
@@ -2522,1846 +2659,179 @@ const productDetails = () => {
                                                                 style={{
                                                                     cursor: "grab",
                                                                 }}>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
+                                                                {bestOffer.slice(0, 5).map((offer, index) => (
                                                                     <div
-                                                                        className="wd-product wd-hover-fw-button wd-hover-with-fade wd-fade-off product-grid-item product type-product post-2451 status-publish instock product_cat-vr-headsets has-post-thumbnail shipping-taxable purchasable product-type-simple"
-                                                                        data-id="2451"
-                                                                        data-loop="1">
-                                                                        <div className="product-wrapper">
-                                                                            <div className="content-product-imagin" />
-                                                                            <div className="product-element-top wd-quick-shop">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/oculus-rift-s/">
-                                                                                    <div className="wd-product-grid-slider wd-fill">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="0"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="1"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-2.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-2-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-2-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-2-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-2-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-2.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="2"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-3.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-3-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-3-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-3-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-3-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-3.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="3"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
-                                                                                        <div className="wd-prev" />
-                                                                                        <div className="wd-next" />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-pagin">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="0"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="1"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="2"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="3"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <picture
-                                                                                        className="attachment-large size-large"
-                                                                                        decoding="async">
-                                                                                        <source
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-180x206.jpg.webp 180w"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-180x206.jpg.webp 180w"
-                                                                                            type="image/webp"
-                                                                                        />
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className="entered lazyloaded"
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-180x206.jpg 180w"
-                                                                                            data-ll-status="loaded"
-                                                                                            decoding="async"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-180x206.jpg 180w"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </picture>
-                                                                                    <noscript>
-                                                                                        <picture
-                                                                                            className="attachment-large size-large"
-                                                                                            decoding="async">
-                                                                                            <source
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-180x206.jpg.webp 180w"
-                                                                                                type="image/webp"
-                                                                                            />
-                                                                                            <img
-                                                                                                alt=""
-                                                                                                decoding="async"
-                                                                                                height="800"
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/oculus-rift-s-1-180x206.jpg 180w"
-                                                                                                width="700"
-                                                                                            />
-                                                                                        </picture>
-                                                                                    </noscript>
-                                                                                </a>
-                                                                                <div className="wd-buttons wd-pos-r-t">
-                                                                                    <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
-                                                                                        <a
-                                                                                            data-added-text="Compare products"
-                                                                                            data-id="2451"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2451"
-                                                                                            rel="nofollow">
-                                                                                            <span>Compare</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
-                                                                                        <a
-                                                                                            className="open-quick-view quick-view-button"
-                                                                                            data-id="2451"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/oculus-rift-s/"
-                                                                                            rel="nofollow">
-                                                                                            Quick view
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
-                                                                                        <a
-                                                                                            className=""
-                                                                                            data-added-text="Browse Wishlist"
-                                                                                            data-key="44768c5fb7"
-                                                                                            data-product-id="2451"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
-                                                                                            rel="nofollow">
-                                                                                            <span>Add to wishlist</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/oculus-rift-s/">
-                                                                                        Oculus Rift S
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div className="wd-product-cats">
-                                                                                    <a
-                                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                        rel="tag">
-                                                                                        VR Headsets
-                                                                                    </a>
-                                                                                </div>
-                                                                                <div
-                                                                                    aria-label="Rated 0 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "0%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">0</strong> out
-                                                                                        of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                                    In stock
-                                                                                </p>
-                                                                                <div className="wrap-price">
-                                                                                    <span className="price">
-                                                                                        <span className="woocommerce-Price-amount amount">
-                                                                                            <bdi>
-                                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                                    $
-                                                                                                </span>
-                                                                                                8,000.00
-                                                                                            </bdi>
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="wd-add-btn wd-add-btn-replace">
-                                                                                    <a
-                                                                                        aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2451"
-                                                                                        aria-label="Add to cart: “Oculus Rift S”"
-                                                                                        className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                        data-product_id="2451"
-                                                                                        data-product_sku="608073"
-                                                                                        data-quantity="1"
-                                                                                        href="?add-to-cart=2451"
-                                                                                        rel="nofollow">
-                                                                                        <span>Add to cart</span>
-                                                                                    </a>
-                                                                                    <span
-                                                                                        className="screen-reader-text"
-                                                                                        id="woocommerce_loop_add_to_cart_link_describedby_2451"></span>
-                                                                                </div>
-                                                                                <div className="wd-product-detail wd-product-sku">
-                                                                                    <span className="wd-label">SKU:</span>
-                                                                                    <span>608073</span>
-                                                                                </div>
-                                                                                <div className="fade-in-block wd-scroll">
-                                                                                    <div className="hover-content-wrap">
-                                                                                        <div className="hover-content wd-more-desc">
-                                                                                            <div className="hover-content-inner wd-more-desc-inner">
-                                                                                                <table
-                                                                                                    aria-label="Product Details"
-                                                                                                    className="woocommerce-product-attributes shop_attributes">
-                                                                                                    <tbody>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Brand
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Kyocera</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Color
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Black</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Compatibility
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>PC</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Release years
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>2021</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Manufacturer guarantee
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>14 Days</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                    </tbody>
-                                                                                                </table>
-                                                                                            </div>
-                                                                                            <a
-                                                                                                aria-label="Read more description"
-                                                                                                className="wd-more-desc-btn"
+                                                                        className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
+                                                                        data-loop={index}
+                                                                        data-id={offer.productId} // Assuming you have unique IDs for each product
+                                                                        key={offer.productId} // Use a unique key for each product
+                                                                        style={{ cursor: "pointer" }}
 
-                                                                                                rel="nofollow"
-                                                                                            />
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible wd-slide-next"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
-                                                                    <div
-                                                                        className="wd-product wd-hover-fw-button wd-hover-with-fade wd-fade-off product-grid-item product type-product post-2439 status-publish instock product_cat-vr-headsets has-post-thumbnail shipping-taxable purchasable product-type-simple"
-                                                                        data-id="2439"
-                                                                        data-loop="2">
+                                                                    >
                                                                         <div className="product-wrapper">
-                                                                            <div className="content-product-imagin" />
-                                                                            <div className="product-element-top wd-quick-shop">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/pico-neo-3-pro/">
-                                                                                    <div className="wd-product-grid-slider wd-fill">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="0"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="1"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-2.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-2-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-2-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-2-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-2-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-2.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="2"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-3.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-3-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-3-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-3-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-3-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-3.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="3"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
-                                                                                        <div className="wd-prev" />
-                                                                                        <div className="wd-next" />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-pagin">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="0"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="1"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="2"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="3"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <picture
-                                                                                        className="attachment-large size-large"
-                                                                                        decoding="async">
-                                                                                        <source
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg.webp 180w"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg.webp 180w"
-                                                                                            type="image/webp"
-                                                                                        />
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className="entered lazyloaded"
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg 180w"
-                                                                                            data-ll-status="loaded"
-                                                                                            decoding="async"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg 180w"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </picture>
-                                                                                    <noscript>
-                                                                                        <picture
-                                                                                            className="attachment-large size-large"
-                                                                                            decoding="async">
-                                                                                            <source
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg.webp 180w"
-                                                                                                type="image/webp"
-                                                                                            />
-                                                                                            <img
-                                                                                                alt=""
-                                                                                                decoding="async"
-                                                                                                height="800"
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pico-neo-3-pro-1-180x206.jpg 180w"
-                                                                                                width="700"
-                                                                                            />
-                                                                                        </picture>
-                                                                                    </noscript>
-                                                                                </a>
-                                                                                <div className="wd-buttons wd-pos-r-t">
-                                                                                    <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
-                                                                                        <a
-                                                                                            data-added-text="Compare products"
-                                                                                            data-id="2439"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2439"
-                                                                                            rel="nofollow">
-                                                                                            <span>Compare</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
-                                                                                        <a
-                                                                                            className="open-quick-view quick-view-button"
-                                                                                            data-id="2439"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/pico-neo-3-pro/"
-                                                                                            rel="nofollow">
-                                                                                            Quick view
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
-                                                                                        <a
-                                                                                            className=""
-                                                                                            data-added-text="Browse Wishlist"
-                                                                                            data-key="44768c5fb7"
-                                                                                            data-product-id="2439"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
-                                                                                            rel="nofollow">
-                                                                                            <span>Add to wishlist</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/pico-neo-3-pro/">
-                                                                                        Pico Neo 3 Pro
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div className="wd-product-cats">
-                                                                                    <a
-                                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                        rel="tag">
-                                                                                        VR Headsets
-                                                                                    </a>
-                                                                                </div>
-                                                                                <div
-                                                                                    aria-label="Rated 0 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "0%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">0</strong> out
-                                                                                        of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                                    In stock
-                                                                                </p>
-                                                                                <div className="wrap-price">
-                                                                                    <span className="price">
-                                                                                        <span className="woocommerce-Price-amount amount">
-                                                                                            <bdi>
-                                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                                    $
-                                                                                                </span>
-                                                                                                1,300.00
-                                                                                            </bdi>
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="wd-add-btn wd-add-btn-replace">
-                                                                                    <a
-                                                                                        aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2439"
-                                                                                        aria-label="Add to cart: “Pico Neo 3 Pro”"
-                                                                                        className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                        data-product_id="2439"
-                                                                                        data-product_sku="608070"
-                                                                                        data-quantity="1"
-                                                                                        href="?add-to-cart=2439"
-                                                                                        rel="nofollow">
-                                                                                        <span>Add to cart</span>
-                                                                                    </a>
-                                                                                    <span
-                                                                                        className="screen-reader-text"
-                                                                                        id="woocommerce_loop_add_to_cart_link_describedby_2439"></span>
-                                                                                </div>
-                                                                                <div className="wd-product-detail wd-product-sku">
-                                                                                    <span className="wd-label">SKU:</span>
-                                                                                    <span>608070</span>
-                                                                                </div>
-                                                                                <div className="fade-in-block wd-scroll">
-                                                                                    <div className="hover-content-wrap">
-                                                                                        <div className="hover-content wd-more-desc">
-                                                                                            <div className="hover-content-inner wd-more-desc-inner">
-                                                                                                <table
-                                                                                                    aria-label="Product Details"
-                                                                                                    className="woocommerce-product-attributes shop_attributes">
-                                                                                                    <tbody>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Brand
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Promate</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Color
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>White</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Compatibility
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>PC</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Release years
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>2022</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Manufacturer guarantee
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>14 Days</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                    </tbody>
-                                                                                                </table>
-                                                                                            </div>
-                                                                                            <a
-                                                                                                aria-label="Read more description"
-                                                                                                className="wd-more-desc-btn"
+                                                                            <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
-                                                                                                rel="nofollow"
-                                                                                            />
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
-                                                                    <div
-                                                                        className="wd-product wd-hover-fw-button wd-hover-with-fade wd-fade-off product-grid-item product type-product post-2455 status-publish last instock product_cat-vr-headsets has-post-thumbnail shipping-taxable purchasable product-type-simple"
-                                                                        data-id="2455"
-                                                                        data-loop="3">
-                                                                        <div className="product-wrapper">
-                                                                            <div className="content-product-imagin" />
                                                                             <div className="product-element-top wd-quick-shop">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/pimax-vision-8k-x-htc-vive-pro/">
-                                                                                    <div className="wd-product-grid-slider wd-fill">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="0"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="1"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-2.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-2-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-2-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-2-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-2-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-2.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="2"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-3.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-3-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-3-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-3-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-3-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-3.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="3"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
-                                                                                        <div className="wd-prev" />
-                                                                                        <div className="wd-next" />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-pagin">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="0"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="1"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="2"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="3"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <picture
-                                                                                        className="attachment-large size-large"
-                                                                                        decoding="async">
-                                                                                        <source
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-180x206.jpg.webp 180w"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-180x206.jpg.webp 180w"
-                                                                                            type="image/webp"
-                                                                                        />
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className="entered lazyloaded"
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-180x206.jpg 180w"
-                                                                                            data-ll-status="loaded"
-                                                                                            decoding="async"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-180x206.jpg 180w"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </picture>
-                                                                                    <noscript>
-                                                                                        <picture
-                                                                                            className="attachment-large size-large"
-                                                                                            decoding="async">
-                                                                                            <source
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-180x206.jpg.webp 180w"
-                                                                                                type="image/webp"
-                                                                                            />
-                                                                                            <img
-                                                                                                alt=""
-                                                                                                decoding="async"
-                                                                                                height="800"
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/pimax-vision-8k-x-htc-vive-pro-1-180x206.jpg 180w"
-                                                                                                width="700"
-                                                                                            />
-                                                                                        </picture>
-                                                                                    </noscript>
-                                                                                </a>
-                                                                                <div className="wd-buttons wd-pos-r-t">
-                                                                                    <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
-                                                                                        <a
-                                                                                            data-added-text="Compare products"
-                                                                                            data-id="2455"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2455"
-                                                                                            rel="nofollow">
-                                                                                            <span>Compare</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
-                                                                                        <a
-                                                                                            className="open-quick-view quick-view-button"
-                                                                                            data-id="2455"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/pimax-vision-8k-x-htc-vive-pro/"
-                                                                                            rel="nofollow">
-                                                                                            Quick view
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
-                                                                                        <a
-                                                                                            className=""
-                                                                                            data-added-text="Browse Wishlist"
-                                                                                            data-key="44768c5fb7"
-                                                                                            data-product-id="2455"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
-                                                                                            rel="nofollow">
-                                                                                            <span>Add to wishlist</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/pimax-vision-8k-x-htc-vive-pro/">
-                                                                                        Pimax Vision 8K X HTC Vive pro
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div className="wd-product-cats">
-                                                                                    <a
-                                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                        rel="tag">
-                                                                                        VR Headsets
-                                                                                    </a>
-                                                                                </div>
-                                                                                <div
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "100%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                                    In stock
-                                                                                </p>
-                                                                                <div className="wrap-price">
-                                                                                    <span className="price">
-                                                                                        <span className="woocommerce-Price-amount amount">
-                                                                                            <bdi>
-                                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                                    $
-                                                                                                </span>
-                                                                                                2,900.00
-                                                                                            </bdi>
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="wd-add-btn wd-add-btn-replace">
-                                                                                    <a
-                                                                                        aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2455"
-                                                                                        aria-label="Add to cart: “Pimax Vision 8K X HTC Vive pro”"
-                                                                                        className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                        data-product_id="2455"
-                                                                                        data-product_sku="608074"
-                                                                                        data-quantity="1"
-                                                                                        href="?add-to-cart=2455"
-                                                                                        rel="nofollow">
-                                                                                        <span>Add to cart</span>
-                                                                                    </a>
-                                                                                    <span
-                                                                                        className="screen-reader-text"
-                                                                                        id="woocommerce_loop_add_to_cart_link_describedby_2455"></span>
-                                                                                </div>
-                                                                                <div className="wd-product-detail wd-product-sku">
-                                                                                    <span className="wd-label">SKU:</span>
-                                                                                    <span>608074</span>
-                                                                                </div>
-                                                                                <div className="fade-in-block wd-scroll">
-                                                                                    <div className="hover-content-wrap">
-                                                                                        <div className="hover-content wd-more-desc">
-                                                                                            <div className="hover-content-inner wd-more-desc-inner">
-                                                                                                <table
-                                                                                                    aria-label="Product Details"
-                                                                                                    className="woocommerce-product-attributes shop_attributes">
-                                                                                                    <tbody>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Brand
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Promate</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Color
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Blue</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Compatibility
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>PC</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Release years
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>2020</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Manufacturer guarantee
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>14 Days</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                    </tbody>
-                                                                                                </table>
-                                                                                            </div>
-                                                                                            <a
-                                                                                                aria-label="Read more description"
-                                                                                                className="wd-more-desc-btn"
+                                                                                <a className="product-image-link" >
+                                                                                    <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
+                                                                                        {/* {offer.image_url.map((url, imageIndex) => (
+                                                                                    <div
+                                                                                        className="wd-product-grid-slide"
+                                                                                        key={imageIndex}
+                                                                                        data-image-url={url}
+                                                                                        data-image-srcset={`${url} 700w, ${url.replace(".jpg", "-263x300.jpg")} 263w, ${url.replace(".jpg", "-88x100.jpg")} 88w, ${url.replace(".jpg", "-430x491.jpg")} 430w, ${url.replace(".jpg", "-180x206.jpg")} 180w`}
+                                                                                        data-image-id={imageIndex}
 
-                                                                                                rel="nofollow"
-                                                                                            />
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
-                                                                    <div
-                                                                        className="wd-product wd-hover-fw-button wd-hover-with-fade wd-fade-off product-grid-item product type-product post-2463 status-publish first instock product_cat-vr-headsets has-post-thumbnail shipping-taxable purchasable product-type-simple"
-                                                                        data-id="2463"
-                                                                        data-loop="4">
-                                                                        <div className="product-wrapper">
-                                                                            <div className="content-product-imagin" />
-                                                                            <div className="product-element-top wd-quick-shop">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/playstation-vr-2/">
-                                                                                    <div className="wd-product-grid-slider wd-fill">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="0"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="1"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="2"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="3"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                        />
+                                                                                    />
+                                                                                ))} */}
                                                                                     </div>
                                                                                     <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
                                                                                         <div className="wd-prev" />
                                                                                         <div className="wd-next" />
                                                                                     </div>
                                                                                     <div className="wd-product-grid-slider-pagin">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="0"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="1"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="2"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="3"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <picture
-                                                                                        className="attachment-large size-large"
-                                                                                        decoding="async">
-                                                                                        <source
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg.webp 180w"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg.webp 180w"
-                                                                                            type="image/webp"
-                                                                                        />
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className="entered lazyloaded"
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
-                                                                                            data-ll-status="loaded"
-                                                                                            decoding="async"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </picture>
-                                                                                    <noscript>
-                                                                                        <picture
-                                                                                            className="attachment-large size-large"
-                                                                                            decoding="async">
-                                                                                            <source
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg.webp 180w"
-                                                                                                type="image/webp"
-                                                                                            />
-                                                                                            <img
-                                                                                                alt=""
-                                                                                                decoding="async"
-                                                                                                height="800"
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
-                                                                                                width="700"
-                                                                                            />
-                                                                                        </picture>
-                                                                                    </noscript>
-                                                                                </a>
-                                                                                <div className="wd-buttons wd-pos-r-t">
-                                                                                    <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
-                                                                                        <a
-                                                                                            data-added-text="Compare products"
-                                                                                            data-id="2463"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2463"
-                                                                                            rel="nofollow">
-                                                                                            <span>Compare</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
-                                                                                        <a
-                                                                                            className="open-quick-view quick-view-button"
-                                                                                            data-id="2463"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/playstation-vr-2/"
-                                                                                            rel="nofollow">
-                                                                                            Quick view
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
-                                                                                        <a
-                                                                                            className=""
-                                                                                            data-added-text="Browse Wishlist"
-                                                                                            data-key="44768c5fb7"
-                                                                                            data-product-id="2463"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
-                                                                                            rel="nofollow">
-                                                                                            <span>Add to wishlist</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/playstation-vr-2/">
-                                                                                        PlayStation VR 2
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div className="wd-product-cats">
-                                                                                    <a
-                                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                        rel="tag">
-                                                                                        VR Headsets
-                                                                                    </a>
-                                                                                </div>
-                                                                                <div
-                                                                                    aria-label="Rated 0 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "0%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">0</strong> out
-                                                                                        of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                                    In stock
-                                                                                </p>
-                                                                                <div className="wrap-price">
-                                                                                    <span className="price">
-                                                                                        <span className="woocommerce-Price-amount amount">
-                                                                                            <bdi>
-                                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                                    $
-                                                                                                </span>
-                                                                                                11,500.00
-                                                                                            </bdi>
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="wd-add-btn wd-add-btn-replace">
-                                                                                    <a
-                                                                                        aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2463"
-                                                                                        aria-label="Add to cart: “PlayStation VR 2”"
-                                                                                        className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                        data-product_id="2463"
-                                                                                        data-product_sku="608075-1"
-                                                                                        data-quantity="1"
-                                                                                        href="?add-to-cart=2463"
-                                                                                        rel="nofollow">
-                                                                                        <span>Add to cart</span>
-                                                                                    </a>
-                                                                                    <span
-                                                                                        className="screen-reader-text"
-                                                                                        id="woocommerce_loop_add_to_cart_link_describedby_2463"></span>
-                                                                                </div>
-                                                                                <div className="wd-product-detail wd-product-sku">
-                                                                                    <span className="wd-label">SKU:</span>
-                                                                                    <span>608075-1</span>
-                                                                                </div>
-                                                                                <div className="fade-in-block wd-scroll">
-                                                                                    <div className="hover-content-wrap">
-                                                                                        <div
-                                                                                            className="hover-content wd-more-desc wd-more-desc-calculated"
-                                                                                            style={{}}>
-                                                                                            <div
-                                                                                                className="hover-content-inner wd-more-desc-inner"
-                                                                                                style={{}}>
-                                                                                                <table
-                                                                                                    aria-label="Product Details"
-                                                                                                    className="woocommerce-product-attributes shop_attributes">
-                                                                                                    <tbody>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Brand
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Viewsonic</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Color
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Black</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Compatibility
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>PC</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Release years
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>2022</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Manufacturer guarantee
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>14 Days</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                    </tbody>
-                                                                                                </table>
-                                                                                            </div>
-                                                                                            <a
-                                                                                                aria-label="Read more description"
-                                                                                                className="wd-more-desc-btn"
-
-                                                                                                rel="nofollow"
-                                                                                            />
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
-                                                                    <div
-                                                                        className="wd-product wd-hover-fw-button wd-hover-with-fade wd-fade-off product-grid-item product type-product post-2447 status-publish instock product_cat-vr-headsets has-post-thumbnail shipping-taxable purchasable product-type-simple"
-                                                                        data-id="2447"
-                                                                        data-loop="5">
-                                                                        <div className="product-wrapper">
-                                                                            <div className="content-product-imagin" />
-                                                                            <div className="product-element-top wd-quick-shop">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/valve-index-headset/">
-                                                                                    <div className="wd-product-grid-slider wd-fill">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="0"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="1"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-2.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-2-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-2-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-2-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-2-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-2.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="2"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-3.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-3-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-3-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-3-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-3-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-3.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="3"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
-                                                                                        <div className="wd-prev" />
-                                                                                        <div className="wd-next" />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-pagin">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="0"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="1"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="2"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="3"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <picture
-                                                                                        className="attachment-large size-large"
-                                                                                        decoding="async">
-                                                                                        <source
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-180x206.jpg.webp 180w"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-180x206.jpg.webp 180w"
-                                                                                            type="image/webp"
-                                                                                        />
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className="entered lazyloaded"
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-180x206.jpg 180w"
-                                                                                            data-ll-status="loaded"
-                                                                                            decoding="async"
-                                                                                            height="800"
-                                                                                            sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg"
-                                                                                            srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-180x206.jpg 180w"
-                                                                                            width="700"
-                                                                                        />
-                                                                                    </picture>
-                                                                                    <noscript>
-                                                                                        <picture
-                                                                                            className="attachment-large size-large"
-                                                                                            decoding="async">
-                                                                                            <source
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-180x206.jpg.webp 180w"
-                                                                                                type="image/webp"
-                                                                                            />
-                                                                                            <img
-                                                                                                alt=""
-                                                                                                decoding="async"
-                                                                                                height="800"
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/valve-index-headset-1-180x206.jpg 180w"
-                                                                                                width="700"
-                                                                                            />
-                                                                                        </picture>
-                                                                                    </noscript>
-                                                                                </a>
-                                                                                <div className="wd-buttons wd-pos-r-t">
-                                                                                    <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
-                                                                                        <a
-                                                                                            data-added-text="Compare products"
-                                                                                            data-id="2447"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2447"
-                                                                                            rel="nofollow">
-                                                                                            <span>Compare</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
-                                                                                        <a
-                                                                                            className="open-quick-view quick-view-button"
-                                                                                            data-id="2447"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/valve-index-headset/"
-                                                                                            rel="nofollow">
-                                                                                            Quick view
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
-                                                                                        <a
-                                                                                            className=""
-                                                                                            data-added-text="Browse Wishlist"
-                                                                                            data-key="44768c5fb7"
-                                                                                            data-product-id="2447"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
-                                                                                            rel="nofollow">
-                                                                                            <span>Add to wishlist</span>
-                                                                                        </a>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/valve-index-headset/">
-                                                                                        Valve Index Headset
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div className="wd-product-cats">
-                                                                                    <a
-                                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                        rel="tag">
-                                                                                        VR Headsets
-                                                                                    </a>
-                                                                                </div>
-                                                                                <div
-                                                                                    aria-label="Rated 0 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "0%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">0</strong> out
-                                                                                        of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                                    In stock
-                                                                                </p>
-                                                                                <div className="wrap-price">
-                                                                                    <span className="price">
-                                                                                        <span className="woocommerce-Price-amount amount">
-                                                                                            <bdi>
-                                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                                    $
-                                                                                                </span>
-                                                                                                8,400.00
-                                                                                            </bdi>
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </div>
-                                                                                <div className="wd-add-btn wd-add-btn-replace">
-                                                                                    <a
-                                                                                        aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2447"
-                                                                                        aria-label="Add to cart: “Valve Index Headset”"
-                                                                                        className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                        data-product_id="2447"
-                                                                                        data-product_sku="608072"
-                                                                                        data-quantity="1"
-                                                                                        href="?add-to-cart=2447"
-                                                                                        rel="nofollow">
-                                                                                        <span>Add to cart</span>
-                                                                                    </a>
-                                                                                    <span
-                                                                                        className="screen-reader-text"
-                                                                                        id="woocommerce_loop_add_to_cart_link_describedby_2447"></span>
-                                                                                </div>
-                                                                                <div className="wd-product-detail wd-product-sku">
-                                                                                    <span className="wd-label">SKU:</span>
-                                                                                    <span>608072</span>
-                                                                                </div>
-                                                                                <div className="fade-in-block wd-scroll">
-                                                                                    <div className="hover-content-wrap">
-                                                                                        <div className="hover-content wd-more-desc">
-                                                                                            <div className="hover-content-inner wd-more-desc-inner">
-                                                                                                <table
-                                                                                                    aria-label="Product Details"
-                                                                                                    className="woocommerce-product-attributes shop_attributes">
-                                                                                                    <tbody>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Brand
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Viewsonic</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Color
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Black</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Compatibility
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>PC</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Release years
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>2020</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Manufacturer guarantee
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>14 Days</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                    </tbody>
-                                                                                                </table>
-                                                                                            </div>
-                                                                                            <a
-                                                                                                aria-label="Read more description"
-                                                                                                className="wd-more-desc-btn"
-
-                                                                                                rel="nofollow"
-                                                                                            />
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
-                                                                    <div
-                                                                        className="wd-product wd-hover-fw-button wd-hover-with-fade wd-fade-off product-grid-item product type-product post-2459 status-publish instock product_cat-vr-headsets has-post-thumbnail shipping-taxable purchasable product-type-simple"
-                                                                        data-id="2459"
-                                                                        data-loop="6">
-                                                                        <div className="product-wrapper">
-                                                                            <div className="content-product-imagin" />
-                                                                            <div className="product-element-top wd-quick-shop">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/varjo-xr-3/">
-                                                                                    <div className="wd-product-grid-slider wd-fill">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="0"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="1"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-2.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="2"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-3.jpg"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slide"
-                                                                                            data-image-id="3"
-                                                                                            data-image-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
-                                                                                            data-image-url="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                        />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
-                                                                                        <div className="wd-prev" />
-                                                                                        <div className="wd-next" />
-                                                                                    </div>
-                                                                                    <div className="wd-product-grid-slider-pagin">
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="0"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="1"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="2"
-                                                                                        />
-                                                                                        <div
-                                                                                            className="wd-product-grid-slider-dot"
-                                                                                            data-image-id="3"
-                                                                                        />
+                                                                                        {/* {offer.image_url.map((_, imageIndex) => (
+                                                                                    <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
+                                                                                ))} */}
                                                                                     </div>
                                                                                     <div className="product-labels labels-rounded-sm">
-                                                                                        <span className="new product-label">
-                                                                                            New
-                                                                                        </span>
+                                                                                        <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
                                                                                     </div>
-                                                                                    <picture
-                                                                                        className="attachment-large size-large"
-                                                                                        decoding="async">
+                                                                                    <picture decoding="async" className="attachment-large size-large">
                                                                                         <source
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg.webp 180w"
-                                                                                            srcSet="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20700%20800'%3E%3C/svg%3E"
                                                                                             type="image/webp"
+                                                                                            data-lazy-srcset={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                            srcSet={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                            sizes="(max-width: 700px) 100vw, 700px"
                                                                                         />
                                                                                         <img
-                                                                                            alt=""
-                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                            data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
                                                                                             decoding="async"
-                                                                                            height="800"
-                                                                                            src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20700%20800'%3E%3C/svg%3E"
-                                                                                            width="700"
+                                                                                            width={700}
+                                                                                            height={800}
+                                                                                            src={offer.image_url}
+
+                                                                                            data-lazy-srcset={`${offer.image_url} 700w, ${offer.image_url} 263w`}
+                                                                                            data-lazy-sizes="(max-width: 700px) 100vw, 700px"
+                                                                                            className="entered lazyloaded"
+                                                                                            sizes="(max-width: 700px) 100vw, 700px"
+                                                                                            srcSet={`${offer.image_url} 700w, ${offer.image_url} 263w`}
                                                                                         />
                                                                                     </picture>
-                                                                                    <noscript>
-                                                                                        <picture
-                                                                                            className="attachment-large size-large"
-                                                                                            decoding="async">
-                                                                                            <source
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg.webp 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg.webp 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg.webp 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg.webp 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg.webp 180w"
-                                                                                                type="image/webp"
-                                                                                            />
-                                                                                            <img
-                                                                                                alt=""
-                                                                                                decoding="async"
-                                                                                                height="800"
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg"
-                                                                                                srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-263x300.jpg 263w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-88x100.jpg 88w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-430x491.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/varjo-xr-3-1-180x206.jpg 180w"
-                                                                                                width="700"
-                                                                                            />
-                                                                                        </picture>
-                                                                                    </noscript>
                                                                                 </a>
                                                                                 <div className="wd-buttons wd-pos-r-t">
                                                                                     <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
                                                                                         <a
+                                                                                            href="#"
+                                                                                            data-id={offer.productId}
+                                                                                            rel="nofollow"
                                                                                             data-added-text="Compare products"
-                                                                                            data-id="2459"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/compare/?product_id=2459"
-                                                                                            rel="nofollow">
+                                                                                        >
                                                                                             <span>Compare</span>
                                                                                         </a>
                                                                                     </div>
                                                                                     <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
                                                                                         <a
+
                                                                                             className="open-quick-view quick-view-button"
-                                                                                            data-id="2459"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/product/varjo-xr-3/"
-                                                                                            rel="nofollow">
+                                                                                            rel="nofollow"
+                                                                                            data-id={offer.productId}
+                                                                                        >
                                                                                             Quick view
                                                                                         </a>
                                                                                     </div>
                                                                                     <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
                                                                                         <a
-                                                                                            className=""
+                                                                                            onClick={(e) => handleAddToWishlist(e, offer)}
+                                                                                            href="/home/wishlist"
+                                                                                            data-key={offer.productId}
+                                                                                            data-product-id={offer.productId}
+                                                                                            rel="nofollow"
                                                                                             data-added-text="Browse Wishlist"
-                                                                                            data-key="44768c5fb7"
-                                                                                            data-product-id="2459"
-                                                                                            href="https://woodmart.xtemos.com/mega-electronics/home/wishlist/"
-                                                                                            rel="nofollow">
-                                                                                            <span>Add to wishlist</span>
+                                                                                        >
+                                                                                            <span>{isAdded ? 'Added to Wishlist' : 'Add to Wishlist'}</span>
                                                                                         </a>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
+
+
                                                                             <div className="product-element-bottom">
                                                                                 <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/varjo-xr-3/">
-                                                                                        Varjo XR-3
+                                                                                    <a href={offer.product_url}>
+                                                                                        {offer.productName}
                                                                                     </a>
                                                                                 </h3>
                                                                                 <div className="wd-product-cats">
-                                                                                    <a
-                                                                                        href="https://woodmart.xtemos.com/mega-electronics/product-category/games-entertainment/pc-gaming/vr-headsets/"
-                                                                                        rel="tag">
-                                                                                        VR Headsets
+                                                                                    <a href={offer.category_url} rel="tag">
+                                                                                        {offer.category}
                                                                                     </a>
                                                                                 </div>
-                                                                                <div
-                                                                                    aria-label="Rated 0 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "0%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">0</strong> out
-                                                                                        of 5
+                                                                                <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
+                                                                                    <span style={{ width: `${(offer.rating / 5) * 100}%` }}>
+                                                                                        Rated <strong className="rating">{offer.rating}</strong> out of 5
                                                                                     </span>
                                                                                 </div>
                                                                                 <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                                    In stock
+                                                                                    {offer.stockStatus}
                                                                                 </p>
                                                                                 <div className="wrap-price">
                                                                                     <span className="price">
-                                                                                        <span className="woocommerce-Price-amount amount">
-                                                                                            <bdi>
-                                                                                                <span className="woocommerce-Price-currencySymbol">
-                                                                                                    $
-                                                                                                </span>
-                                                                                                11,500.00
-                                                                                            </bdi>
+                                                                                        <del aria-hidden="true">
+                                                                                            <span className="woocommerce-Price-amount amount">
+                                                                                                <bdi>
+                                                                                                    <span className="woocommerce-Price-currencySymbol">
+                                                                                                        $
+                                                                                                    </span>
+                                                                                                    {offer.price}
+                                                                                                </bdi>
+                                                                                            </span>
+                                                                                        </del>
+                                                                                        <span className="screen-reader-text">
+                                                                                            Original price was:  {offer.originalPrice}.
+                                                                                        </span>
+                                                                                        <ins aria-hidden="true">
+                                                                                            <span className="woocommerce-Price-amount amount">
+                                                                                                <bdi>
+                                                                                                    <span className="woocommerce-Price-currencySymbol">
+                                                                                                        $
+                                                                                                    </span>
+                                                                                                    {offer.price}
+                                                                                                </bdi>
+                                                                                            </span>
+                                                                                        </ins>
+                                                                                        <span className="screen-reader-text">
+                                                                                            Current price is: $449.00.
                                                                                         </span>
                                                                                     </span>
                                                                                 </div>
                                                                                 <div className="wd-add-btn wd-add-btn-replace">
                                                                                     <a
-                                                                                        aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2459"
-                                                                                        aria-label="Add to cart: “Varjo XR-3”"
+                                                                                        href="#"
+                                                                                        aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2435"
+                                                                                        data-quantity={1}
                                                                                         className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                        data-product_id="2459"
-                                                                                        data-product_sku="608075"
-                                                                                        data-quantity="1"
-                                                                                        href="?add-to-cart=2459"
-                                                                                        rel="nofollow">
+                                                                                        data-product_id={2435}
+                                                                                        data-product_sku={608069}
+                                                                                        aria-label="Add to cart: Oculus Quest 2"
+                                                                                        rel="nofollow"
+                                                                                        onClick={(e) => openCart(e, offer)}
+                                                                                    >
                                                                                         <span>Add to cart</span>
                                                                                     </a>
                                                                                     <span
+                                                                                        id="woocommerce_loop_add_to_cart_link_describedby_2435"
                                                                                         className="screen-reader-text"
-                                                                                        id="woocommerce_loop_add_to_cart_link_describedby_2459"></span>
+                                                                                    ></span>
                                                                                 </div>
                                                                                 <div className="wd-product-detail wd-product-sku">
-                                                                                    <span className="wd-label">SKU:</span>
-                                                                                    <span>608075</span>
+                                                                                    <span className="wd-label">SKU: </span>
+                                                                                    <span> <span>{offer.productSku}</span> </span>
                                                                                 </div>
-                                                                                <div className="fade-in-block wd-scroll">
-                                                                                    <div className="hover-content-wrap">
-                                                                                        <div className="hover-content wd-more-desc">
-                                                                                            <div className="hover-content-inner wd-more-desc-inner">
-                                                                                                <table
-                                                                                                    aria-label="Product Details"
-                                                                                                    className="woocommerce-product-attributes shop_attributes">
-                                                                                                    <tbody>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Brand
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Viewsonic</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Color
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>Black</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Compatibility
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>PC</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Release years
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>2022</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                        <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                                            <th
-                                                                                                                className="woocommerce-product-attributes-item__label"
-                                                                                                                scope="row">
-                                                                                                                <span className="wd-attr-name">
-                                                                                                                    <span className="wd-attr-name-label">
-                                                                                                                        Manufacturer guarantee
-                                                                                                                    </span>
-                                                                                                                </span>
-                                                                                                            </th>
-                                                                                                            <td className="woocommerce-product-attributes-item__value">
-                                                                                                                <span className="wd-attr-term">
-                                                                                                                    <p>14 Days</p>
-                                                                                                                </span>
-                                                                                                            </td>
-                                                                                                        </tr>
-                                                                                                    </tbody>
-                                                                                                </table>
-                                                                                            </div>
-                                                                                            <a
-                                                                                                aria-label="Read more description"
-                                                                                                className="wd-more-desc-btn"
-
-                                                                                                rel="nofollow"
-                                                                                            />
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
+                                                                                {/* Add new data */}
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                </div>
+                                                                    </div>))}
+
                                                             </div>
                                                         </div>
                                                         <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-icon-1">
@@ -4400,231 +2870,56 @@ const productDetails = () => {
                                                                 "--wd-gap-sm": "10px",
                                                             }}>
                                                             <div className="wd-carousel-wrap">
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
+                                                                {bestOffer.slice(0, 5).map((product) => (
                                                                     <div
-                                                                        className="wd-product wd-with-labels wd-hover-small product-grid-item product type-product post-1937 status-publish instock product_cat-apple-iphone has-post-thumbnail featured shipping-taxable purchasable product-type-variable"
-                                                                        data-id="1937"
-                                                                        data-loop="1">
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-iphone-14-plus/">
-                                                                                    <img
-                                                                                        alt=""
-                                                                                        className="attachment-64x64 size-64x64 entered lazyloaded"
-                                                                                        data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-iphone-14-plus-blue-1-64x64.jpg"
-                                                                                        data-ll-status="loaded"
-                                                                                        decoding="async"
-                                                                                        height="64"
-                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-iphone-14-plus-blue-1-64x64.jpg"
-                                                                                        width="64"
-                                                                                    />
-                                                                                    <noscript>
+                                                                        key={product.productId}
+                                                                        className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
+                                                                        style={{ width: '262.6px' }}
+                                                                    >
+                                                                        <div className="wd-product wd-hover-small product-grid-item product type-product post-662 status-publish instock">
+                                                                            <div className="product-wrapper">
+                                                                                <div className="product-element-top">
+                                                                                    <a href={product.product_url} className="product-image-link">
                                                                                         <img
-                                                                                            alt=""
-                                                                                            className="attachment-64x64 size-64x64"
                                                                                             decoding="async"
-                                                                                            height="64"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/apple-iphone-14-plus-blue-1-64x64.jpg"
-                                                                                            width="64"
+                                                                                            width={80}
+                                                                                            height={80}
+                                                                                            src={product.image_url}
+                                                                                            alt={product.productName}
                                                                                         />
-                                                                                    </noscript>
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-iphone-14-plus/">
-                                                                                        Apple iPhone 14 Plus
                                                                                     </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "100%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
                                                                                 </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
+                                                                                <div className="product-element-bottom">
+                                                                                    <h3 className="wd-entities-title">
+                                                                                        <a href={product.product_url}>{product.productName}</a>
+                                                                                    </h3>
+                                                                                    <div className="star-rating" role="img" aria-label={`Rated ${product.rating} out of 5`}>
+                                                                                        <span style={{ width: `${(product.rating / 5) * 100}%` }}>
+                                                                                            Rated <strong className="rating">{product.rating}</strong> out of 5
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <span className="price">
+                                                                                        <span className="woocommerce-Price-amount amount">
+                                                                                            <bdi>
+                                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.price}
+                                                                                            </bdi>
+                                                                                        </span>
+                                                                                        {product.discount > 0 && (
+                                                                                            <span className="woocommerce-Price-amount amount">
+                                                                                                <bdi>
+                                                                                                    <span className="woocommerce-Price-currencySymbol">$</span>
+                                                                                                    {(product.price - product.discount).toFixed(2)}
+                                                                                                </bdi>
                                                                                             </span>
-                                                                                            799.00
-                                                                                        </bdi>
+                                                                                        )}
                                                                                     </span>
-                                                                                    –
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            899.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
+                                                                                    {/* <p>{product.description}</p> */}
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible wd-slide-next"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
-                                                                    <div
-                                                                        className="wd-product wd-with-labels wd-hover-small product-grid-item product type-product post-182 status-publish instock product_cat-apple-macbook has-post-thumbnail featured shipping-taxable purchasable product-type-variable"
-                                                                        data-id="182"
-                                                                        data-loop="2">
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/">
-                                                                                    <img
-                                                                                        alt=""
-                                                                                        className="attachment-64x64 size-64x64 entered lazyloaded"
-                                                                                        data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-macbook-pro-16-silver-1-64x64.jpg"
-                                                                                        data-ll-status="loaded"
-                                                                                        decoding="async"
-                                                                                        height="64"
-                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-macbook-pro-16-silver-1-64x64.jpg"
-                                                                                        width="64"
-                                                                                    />
-                                                                                    <noscript>
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className="attachment-64x64 size-64x64"
-                                                                                            decoding="async"
-                                                                                            height="64"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-macbook-pro-16-silver-1-64x64.jpg"
-                                                                                            width="64"
-                                                                                        />
-                                                                                    </noscript>
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/apple-macbook-pro-16-m1-pro-2/">
-                                                                                        Apple MacBook Pro 16″ M1 Pro
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "100%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            2,499.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                    –
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            2,999.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                    style={{
-                                                                        width: "222.75px",
-                                                                    }}>
-                                                                    <div
-                                                                        className="wd-product wd-with-labels wd-hover-small product-grid-item product type-product post-872 status-publish last instock product_cat-office-pcs has-post-thumbnail featured shipping-taxable purchasable product-type-simple"
-                                                                        data-id="872"
-                                                                        data-loop="3">
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    className="product-image-link"
-                                                                                    href="https://woodmart.xtemos.com/mega-electronics/product/acer-conceptd-ct300/">
-                                                                                    <img
-                                                                                        alt=""
-                                                                                        className="attachment-64x64 size-64x64 entered lazyloaded"
-                                                                                        data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1-64x64.jpg"
-                                                                                        data-ll-status="loaded"
-                                                                                        decoding="async"
-                                                                                        height="64"
-                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1-64x64.jpg"
-                                                                                        width="64"
-                                                                                    />
-                                                                                    <noscript>
-                                                                                        <img
-                                                                                            alt=""
-                                                                                            className="attachment-64x64 size-64x64"
-                                                                                            decoding="async"
-                                                                                            height="64"
-                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/acer-conceptd-ct300-1-64x64.jpg"
-                                                                                            width="64"
-                                                                                        />
-                                                                                    </noscript>
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="https://woodmart.xtemos.com/mega-electronics/product/acer-conceptd-ct300/">
-                                                                                        ACER ConceptD CT300
-                                                                                    </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                    className="star-rating"
-                                                                                    role="img">
-                                                                                    <span
-                                                                                        style={{
-                                                                                            width: "100%",
-                                                                                        }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            1,199.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                                                ))}
+
                                                             </div>
                                                         </div>
                                                         <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-icon-1">
@@ -4699,7 +2994,7 @@ const productDetails = () => {
                                                             type="button"
                                                             value="-"
                                                             className="minus btn"
-                                                            onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Decrease quantity
+                                                            onClick={(e) => changeQuantity(item.productId, item.quantity - 1, e)} // Decrease quantity
                                                         />
                                                         <label
                                                             className="screen-reader-text"
@@ -4714,24 +3009,16 @@ const productDetails = () => {
                                                             value={item.quantity}
                                                             aria-label="Product quantity"
                                                             min={1}
-                                                            onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))} // Set new quantity
+                                                            onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value), e)} // Set new quantity
                                                         />
                                                         <input
                                                             type="button"
                                                             value="+"
                                                             className="plus btn"
-                                                            onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Increase quantity
+                                                            onClick={(e) => changeQuantity(item.productId, item.quantity + 1, e)} // Increase quantity
                                                         />
                                                     </div>
-                                                    <span className="quantity">
-                                                        {item.quantity} ×
-                                                        <span className="woocommerce-Price-amount amount">
-                                                            <bdi>
-                                                                <span className="woocommerce-Price-currencySymbol">$</span>
-                                                                {item.price * item.quantity}
-                                                            </bdi>
-                                                        </span>
-                                                    </span>
+
                                                 </div>
                                             </li>
                                         ))

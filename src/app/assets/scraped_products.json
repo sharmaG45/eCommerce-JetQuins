@@ -1,7 +1,7 @@
 [
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/f9cd39f5-eceb-4e21-9da8-29d57baa7787.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/Norton-360-Deluxe-Antivirus-Software-for-3-Devices-1-Year-Subscription-PC-Mac-iOS-Android-Digital-Download_42197f7b-f7b3-497b-8ee5-c7b0a8623b98.442b098d2dcb124e17b191f6aadfd185.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "HOT",
             "NEW"
@@ -12,6 +12,7 @@
         "productSku": "SNQLED55QN85A",
         "price": 159.99,
         "discount": 0,
+        "quantity":1,
         "rating": 4.5,
         "description": "Norton 360 Deluxe provides advanced protection for your devices with real-time threat protection, a secure VPN, and password manager for online security.",
         "how_product_works": "Norton 360 Deluxe works by continuously monitoring your devices for potential threats, offering real-time protection, and automatically blocking harmful websites. It also provides a secure VPN for private browsing and a password manager for managing your passwords securely.",
@@ -33,7 +34,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/Norton-360-Premium-Antivirus-Software-for-10-Devices-1-Year-Subscription-PC-Mac-iOS-Android-Digital-Download_c6df0e0e-fae7-4d44-a098-d33da6adcdc0.7897e9ece192ce5b64973da9d22c3b42.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "NEW"
         ],
@@ -44,6 +45,7 @@
         "price": 249.99,
         "discount": 0,
         "rating": 4.6,
+        "quantity":1,
         "description": "Norton 360 Premium provides robust protection for up to 10 devices with additional features like 100GB cloud storage and advanced VPN security.",
         "how_product_works": "Norton 360 Premium delivers next-level protection with its real-time antivirus, firewall, VPN, and backup storage. It also includes tools to safeguard personal data and block phishing attacks.",
         "other_details": {
@@ -64,7 +66,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/Norton-360-Standard-Antivirus-Software-for-1-Device-1-Year-Subscription-PC-Mac-iOS-Android-Digital-Download_06cfdad8-dc73-4b79-bb89-e044034afb72.d64986c3320adab7b3b848aeaf672704.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "SALE"
         ],
@@ -75,6 +77,7 @@
         "price": 49.99,
         "discount": 10,
         "rating": 4.3,
+        "quantity":1,
         "description": "Norton 360 Standard offers essential protection with antivirus, firewall, and VPN for one device.",
         "how_product_works": "Norton 360 Standard provides core security with real-time antivirus scanning, an advanced firewall, and a VPN for online anonymity.",
         "other_details": {
@@ -95,7 +98,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/Norton-AntiVirus-Plus-1-Device-1-Year-with-Auto-Renewal-PC-Mac-Download_bc148c78-3466-467b-bdab-5e177693af7f.b8b383266f40689b36de7ad266487404.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "NEW"
         ],
@@ -106,6 +109,7 @@
         "price": 39.99,
         "discount": 0,
         "rating": 4.1,
+        "quantity":1,
         "description": "Norton Security Anti-Virus offers basic virus protection with real-time scanning, internet security features, and firewall to block cyber threats.",
         "how_product_works": "Norton Security Anti-Virus scans your device for malware and viruses in real-time, providing comprehensive protection against a variety of online threats. It also includes a smart firewall to prevent unauthorized access.",
         "other_details": {
@@ -126,19 +130,20 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/Norton-360-Platinum-Antivirus-Software-for-20-Devices-1-Year-Subscription-PC-Mac-iOS-Android-Digital-Download_129dae45-1669-4c2a-b9c3-32c1ea78f30b.334c661759afb7cbeff4472431f791de.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "HOT"
         ],
         "brand": "Norton",
         "productId": "12349",
-        "productName": "Norton 360 Advanced",
+        "productName": "Norton 360 Platinum",
         "productSku": "SNQLED55QN85A5",
         "price": 299.99,
         "discount": 10,
         "rating": 4.7,
-        "description": "Norton 360 Advanced offers premium protection for up to 20 devices, including advanced threat protection, a secure VPN, and backup storage.",
-        "how_product_works": "Norton 360 Advanced offers extensive protection with its multi-device coverage, real-time antivirus scanning, firewall, VPN, and cloud backup to safeguard your data and privacy.",
+        "quantity":1,
+        "description": "Norton 360 Platinum offers premium protection for up to 20 devices, including advanced threat protection, a secure VPN, and backup storage.",
+        "how_product_works": "Norton 360 Platinum offers extensive protection with its multi-device coverage, real-time antivirus scanning, firewall, VPN, and cloud backup to safeguard your data and privacy.",
         "other_details": {
             "compatibility": "Windows, macOS, Android, iOS",
             "free_trial": "30-day free trial",
@@ -146,18 +151,18 @@
         },
         "faq": [
             {
-                "question": "How many devices can Norton 360 Advanced protect?",
-                "answer": "Norton 360 Advanced offers protection for up to 20 devices, making it ideal for large families or businesses."
+                "question": "How many devices can Norton 360 Platinum protect?",
+                "answer": "Norton 360 Platinum offers protection for up to 20 devices, making it ideal for large families or businesses."
             },
             {
-                "question": "Does Norton 360 Advanced include backup storage?",
-                "answer": "Yes, Norton 360 Advanced includes cloud backup storage for important documents and files."
+                "question": "Does Norton 360 Platinum include backup storage?",
+                "answer": "Yes, Norton 360 Platinum includes cloud backup storage for important documents and files."
             }
         ]
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/bf3543b5-2059-43a0-9f83-b9c35bf4cf29.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/McAfee-Total-Protection-1-Year-3-Device-Windows-Mac-OS-Android-iOS_70e71e2b-8db1-4a9a-85e2-ce28fe7618cf.5c2db64fe8db3d923858f3818e74baf3.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "NEW"
         ],
@@ -168,6 +173,7 @@
         "price": 99.99,
         "discount": 0,
         "rating": 4.7,
+        "quantity":1,
         "description": "McAfee Total Protection offers complete security with antivirus, firewall, and identity theft protection for your devices and personal information.",
         "how_product_works": "McAfee Total Protection works by providing continuous antivirus protection, advanced firewall security, and tools to protect your identity from theft. It also includes a password manager and a secure VPN for enhanced privacy.",
         "other_details": {
@@ -200,6 +206,7 @@
         "price": 129.99,
         "discount": 0,
         "rating": 4.8,
+        "quantity":1,
         "description": "McAfee Total Protection Advanced offers enhanced protection for multiple devices, including advanced firewall protection, VPN, and identity theft protection.",
         "how_product_works": "McAfee Total Protection Advanced offers robust online security with its powerful firewall, VPN, and antivirus protection. It also includes identity theft protection and a secure password manager.",
         "other_details": {
@@ -220,7 +227,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/f9cd39f5-eceb-4e21-9da8-29d57baa7787.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/Bitdefender-Total-Security-5-Device-1-Yr-Digital_1a407fd8-9970-4ffb-bf56-d2f8b8963db3.ada7a9d6fd2f67ec79882d3318055244.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "SALE",
             "HOT"
@@ -232,6 +239,7 @@
         "price": 89.99,
         "discount": 20,
         "rating": 4.8,
+        "quantity":1,
         "description": "Bitdefender Total Security offers top-tier protection with antivirus, firewall, anti-phishing, and a secure VPN, ensuring safety for your devices and online activities.",
         "how_product_works": "Bitdefender Total Security utilizes multiple layers of defense including antivirus protection, firewall security, and anti-phishing technology. It also includes a VPN for secure browsing and privacy protection, making it ideal for individuals who value their online security.",
         "other_details": {
@@ -252,7 +260,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/91134ad2-3809-4186-bff8-04e16cd944c4.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/Webroot-Antivirus-Software-for-3-Devices-1-Year-Subscription-Windows-MacOS-Digital-Download_df6e22e9-5d09-42ff-8fb8-1507135f0499.d5ed9e35406fb9d744d561acb19cb71b.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "NEW"
         ],
@@ -263,6 +271,7 @@
         "price": 59.99,
         "discount": 10,
         "rating": 4.4,
+        "quantity":1,
         "description": "Webroot Internet Security Plus offers lightweight and fast antivirus protection with identity theft protection and password management.",
         "how_product_works": "Webroot Internet Security Plus uses a cloud-based approach for virus detection, scanning files and processes in real-time without using heavy system resources.",
         "other_details": {
@@ -283,7 +292,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/da8ca2aa-189c-412b-8c74-af2c346705cb.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/AVG-Internet-Security-2-Year-3-Devices-Windows_4f294575-37f4-49b8-b1f7-ee461065f99c.d012a07562f963bf202f5e6a02fac810.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "HOT"
         ],
@@ -294,6 +303,7 @@
         "price": 119.99,
         "discount": 20,
         "rating": 4.6,
+        "quantity":1,
         "description": "AVG Ultimate provides advanced antivirus protection, secure VPN, and performance optimization tools for your devices.",
         "how_product_works": "AVG Ultimate combines antivirus, internet security, and optimization tools to detect and block malware, enhance device performance, and protect your privacy online.",
         "other_details": {
@@ -314,7 +324,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/f9cd39f5-eceb-4e21-9da8-29d57baa7787.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://m.media-amazon.com/images/I/61NeJOKAuHL._SX679_.jpg",
         "labels": [
             "SALE",
             "HOT"
@@ -326,6 +336,7 @@
         "price": 99.99,
         "discount": 15,
         "rating": 4.5,
+        "quantity":1,
         "description": "Avast Premium Security offers comprehensive antivirus and ransomware protection for all your devices, along with advanced firewall and webcam protection.",
         "how_product_works": "Avast Premium Security uses AI-driven algorithms to detect and block viruses, spyware, and ransomware in real-time while protecting your online privacy with an advanced firewall.",
         "other_details": {
@@ -346,7 +357,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/77158792-1df7-4d16-aa43-a8bf9019d899.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/Trend-Micro-Maximum-Security-5-Users-1-year-subscription-Digital-Download_33e1cc2f-de35-4408-bc30-7ac26e1cd9ff.3c6f62692c3c439ef3fd35f69f1ca7a8.jpeg?odnHeight=640&odnWidth=640&odnBg=FFFFFF",
         "labels": [
             "NEW"
         ],
@@ -357,6 +368,7 @@
         "price": 79.99,
         "discount": 10,
         "rating": 4.7,
+        "quantity":1,
         "description": "Trend Micro Maximum Security offers top-notch antivirus, anti-phishing, and parental controls for your digital safety.",
         "how_product_works": "Trend Micro Maximum Security provides proactive threat detection and blocking, ensuring secure browsing and protection against phishing and ransomware.",
         "other_details": {

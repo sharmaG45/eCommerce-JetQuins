@@ -8,12 +8,14 @@ import { auth, fireStore } from "@/app/_components/firebase/config";
 import styles from './Slider.module.css'
 import Slider from "react-slick";
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { toast } from "react-toastify";
 // import img from "../../../public/assets/Images/"
 
 const HomePage = () => {
 
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isReadMore, setIsReadMore] = useState(false);
+    const [isMore, setIsMore] = useState(false);
     const [isAdded, setIsAdded] = useState(false);
     const [cartItems, setCartItems] = useState([]);
     const router = useRouter();
@@ -24,10 +26,22 @@ const HomePage = () => {
 
     const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent the default link behavior
-        const user = JSON.parse(localStorage.getItem('currentUser')); // Assuming user info is stored in localStorage
+
+        // Try to get the user from localStorage
+        const user = JSON.parse(localStorage.getItem('currentUser'));
 
         if (!user) {
-            alert("Please log in first.");
+            // If user is not logged in, store wishlist in localStorage
+            const guestWishlist = JSON.parse(localStorage.getItem('guestWishlist')) || [];
+
+            // Check if product already exists in the guest wishlist
+            if (guestWishlist.some(item => item.productId === offer.productId)) {
+                toast.success("Product is already in your wishlist!");
+            } else {
+                guestWishlist.push({ ...offer, timestamp: new Date() });
+                localStorage.setItem('guestWishlist', JSON.stringify(guestWishlist));
+                toast.success("Product added to your wishlist!");
+            }
             return;
         }
 
@@ -62,14 +76,17 @@ const HomePage = () => {
             discount: offer.discount || staticData.discount,
         };
 
-        // Log the final offer data (either user-provided or static)
         console.log('Final Offer Data:', offerData);
 
         try {
-            // Get the user's ID
-            const userId = user.uid;
+            // Get the user's ID safely
+            const userId = user?.uid;
+            if (!userId) {
+                toast.error("User ID is missing. Please log in.");
+                return;
+            }
 
-            // Reference to the user document in the 'users' collection
+            // Reference to the user document in Firestore
             const userRef = doc(fireStore, "users", userId);
 
             // Fetch the current user data to check if the wishlist exists
@@ -80,12 +97,9 @@ const HomePage = () => {
             const existingProductIndex = userWishlist.findIndex(item => item.productId === offerData.productId);
 
             if (existingProductIndex !== -1) {
-                // If the product is found, notify the user that it's already in the wishlist
-                alert("Product is already in your wishlist!");
-                // Optionally, redirect to the wishlist page if you want to
-                // router.push('/home/wishlist');
+                toast.success("Product is already in your wishlist!");
             } else {
-                // If the product is not in the wishlist, add it as a new item
+                // Add new product to wishlist
                 userWishlist.push({
                     productUrls: offerData.product_url,
                     productId: offerData.productId,
@@ -97,19 +111,16 @@ const HomePage = () => {
                     timestamp: new Date(),
                 });
 
-                // Update the user's wishlist document with the new product
+                // Update the user's wishlist in Firestore
                 await updateDoc(userRef, { wishlist: userWishlist });
 
                 console.log("Product added to wishlist for user:", userId);
-                alert("Product added to your wishlist!");
+                toast.success("Product added to your wishlist!");
             }
-
-            // Optionally open the wishlist after adding
-            // setIsWishlistOpen(true); // Set state to show the wishlist modal or component
 
         } catch (error) {
             console.error("Error adding product to wishlist:", error);
-            alert("Error adding product to wishlist.");
+            toast.error(`Error adding product to wishlist. ${error.message}`);
         }
     };
 
@@ -129,29 +140,25 @@ const HomePage = () => {
     const openCart = async (e, offer) => {
         e.preventDefault(); // Prevent the default link behavior
 
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-
-        if (!user) {
-            alert("Please log in first.");
-            return;
-        }
+        const userData = localStorage.getItem("currentUser");
+        const user = userData ? JSON.parse(userData) : null;
 
         // Log the offer object to see if it's structured correctly
-        console.log('Offer:', offer);
+        console.log("Offer:", offer);
 
         // Static fallback data in case some fields are missing
         const staticData = {
-            product_url: 'https://defaultproducturl.com',
+            product_url: "https://defaultproducturl.com",
             image_urls: [
                 "https://via.placeholder.com/430x491?text=Image+1",
                 "https://via.placeholder.com/430x491?text=Image+2",
                 "https://via.placeholder.com/430x491?text=Image+3",
                 "https://via.placeholder.com/430x491?text=Image+4"
             ],
-            brand: 'Default Brand',
-            productId: '00000',
-            productName: 'Default Product',
-            productSku: 'DEFAULTSKU',
+            brand: "Default Brand",
+            productId: "00000",
+            productName: "Default Product",
+            productSku: "DEFAULTSKU",
             price: 99.99,
             discount: 0,
             quantity: 1 // Ensuring default quantity is 1
@@ -169,14 +176,36 @@ const HomePage = () => {
             quantity: offer.quantity || staticData.quantity // Default to 1 if quantity is missing
         };
 
-        // Log the final offer data (either user-provided or static)
-        console.log('Final Offer Data:', offerData);
+        console.log("Final Offer Data:", offerData);
 
+        if (!user || !user.uid) {
+            // If the user is not logged in, store the cart in localStorage
+            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+
+            // Check if the product already exists in the guest cart
+            const existingProductIndex = guestCart.findIndex(item => item.productId === offerData.productId);
+
+            if (existingProductIndex !== -1) {
+                // If product exists, increment quantity
+                guestCart[existingProductIndex].quantity += 1;
+                toast.success("Product quantity updated in your cart!");
+            } else {
+                // If not, add it as a new product
+                guestCart.push({ ...offerData, timestamp: new Date() });
+                toast.success("Product added to your cart!");
+            }
+
+            // Save updated cart to localStorage
+            localStorage.setItem("guestCart", JSON.stringify(guestCart));
+            setIsCartOpen(true); // Open the cart after adding
+            return;
+        }
+
+        // If the user is logged in, proceed with Firestore update
         try {
-            // Get the user's ID
             const userId = user.uid;
 
-            // Reference to the user document in the 'users' collection
+            // Reference to the user document in Firestore
             const userRef = doc(fireStore, "users", userId);
 
             // Fetch the current user data to check if the cart exists
@@ -187,17 +216,11 @@ const HomePage = () => {
             const existingProductIndex = userCart.findIndex(item => item.productId === offerData.productId);
 
             if (existingProductIndex !== -1) {
-                // If the product is found, increment the quantity in place
-                const updatedCart = [...userCart];
-                updatedCart[existingProductIndex].quantity = (updatedCart[existingProductIndex].quantity || 0) + 1;
-
-                // Update the user's cart document with the new quantity
-                await updateDoc(userRef, { cart: updatedCart });
-
-                console.log("Product quantity incremented in cart for user:", userId);
-                alert("Product quantity updated in your cart!");
+                // If the product exists, increment quantity
+                userCart[existingProductIndex].quantity += 1;
+                toast.success("Product quantity updated in your cart!");
             } else {
-                // If the product is not in the cart, add it as a new product
+                // If not, add a new product
                 userCart.push({
                     productUrls: offerData.product_url,
                     productId: offerData.productId,
@@ -207,20 +230,20 @@ const HomePage = () => {
                     price: offerData.price,
                     discount: offerData.discount,
                     quantity: 1, // Starting quantity
-                    timestamp: new Date(),
+                    timestamp: new Date()
                 });
-
-                // Update the user's cart document with the new product
-                await updateDoc(userRef, { cart: userCart });
-
-                console.log("Product added to cart for user:", userId);
-                alert("Product added to your cart!");
+                toast.success("Product added to your cart!");
             }
 
-            setIsCartOpen(true); // Open the cart after adding/updating
+            // Update the user's cart document in Firestore
+            await updateDoc(userRef, { cart: userCart });
+
+            console.log("Cart updated for user:", userId);
+            setIsCartOpen(true); // Open the cart after adding
+
         } catch (error) {
             console.error("Error adding product to cart:", error);
-            alert("Error adding product to cart.");
+            toast.error("Error adding product to cart.");
         }
     };
 
@@ -230,10 +253,17 @@ const HomePage = () => {
 
     const handleCheckout = (e) => {
         e.preventDefault(); // Prevent the default link navigation
-        router.push('/home/checkout'); // Navigate to the checkout page
+        const storedUser = localStorage.getItem("currentUser");
+        if (storedUser) {
+            router.push('/home/checkout'); // Navigate to the checkout page
+        } else {
+            toast.error("Please log in to proceed to checkout.");
+            router.push('/myAccount/SignUp');
+        }
         setIsCartOpen(false); // Close the cart (if you have this state)
     };
-//comment added
+
+    //comment added
     const handleViewCart = (e) => {
         e.preventDefault();
         router.push('/home/cart');
@@ -243,16 +273,24 @@ const HomePage = () => {
     useEffect(() => {
         // Fetch the current user's cart items
         const fetchCart = async () => {
-            const userData = localStorage.getItem('currentUser');
-
-            if (!userData) {
-                alert("Please log in first.");
-                return; // Exit if no user is logged in
-            }
-
-            const user = JSON.parse(userData); // Parse the user data from localStorage
-
             try {
+                // Get user data from localStorage
+                const userData = localStorage.getItem("currentUser");
+
+                // If no user data, exit early
+                if (!userData) {
+                    console.log("No user logged in. Skipping cart fetch.");
+                    return;
+                }
+
+                const user = JSON.parse(userData);
+
+                // Validate user object
+                if (!user || !user.uid) {
+                    console.error("Invalid user data.");
+                    return;
+                }
+
                 // Get the user's cart data from Firestore
                 const userRef = doc(fireStore, "users", user.uid);
                 const userDoc = await getDoc(userRef);
@@ -273,7 +311,7 @@ const HomePage = () => {
 
     console.log(cartItems, "Carts Data");
 
-    // SLider
+    // Slider
     const sliderSettings = {
         dots: true,
         infinite: true,
@@ -330,10 +368,10 @@ const HomePage = () => {
 
     const removeFromCart = async (productId) => {
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -370,10 +408,10 @@ const HomePage = () => {
         }
 
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -429,6 +467,9 @@ const HomePage = () => {
     const handleReadMore = () => {
         setIsReadMore(!isReadMore);
     }
+    const handleMore = () => {
+        setIsMore(!isMore);
+    }
 
     return (
         <>
@@ -477,6 +518,7 @@ const HomePage = () => {
                                                     <button className={styles.prevButton} onClick={goToPrev}>
                                                         Previous
                                                     </button>
+
                                                     <button className={styles.nextButton} onClick={goToNext}>
                                                         Next
                                                     </button>
@@ -531,7 +573,7 @@ const HomePage = () => {
                                                                     <div
                                                                         key={category.id}
                                                                         className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
-                                                                        style={{ width: "190px" }}
+                                                                        style={{ width: "190px", cursor: "pointer" }}
                                                                         onClick={() => handleCategoryClick(category)}
                                                                     >
                                                                         <div className="category-grid-item wd-cat cat-design-alt wd-with-subcat product-category product first" data-loop={1}>
@@ -541,17 +583,16 @@ const HomePage = () => {
                                                                                         <picture decoding="async" className="attachment-200 size-200">
                                                                                             <source
                                                                                                 type="image/webp"
-                                                                                                srcSet={`${category.image}.webp 400w, ${category.image}-300x300.jpg.webp 300w, ${category.image}-150x150.jpg.webp 150w, ${category.image}-100x100.jpg.webp 100w`}
-                                                                                                sizes="(max-width: 400px) 100vw, 400px"
+
+
                                                                                             />
                                                                                             <img
                                                                                                 decoding="async"
-                                                                                                width={400}
-                                                                                                height={400}
+
                                                                                                 src={category.image}
                                                                                                 alt={category.title}
-                                                                                                srcSet={`${category.image} 400w, ${category.image}-300x300.jpg 300w, ${category.image}-150x150.jpg 150w, ${category.image}-100x100.jpg 100w`}
-                                                                                                sizes="(max-width: 400px) 100vw, 400px"
+
+
                                                                                             />
                                                                                         </picture>
                                                                                     </a>
@@ -662,6 +703,7 @@ const HomePage = () => {
                                                                 data-loop={index}
                                                                 data-id={offer.productId} // Assuming you have unique IDs for each product
                                                                 key={offer.productId} // Use a unique key for each product
+                                                                style={{ cursor: "pointer" }}
 
                                                             >
                                                                 <div className="product-wrapper">
@@ -821,9 +863,609 @@ const HomePage = () => {
                                                                         </div>
                                                                         <div className="wd-product-detail wd-product-sku">
                                                                             <span className="wd-label">SKU: </span>
-                                                                            <span> <span>{offer.productSku}</span> </span>
+                                                                            <span>{offer.productSku}</span>
                                                                         </div>
                                                                         {/* Add new data */}
+                                                                        <div className="fade-in-block wd-scroll">
+                                                                            <div className="hover-content-wrap">
+                                                                                <div className={`hover-content wd-more-desc wd-more-desc-calculated ${isMore ? "wd-more-desc-full" : ""}`}
+                                                                                >
+                                                                                    <div className="hover-content-inner wd-more-desc-inner">
+                                                                                        <table
+                                                                                            className="woocommerce-product-attributes shop_attributes"
+                                                                                            aria-label="Product Details"
+                                                                                        >
+                                                                                            <tbody>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Brand </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Apple</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_model">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Model </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>MacBook Pro</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Color </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Silver</p>
+                                                                                                        </span>
+                                                                                                        ,{" "}
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Space Gray</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_operating-system">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Operating system </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Mac OS 12</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_processor">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Processor </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>M1 Pro</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_processors">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Processors </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>8 CPU / 16 GPU</p>
+                                                                                                        </span>
+                                                                                                        ,{" "}
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>10CPU / 24 GPU</p>
+                                                                                                        </span>
+                                                                                                        ,{" "}
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>10 CPU / 32 GPU</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_number-of-processor-cores">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">
+                                                                                                                Number of processor cores{" "}
+                                                                                                            </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>10-core</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_screen-diagonal">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Screen diagonal </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>16”</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_resolution">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Resolution </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>3456×2234</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_screen-coverage">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Screen coverage </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Glossy</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_screan-type">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Screen type </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Retina</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_screen-refresh-rate">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">
+                                                                                                                Screen refresh rate{" "}
+                                                                                                            </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>120 Hz</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_ram">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">RAM </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>16GB</p>
+                                                                                                        </span>
+                                                                                                        ,{" "}
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>32GB</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_type-of-ram">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Type of RAM </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>DDR4</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_storage">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Storage </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>256GB SSD</p>
+                                                                                                        </span>
+                                                                                                        ,{" "}
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>512GB SSD</p>
+                                                                                                        </span>
+                                                                                                        ,{" "}
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>1 TB SSD</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_type-of-storage">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Type of storage </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>PCI-Ex SSD</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_graphics">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Graphics </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Integrated</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_graphics-series">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Graphics series </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>M1 Pro</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Release years </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>2021</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">
+                                                                                                                Manufacturer guarantee{" "}
+                                                                                                            </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>12 months</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_battery-capacity">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Battery capacity </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>70 W*h</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_weight">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Weight </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>1.6 kg</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_hours-of-battery-life">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">
+                                                                                                                Hours of battery life{" "}
+                                                                                                            </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Up to 21 hours</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_demensions">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Demensions </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>155×312.6x221x2 mm</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_material">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Material </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Metal</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_wi-fi">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Wi-Fi </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Wi-Fi 6</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_ethernet">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Ethernet </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>No</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_bluetooth">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Bluetooth </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Bluetooth 5.0</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_video-connections">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Video connections </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>HDMI x 1</p>
+                                                                                                        </span>
+                                                                                                        ,{" "}
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Thunderbolt 4×3</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_audio-connections">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Audio connections </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>3.5 мм mini-jack</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_keyboard">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Keyboard </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Backit magik keyboard</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_mouse-trackpad">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Mouse / trackpad </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Multi-touch trackpad with gestured control</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_camera">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Camera </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>1080p facetime HD camera</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_security-features">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Security features </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Touch ID sensor</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_audio-software">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Audio software </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Dolby atmos support</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                                <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_speakers">
+                                                                                                    <th
+                                                                                                        className="woocommerce-product-attributes-item__label"
+                                                                                                        scope="row"
+                                                                                                    >
+                                                                                                        <span className="wd-attr-name">
+                                                                                                            <span className="wd-attr-name-label">Speakers </span>
+                                                                                                        </span>
+                                                                                                    </th>
+                                                                                                    <td className="woocommerce-product-attributes-item__value">
+                                                                                                        <span className="wd-attr-term">
+                                                                                                            <p>Four-speaker sound system</p>
+                                                                                                        </span>{" "}
+                                                                                                    </td>
+                                                                                                </tr>
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    </div>
+                                                                                    <a
+                                                                                        href="#"
+                                                                                        onClick={handleMore}
+                                                                                        rel="nofollow"
+                                                                                        className="wd-more-desc-btn wd-shown"
+                                                                                        aria-label="Read more description"
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
                                                                     </div>
                                                                 </div>
                                                             </div>))}
@@ -951,7 +1593,7 @@ const HomePage = () => {
                                                                 data-loop={index}
                                                                 data-id={offer.productId} // Assuming you have unique IDs for each product
                                                                 key={offer.productId} // Use a unique key for each product
-
+                                                                style={{ cursor: "pointer" }}
                                                             >
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
@@ -1250,74 +1892,55 @@ const HomePage = () => {
                                                                 style={{ cursor: "grab" }}
                                                             >
 
-                                                                <div
-                                                                    className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
-                                                                    style={{ width: "262.6px" }}
-                                                                >
+                                                                {bestOffer.slice(0,5).map((product) => (
                                                                     <div
-                                                                        className="wd-product wd-hover-small product-grid-item product type-product post-662 status-publish instock product_cat-apple-ipad has-post-thumbnail shipping-taxable purchasable product-type-variable"
-                                                                        data-loop={1}
-                                                                        data-id={662}
+                                                                        key={product.productId}
+                                                                        className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
+                                                                        style={{ width: '262.6px' }}
                                                                     >
-                                                                        <div className="product-wrapper">
-                                                                            <div className="product-element-top">
-                                                                                <a
-                                                                                    href="/"
-                                                                                    className="product-image-link"
-                                                                                >
-                                                                                    <img
-                                                                                        decoding="async"
-                                                                                        width={80}
-                                                                                        height={80}
-                                                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-ipad-mini-starlight-1-80x80.jpg"
-                                                                                        className="attachment-80x80 size-80x80 entered lazyloaded"
-                                                                                        alt
-                                                                                        data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-ipad-mini-starlight-1-80x80.jpg"
-                                                                                        data-ll-status="loaded"
-                                                                                    />
-
-                                                                                </a>
-                                                                            </div>
-                                                                            <div className="product-element-bottom">
-                                                                                <h3 className="wd-entities-title">
-                                                                                    <a href="/">
-                                                                                        iPad Mini
+                                                                        <div className="wd-product wd-hover-small product-grid-item product type-product post-662 status-publish instock">
+                                                                            <div className="product-wrapper">
+                                                                                <div className="product-element-top">
+                                                                                    <a href={product.product_url} className="product-image-link">
+                                                                                        <img
+                                                                                            decoding="async"
+                                                                                            width={80}
+                                                                                            height={80}
+                                                                                            src={product.image_url}
+                                                                                            alt={product.productName}
+                                                                                        />
                                                                                     </a>
-                                                                                </h3>
-                                                                                <div
-                                                                                    className="star-rating"
-                                                                                    role="img"
-                                                                                    aria-label="Rated 5.00 out of 5"
-                                                                                >
-                                                                                    <span style={{ width: "100%" }}>
-                                                                                        Rated
-                                                                                        <strong className="rating">5.00</strong>
-                                                                                        out of 5
-                                                                                    </span>
                                                                                 </div>
-                                                                                <span className="price">
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
+                                                                                <div className="product-element-bottom">
+                                                                                    <h3 className="wd-entities-title">
+                                                                                        <a href={product.product_url}>{product.productName}</a>
+                                                                                    </h3>
+                                                                                    <div className="star-rating" role="img" aria-label={`Rated ${product.rating} out of 5`}>
+                                                                                        <span style={{ width: `${(product.rating / 5) * 100}%` }}>
+                                                                                            Rated <strong className="rating">{product.rating}</strong> out of 5
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    <span className="price">
+                                                                                        <span className="woocommerce-Price-amount amount">
+                                                                                            <bdi>
+                                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.price}
+                                                                                            </bdi>
+                                                                                        </span>
+                                                                                        {product.discount > 0 && (
+                                                                                            <span className="woocommerce-Price-amount amount">
+                                                                                                <bdi>
+                                                                                                    <span className="woocommerce-Price-currencySymbol">$</span>
+                                                                                                    {(product.price - product.discount).toFixed(2)}
+                                                                                                </bdi>
                                                                                             </span>
-                                                                                            600.00
-                                                                                        </bdi>
+                                                                                        )}
                                                                                     </span>
-                                                                                    –
-                                                                                    <span className="woocommerce-Price-amount amount">
-                                                                                        <bdi>
-                                                                                            <span className="woocommerce-Price-currencySymbol">
-                                                                                                $
-                                                                                            </span>
-                                                                                            800.00
-                                                                                        </bdi>
-                                                                                    </span>
-                                                                                </span>
+                                                                                    {/* <p>{product.description}</p> */}
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                </div>
+                                                                ))}
 
                                                             </div>
                                                         </div>
@@ -1402,7 +2025,7 @@ const HomePage = () => {
                                                                 data-loop={index}
                                                                 data-id={offer.productId} // Assuming you have unique IDs for each product
                                                                 key={offer.productId} // Use a unique key for each product
-
+                                                                style={{ cursor: "pointer" }}
                                                             >
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
@@ -1737,7 +2360,18 @@ const HomePage = () => {
                                             </li>
                                         ))
                                     ) : (
-                                        <li>No items in your cart</li>
+                                        <div className="wd-empty-mini-cart">
+                                            <p className="woocommerce-mini-cart__empty-message empty title">
+                                                No products in the cart.
+                                            </p>
+                                            <a
+                                                className="btn wc-backward"
+                                                href="/home/productCategory"
+                                            >
+                                                Return To Shop{" "}
+                                            </a>
+                                        </div>
+
                                     )}
                                 </ul>
                             </div>

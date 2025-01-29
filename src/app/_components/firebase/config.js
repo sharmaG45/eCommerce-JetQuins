@@ -12,13 +12,13 @@ import { getAuth, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyAFsksVSK5IFeNp0zy10UZnV8VL0p1tQXk",
-    authDomain: "ecommerce-admin-3ef78.firebaseapp.com",
-    projectId: "ecommerce-admin-3ef78",
-    storageBucket: "ecommerce-admin-3ef78.firebasestorage.app",
-    messagingSenderId: "53488542675",
-    appId: "1:53488542675:web:3f0349c4d183d0c40e8526",
-    measurementId: "G-TLQ7K995DR",
+    apiKey: "AIzaSyDz8bMMO_mRkHg5t0gfelGAFJsnt5uhS4Y",
+    authDomain: "ecommerce-8741a.firebaseapp.com",
+    projectId: "ecommerce-8741a",
+    storageBucket: "ecommerce-8741a.firebasestorage.app",
+    messagingSenderId: "362118701505",
+    appId: "1:362118701505:web:1c1ce2da18e8d454980f40",
+    measurementId: "G-8SYQTW7S6J",
 };
 
 // Initialize Firebase

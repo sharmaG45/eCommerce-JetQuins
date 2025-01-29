@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { getDocs, query, where, collection } from "firebase/firestore";
+import { toast } from "react-toastify";
 
 const signin = ({ isModalOpen, closeModal, setIsModalOpen }) => {
     const router = useRouter();
@@ -21,6 +22,11 @@ const signin = ({ isModalOpen, closeModal, setIsModalOpen }) => {
             [name]: type === 'checkbox' ? checked : value,
         });
     };
+
+    // useEffect((e)=>{
+    //     handleLoginSubmit(e);
+    //     handleCreateAccount();
+    // },[])
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
@@ -44,21 +50,21 @@ const signin = ({ isModalOpen, closeModal, setIsModalOpen }) => {
             // Step 3: Authenticate the user with Firebase Authentication using the retrieved email
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
+            
 
-            localStorage.setItem('currentUser', JSON.stringify({
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-            }));
+            localStorage.setItem("currentUser", JSON.stringify(user));
+
 
             console.log("Login successful:", user);
 
             // Step 4: Redirect or show success message
-            alert("Login successful!");
+            // alert("Login successful!");
+            toast.success("Login successful!")
             setIsModalOpen(false) // Redirect to dashboard after successful login
         } catch (error) {
             console.error("Error during login:", error);
-            alert("Error: " + error.message);
+            toast.error(`Error: ${error.message}`)
+            // alert("Error: " + error.message);
         }
     };
 

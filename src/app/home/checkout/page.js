@@ -3,8 +3,10 @@
 import data from "@/app/assets/faq_question.json"
 import { useEffect, useState } from "react";
 import { auth, fireStore } from "../../_components/firebase/config";
-import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayRemove, setDoc, arrayUnion } from "firebase/firestore";
 import { Country, State, City } from "country-state-city";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify"; // Import Toastify
 
 const checkout = () => {
     const [cartItems, setCartItems] = useState([]);
@@ -39,7 +41,6 @@ const checkout = () => {
     };
 
     const [cardData, setCardData] = useState({
-
         card_holder_name: "",
         card_number: "",
         card_expiry: "",
@@ -149,8 +150,50 @@ const checkout = () => {
         setFormData({ ...formData, [name]: value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        const userData = localStorage.getItem('currentUser');
+        const user = JSON.parse(userData);
+        if (!user) {
+            console.error("User not authenticated");
+            return;
+        }
+        const orderId = uuidv4(); // Example: "a1b2c3d4-5678"
+
+        // Order data
+        const newOrder = {
+            orderId, // Unique Order ID
+            userId: user.uid, // User's ID
+            formData, // User details
+            shippingData, // Shipping information
+            cardData, // Payment info (DO NOT store sensitive details)
+            timestamp: new Date(), // Timestamp
+            status: "pending", // Default status
+        };
+
+        try {
+            // Reference to user's document
+            const orderRef = doc(fireStore, "users", user.uid);
+
+            // Check if user document exists
+            const userDoc = await getDoc(orderRef);
+            if (userDoc.exists()) {
+                // Update existing user document (append order)
+                await updateDoc(orderRef, {
+                    orders: arrayUnion(newOrder), // Add order to the `orders` array
+                });
+            } else {
+                // Create new user document with first order
+                await setDoc(orderRef, {
+                    orders: [newOrder], // Create new `orders` array
+                });
+            }
+
+            toast.success(`Order saved and Your Order ID: ${orderId}`);
+            console.log("Order saved under user:", user.uid, "Order ID:", orderId);
+        } catch (error) {
+            console.error("Error saving order:", error);
+        }
         console.log("Form Data Submitted:", formData);
         console.log("Form Shipping Data Submitted:", shippingData);
         console.log("Form Card Data Submitted:", cardData);
@@ -164,7 +207,8 @@ const checkout = () => {
             const userData = localStorage.getItem('currentUser');
 
             if (!userData) {
-                alert("Please log in first.");
+                // alert("Please log in first.");
+                toast.error("Please log in first.")
                 return; // Exit if no user is logged in
             }
 
@@ -193,7 +237,8 @@ const checkout = () => {
         e.preventDefault();
         const userData = localStorage.getItem('currentUser');
         if (!userData) {
-            alert("Please log in first.");
+            // alert("Please log in first.");
+            toast.error("Please log in first.");
             return;
         }
 
@@ -224,35 +269,7 @@ const checkout = () => {
             console.error("Error removing item from cart:", error);
         }
     };
-
-    // const removeFromCart = async (productId, e) => {
-    //     e.preventDefault()
-    //     const userData = localStorage.getItem('currentUser');
-    //     if (!userData) {
-    //         alert("Please log in first.");
-    //         return;
-    //     }
-
-    //     const user = JSON.parse(userData); // Parse the user data from localStorage
-
-    //     try {
-    //         // Get user document reference
-    //         const userRef = doc(fireStore, "users", user.uid);
-
-    //         // Remove item from cart array in Firestore
-    //         await updateDoc(userRef, {
-    //             cart: arrayRemove({ productId }) // Remove item by productId from the cart array
-    //         });
-
-    //         // Update local state
-    //         setCartItems(cartItems.filter(item => item.productId !== productId));
-
-    //         console.log(`Removed item with productId: ${productId}`);
-    //     } catch (error) {
-    //         console.error("Error removing item from cart:", error);
-    //     }
-    // };
-
+    
     const changeQuantity = async (productId, newQuantity, e) => {
         e.preventDefault()
         if (newQuantity < 1) {
@@ -261,10 +278,10 @@ const checkout = () => {
         }
 
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 

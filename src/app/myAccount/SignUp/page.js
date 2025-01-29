@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { auth, fireStore } from "@/app/_components/firebase/config"
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc, getDocs, query, where, collection } from "firebase/firestore";
+import { toast } from 'react-toastify';
 
 const signup = () => {
 
@@ -70,12 +71,15 @@ const signup = () => {
 
             console.log("Login successful:", user);
 
-            // Step 4: Redirect or show success message
-            alert("Login successful!");
-            // router.push('/dashboard'); // Uncomment if using Next.js router for redirection
+            toast.success("Login successful!");
+
+            setTimeout(() => {
+                window.location.href = "/"; // Change '/' to your landing page URL
+            }, 1500);
         } catch (error) {
             console.error("Error during login:", error);
-            alert("Error: " + error.message);
+            // alert("Error: " + error.message);
+            toast.error(`Error: ${error.message}`)
         }
     };
 
@@ -98,10 +102,12 @@ const signup = () => {
                 createdAt: new Date(),
             });
 
-            alert("Registration successful!");
+            toast.success('Register Successfully')
+            setIsRegister(false);
         } catch (error) {
             console.error("Error during registration:", error);
-            alert(error.message);
+            // alert(error.message);
+            toast.error(`Error during registration:, ${error.message}`)
         }
     };
 

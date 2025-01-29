@@ -2,9 +2,10 @@
 
 import bestOffer from "../../assets/scraped_products.json";
 import { useEffect, useState } from "react";
-import { getFirestore, doc, getDoc, updateDoc,arrayRemove  } from "firebase/firestore";
+import { getFirestore, doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 // Hello
 
@@ -17,9 +18,16 @@ const cart = () => {
     const router = useRouter();
 
     const handleCheckout = (e) => {
-        e.preventDefault();
-        router.push('/home/checkout');
-    }
+        e.preventDefault(); // Prevent the default link navigation
+        const storedUser = localStorage.getItem("currentUser");
+        if (storedUser) {
+            router.push('/home/checkout'); // Navigate to the checkout page
+        } else {
+            toast.error("Please log in to proceed to checkout.");
+            router.push('/myAccount/SignUp');
+        }
+        setIsCartOpen(false); // Close the cart (if you have this state)
+    };
 
     const [user, setUser] = useState(null);  // State to store the current user
 
@@ -45,10 +53,10 @@ const cart = () => {
         const fetchCart = async () => {
             const userData = localStorage.getItem('currentUser');
 
-            if (!userData) {
-                alert("Please log in first.");
-                return; // Exit if no user is logged in
-            }
+            // if (!userData) {
+            //     alert("Please log in first.");
+            //     return; // Exit if no user is logged in
+            // }
 
             const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -74,10 +82,10 @@ const cart = () => {
     const handleRemoveItem = async (e, productId) => {
         e.preventDefault();
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -101,10 +109,10 @@ const cart = () => {
 
     const removeFromCart = async (productId) => {
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -142,10 +150,10 @@ const cart = () => {
         }
 
         const userData = localStorage.getItem('currentUser');
-        if (!userData) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!userData) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -180,10 +188,10 @@ const cart = () => {
         e.preventDefault(); // Prevent the default link behavior
         const user = JSON.parse(localStorage.getItem('currentUser')); // Assuming user info is stored in localStorage
 
-        if (!user) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!user) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         // Log the offer object to see if it's structured correctly
         console.log('Offer:', offer);
@@ -272,10 +280,10 @@ const cart = () => {
 
         const user = JSON.parse(localStorage.getItem('currentUser'));
 
-        if (!user) {
-            alert("Please log in first.");
-            return;
-        }
+        // if (!user) {
+        //     alert("Please log in first.");
+        //     return;
+        // }
 
         // Log the offer object to see if it's structured correctly
         console.log('Offer:', offer);
@@ -382,13 +390,7 @@ const cart = () => {
                                     <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-636e3b51eb0db">
                                         <div className="vc_column-inner vc_custom_1668168534424">
                                             <div className="wpb_wrapper">
-                                                <link
-                                                    href="/"
-                                                    id="wd-el-page-title-builder-css"
-                                                    media="all"
-                                                    rel="stylesheet"
-                                                    type="text/css"
-                                                />
+
                                                 <div className="wd-page-title-el wd-wpb wd-rs-63c80f7a9b872 vc_custom_1674055550871">
                                                     <div
                                                         className="wd-page-title page-title  page-title-default title-size-default title-design-centered color-scheme-light"
@@ -1045,7 +1047,7 @@ const cart = () => {
                                                                             <div className="wc-proceed-to-checkout">
                                                                                 <a
                                                                                     className="checkout-button button alt wc-forward"
-                                                                                    onClick={handleCheckout}
+                                                                                    onClick={() => handleCheckout(e)}
                                                                                     href="/">
                                                                                     Proceed to checkout
                                                                                 </a>
@@ -1329,7 +1331,7 @@ const cart = () => {
                                 <a
                                     href="#"
                                     className="button checkout wc-forward"
-                                    onClick={handleCheckout}
+                                    onClick={() => handleCheckout(e)}
                                 >
                                     Checkout
                                 </a>

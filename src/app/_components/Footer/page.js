@@ -242,7 +242,7 @@ const Footer = () => {
                                     >
                                         <a href="/">
                                             <img
-                                                src="/assets/wp-content/uploads/sites/9/2022/10/mega-electronics-logo.svg"
+                                                src="/assets/Images/logo-3.png"
                                                 title="mega-electronics-logo"
                                                 width={200}
                                                 height={34}

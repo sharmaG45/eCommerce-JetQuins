@@ -8,7 +8,6 @@ import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { toast } from "react-toastify";
 
 const productDetails = () => {
-    const [selectedOption, setSelectedOption] = useState("default");
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [cartItems, setCartItems] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -18,213 +17,205 @@ const productDetails = () => {
     const searchParams = useSearchParams();
 
     const handleAddToWishlist = async (e, offer) => {
-        e.preventDefault(); // Prevent the default link behavior
+        e.preventDefault(); // Prevent default behavior
 
-        // Try to get the user from localStorage
-        const user = JSON.parse(localStorage.getItem('currentUser'));
+        // Get user data from localStorage
+        const userData = localStorage.getItem("currentUser");
+        const user = userData ? JSON.parse(userData) : null;
 
-        if (!user) {
-            // If user is not logged in, store wishlist in localStorage
-            const guestWishlist = JSON.parse(localStorage.getItem('guestWishlist')) || [];
-
-            // Check if product already exists in the guest wishlist
-            if (guestWishlist.some(item => item.productId === offer.productId)) {
-                toast.success("Product is already in your wishlist!");
-            } else {
-                guestWishlist.push({ ...offer, timestamp: new Date() });
-                localStorage.setItem('guestWishlist', JSON.stringify(guestWishlist));
-                toast.success("Product added to your wishlist!");
-            }
-            return;
-        }
-
-        // Log the offer object to see if it's structured correctly
-        console.log('Offer:', offer);
-
-        // Static fallback data in case some fields are missing
+        // Fallback data for missing fields
         const staticData = {
-            product_url: 'https://defaultproducturl.com',
-            image_urls: [
-                "https://via.placeholder.com/430x491?text=Image+1",
-                "https://via.placeholder.com/430x491?text=Image+2",
-                "https://via.placeholder.com/430x491?text=Image+3",
-                "https://via.placeholder.com/430x491?text=Image+4"
-            ],
-            brand: 'Default Brand',
-            productId: '00000',
-            productName: 'Default Product',
-            productSku: 'DEFAULTSKU',
-            price: 99.99,
+            product_url: "/",
+            image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
+            brand: "Unknown Brand",
+            productId: "00000",
+            productName: "Default Product",
+            productSku: "DEFAULTSKU",
+            price: 0.0,
             discount: 0
         };
 
-        // Use static data if any required fields are missing
+        // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_urls: offer.image_url && offer.image_url.length > 0 ? offer.image_url : staticData.image_urls,
+            image_url: offer.image_url || staticData.image_url,
+            brand: offer.brand || staticData.brand,
             productId: offer.productId || staticData.productId,
             productName: offer.productName || staticData.productName,
             productSku: offer.productSku || staticData.productSku,
             price: offer.price || staticData.price,
-            discount: offer.discount || staticData.discount,
+            discount: offer.discount || staticData.discount
         };
 
-        console.log('Final Offer Data:', offerData);
+        console.log("Final Offer Data:", offerData);
 
-        try {
-            // Get the user's ID safely
-            const userId = user?.uid;
-            if (!userId) {
-                toast.error("User ID is missing. Please log in.");
+
+        if (!user || !user.uid) {
+            console.log("No user logged in. Saving to guest wishlist.");
+
+            const guestWishlist = JSON.parse(localStorage.getItem("guestWishlist")) || [];
+
+            // Check if product already exists
+            if (guestWishlist.some(item => item.productId === offerData.productId)) {
+                toast.success("Product is already in your wishlist!");
                 return;
             }
 
-            // Reference to the user document in Firestore
+            // Add to guest wishlist
+            guestWishlist.push({ ...offerData, timestamp: new Date() });
+            localStorage.setItem("guestWishlist", JSON.stringify(guestWishlist));
+
+            toast.success("Product added to your wishlist!");
+            return;
+        }
+
+
+        try {
+            const userId = user.uid;
             const userRef = doc(fireStore, "users", userId);
 
-            // Fetch the current user data to check if the wishlist exists
+            // Fetch only the wishlist from Firestore
             const userDoc = await getDoc(userRef);
             let userWishlist = userDoc.exists() ? userDoc.data().wishlist || [] : [];
 
-            // Check if the product is already in the wishlist
-            const existingProductIndex = userWishlist.findIndex(item => item.productId === offerData.productId);
-
-            if (existingProductIndex !== -1) {
+            // Check if product exists
+            if (userWishlist.some(item => item.productId === offerData.productId)) {
                 toast.success("Product is already in your wishlist!");
-            } else {
-                // Add new product to wishlist
-                userWishlist.push({
-                    productUrls: offerData.product_url,
-                    productId: offerData.productId,
-                    productName: offerData.productName,
-                    productSku: offerData.productSku,
-                    imageUrls: offerData.image_urls,
-                    price: offerData.price,
-                    discount: offerData.discount,
-                    timestamp: new Date(),
-                });
-
-                // Update the user's wishlist in Firestore
-                await updateDoc(userRef, { wishlist: userWishlist });
-
-                console.log("Product added to wishlist for user:", userId);
-                toast.success("Product added to your wishlist!");
+                return;
             }
+
+            // Add new product to wishlist
+            userWishlist.push({
+                product_url: offerData.product_url,
+                image_url: offerData.image_url,
+                brand: offerData.brand,
+                productId: offerData.productId,
+                productName: offerData.productName,
+                productSku: offerData.productSku,
+                price: offerData.price,
+                discount: offerData.discount,
+                timestamp: new Date()
+            });
+
+            // Update Firestore
+            await updateDoc(userRef, { wishlist: userWishlist });
+
+            console.log("Wishlist updated for user:", userId);
+            toast.success("Product added to your wishlist!");
 
         } catch (error) {
             console.error("Error adding product to wishlist:", error);
-            toast.error(`Error adding product to wishlist. ${error.message}`);
+            toast.error("Error adding product to wishlist.");
         }
     };
-
 
     const handleProductDetails = (brandDetails) => {
         router.push(`/home/productDetails?brand=${brandDetails}`);
     }
 
+    // Function to open the Cart Modal
     const openCart = async (e, offer) => {
-        e.preventDefault(); // Prevent the default link behavior
+        e.preventDefault(); // Prevent default behavior
 
         const userData = localStorage.getItem("currentUser");
         const user = userData ? JSON.parse(userData) : null;
 
-        // Log the offer object to see if it's structured correctly
+        // Log the offer object to verify structure
         console.log("Offer:", offer);
 
-        // Static fallback data in case some fields are missing
+        // Fallback data for missing fields
         const staticData = {
-            product_url: "https://defaultproducturl.com",
-            image_urls: [
-                "https://via.placeholder.com/430x491?text=Image+1",
-                "https://via.placeholder.com/430x491?text=Image+2",
-                "https://via.placeholder.com/430x491?text=Image+3",
-                "https://via.placeholder.com/430x491?text=Image+4"
-            ],
-            brand: "Default Brand",
+            product_url: "/",
+            image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
+            brand: "Unknown Brand",
             productId: "00000",
             productName: "Default Product",
             productSku: "DEFAULTSKU",
-            price: 99.99,
+            price: 0.0,
             discount: 0,
-            quantity: 1 // Ensuring default quantity is 1
+            quantity: 1,
+            rating: 0,
+            description: "No description available.",
+            how_product_works: "Not available.",
+            other_details: {
+                compatibility: "Unknown",
+                free_trial: "Not available",
+                subscription_model: "Not specified"
+            },
+            faq: []
         };
 
-        // Use static data if any required fields are missing
+        // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_urls: offer.image_url && offer.image_url.length > 0 ? offer.image_url : staticData.image_urls,
+            image_url: offer.image_url || staticData.image_url,
+            brand: offer.brand || staticData.brand,
             productId: offer.productId || staticData.productId,
             productName: offer.productName || staticData.productName,
             productSku: offer.productSku || staticData.productSku,
             price: offer.price || staticData.price,
             discount: offer.discount || staticData.discount,
-            quantity: offer.quantity || staticData.quantity // Default to 1 if quantity is missing
+            quantity: offer.quantity || staticData.quantity,
+            rating: offer.rating || staticData.rating,
+            description: offer.description || staticData.description,
+            how_product_works: offer.how_product_works || staticData.how_product_works,
+            other_details: offer.other_details || staticData.other_details,
+            faq: offer.faq || staticData.faq
         };
 
         console.log("Final Offer Data:", offerData);
 
         if (!user || !user.uid) {
-            // If the user is not logged in, store the cart in localStorage
+            console.log("User not logged in. Saving to guest cart.");
+
             const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Check if the product already exists in the guest cart
-            const existingProductIndex = guestCart.findIndex(item => item.productId === offerData.productId);
+            // Check if the product already exists
+            const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
 
-            if (existingProductIndex !== -1) {
-                // If product exists, increment quantity
-                guestCart[existingProductIndex].quantity += 1;
+            if (existingIndex !== -1) {
+                // Update quantity if product exists
+                guestCart[existingIndex].quantity += 1;
                 toast.success("Product quantity updated in your cart!");
             } else {
-                // If not, add it as a new product
+                // Add new product
                 guestCart.push({ ...offerData, timestamp: new Date() });
                 toast.success("Product added to your cart!");
             }
 
-            // Save updated cart to localStorage
+            // Update localStorage
             localStorage.setItem("guestCart", JSON.stringify(guestCart));
-            setIsCartOpen(true); // Open the cart after adding
+            setIsCartOpen(true); // Open the cart
             return;
         }
 
-        // If the user is logged in, proceed with Firestore update
+
         try {
             const userId = user.uid;
-
-            // Reference to the user document in Firestore
             const userRef = doc(fireStore, "users", userId);
 
-            // Fetch the current user data to check if the cart exists
+            // Fetch existing cart data from Firestore
             const userDoc = await getDoc(userRef);
             let userCart = userDoc.exists() ? userDoc.data().cart || [] : [];
 
-            // Check if the product is already in the cart
-            const existingProductIndex = userCart.findIndex(item => item.productId === offerData.productId);
+            // Check if product exists in Firestore cart
+            const existingIndex = userCart.findIndex(item => item.productId === offerData.productId);
 
-            if (existingProductIndex !== -1) {
-                // If the product exists, increment quantity
-                userCart[existingProductIndex].quantity += 1;
+            if (existingIndex !== -1) {
+                // If exists, update quantity
+                userCart[existingIndex].quantity += 1;
                 toast.success("Product quantity updated in your cart!");
             } else {
-                // If not, add a new product
-                userCart.push({
-                    productUrls: offerData.product_url,
-                    productId: offerData.productId,
-                    productName: offerData.productName,
-                    productSku: offerData.productSku,
-                    imageUrls: offerData.image_urls,
-                    price: offerData.price,
-                    discount: offerData.discount,
-                    quantity: 1, // Starting quantity
-                    timestamp: new Date()
-                });
+                // Add new product
+                userCart.push({ ...offerData, timestamp: new Date() });
                 toast.success("Product added to your cart!");
             }
 
-            // Update the user's cart document in Firestore
+            // Update Firestore cart
             await updateDoc(userRef, { cart: userCart });
 
             console.log("Cart updated for user:", userId);
-            setIsCartOpen(true); // Open the cart after adding
+            setIsCartOpen(true); // Open the cart
 
         } catch (error) {
             console.error("Error adding product to cart:", error);
@@ -232,13 +223,8 @@ const productDetails = () => {
         }
     };
 
-
     const closeCart = () => {
         setIsCartOpen(false);
-    };
-
-    const handleChange = (event) => {
-        setSelectedOption(event.target.value);
     };
 
     useEffect(() => {
@@ -496,71 +482,7 @@ const productDetails = () => {
                                     </div>
                                     {filteredProducts.map((item, index) => (
                                         <div className="vc_row wpb_row vc_row-fluid vc_row-o-equal-height vc_row-flex wd-rs-63c961a47cbd5" key={index}>
-                                            {/* <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column">
-      <div className="vc_column-inner">
-        <div className="wpb_wrapper">
-          <div className="woocommerce-product-gallery images wd-has-thumb thumbs-position-left wd-thumbs-wrap image-action-zoom">
-            <div className="wd-carousel-container wd-gallery-images">
-              <div className="wd-carousel-inner">
-                {product.discount && (
-                  <div className="product-labels labels-rounded-sm">
-                    <span className="onsale product-label">-{product.discount}%</span>
-                  </div>
-                )}
-                <figure className="woocommerce-product-gallery__wrapper wd-carousel wd-grid">
-                  <div className="wd-carousel-wrap">
-                    {product.images.map((image, index) => (
-                      <div key={index} className="wd-carousel-item">
-                        <figure className="woocommerce-product-gallery__image">
-                          <a data-elementor-open-lightbox="no" href={image.large}>
-                            <img
-                              decoding="async"
-                              width="700"
-                              height="800"
-                              src={image.large}
-                              className="wp-post-image imagify-no-webp"
-                              alt={image.alt || "Product Image"}
-                              title={image.title || "Product Image"}
-                              data-src={image.large}
-                              data-large_image={image.large}
-                              data-large_image_width="700"
-                              data-large_image_height="800"
-                            />
-                          </a>
-                        </figure>
-                      </div>
-                    ))}
-                  </div>
-                </figure>
-                <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-custom-style wd-icon-1">
-                  <div className="wd-btn-arrow wd-prev wd-disabled">
-                    <div className="wd-arrow-inner"></div>
-                  </div>
-                  <div className="wd-btn-arrow wd-next">
-                    <div className="wd-arrow-inner"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="wd-carousel-container wd-gallery-thumb">
-              <div className="wd-carousel-inner">
-                <div className="wd-carousel wd-grid" style={{ '--wd-col-lg': 3, '--wd-col-md': 4, '--wd-col-sm': 3 }}>
-                  <div className="wd-carousel-wrap">
-                    {product.images.map((image, index) => (
-                      <div key={index} className="wd-carousel-item">
-                        <picture>
-                          <img decoding="async" width="150" height="172" src={image.thumb} alt={image.alt || "Product Thumbnail"} />
-                        </picture>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-                                            </div> */}
+
 
                                             <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column wd_sticky_offset_150 wd-rs-63c80f01d23e4">
                                                 <div
@@ -849,7 +771,7 @@ const productDetails = () => {
                                                                             <div className="wd-wishlist-btn wd-action-btn wd-wishlist-icon wd-style-text">
                                                                                 <a
                                                                                     onClick={(e) => handleAddToWishlist(e, item)}
-                                                                                    href="/home/wishlist"
+                                                                                    href="#"
                                                                                     data-key={item.productId}
                                                                                     data-product-id={item.productId}
                                                                                     rel="nofollow"
@@ -2789,7 +2711,7 @@ const productDetails = () => {
                                                                                     <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
                                                                                         <a
                                                                                             onClick={(e) => handleAddToWishlist(e, offer)}
-                                                                                            href="/home/wishlist"
+                                                                                            href="#"
                                                                                             data-key={offer.productId}
                                                                                             data-product-id={offer.productId}
                                                                                             rel="nofollow"

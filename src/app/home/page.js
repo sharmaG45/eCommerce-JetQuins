@@ -5,12 +5,12 @@ import bestOffer from "../../app/assets/scraped_products.json";
 import categories from "../../app/assets/product_categories.json";
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth, fireStore } from "@/app/_components/firebase/config";
+import {  fireStore } from "@/app/_components/firebase/config";
 import styles from './Slider.module.css'
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
-import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { toast } from "react-toastify";
 import bg1 from "../../../public/assets/Images/backgound-1.jpg";
 
@@ -443,18 +443,22 @@ const HomePage = () => {
     const [visibleProducts, setVisibleProducts] = useState(PRODUCTS_PER_PAGE);
     const [visibleProducts2, setVisibleProducts2] = useState(PRODUCTS_PER_PAGE2);
     const [visibleProducts3, setVisibleProducts3] = useState(PRODUCTS_PER_PAGE3);
+
     const handleShowMore = () => {
         // Show the next batch of products
         setVisibleProducts((prev) => prev + PRODUCTS_PER_PAGE);
     };
+
     const handleShowMore2 = () => {
         // Show the next batch of products
         setVisibleProducts2((prev) => prev + PRODUCTS_PER_PAGE2);
     };
+
     const handleShowMore3 = () => {
         // Show the next batch of products
         setVisibleProducts3((prev) => prev + PRODUCTS_PER_PAGE3);
     };
+
     const bestOffers = bestOffer.slice(0, visibleProducts);
     const bestOffers2 = bestOffer.slice(0, visibleProducts2);
     const bestOffers3 = bestOffer.slice(0, visibleProducts3);
@@ -462,6 +466,7 @@ const HomePage = () => {
     const handleReadMore = () => {
         setIsReadMore(!isReadMore);
     }
+
     const handleMore = () => {
         setIsMore(!isMore);
     }
@@ -818,7 +823,7 @@ const HomePage = () => {
                                                                             <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
                                                                                 <a
                                                                                     onClick={(e) => handleAddToWishlist(e, offer)}
-                                                                                    href="/home/wishlist"
+                                                                                    href="#"
                                                                                     data-key={offer.productId}
                                                                                     data-product-id={offer.productId}
                                                                                     rel="nofollow"
@@ -1707,7 +1712,7 @@ const HomePage = () => {
                                                                             <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
                                                                                 <a
                                                                                     onClick={(e) => handleAddToWishlist(e, offer)}
-                                                                                    href="/home/wishlist"
+                                                                                    href="#"
                                                                                     data-key={offer.productId}
                                                                                     data-product-id={offer.productId}
                                                                                     rel="nofollow"
@@ -2139,7 +2144,7 @@ const HomePage = () => {
                                                                             <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
                                                                                 <a
                                                                                     onClick={(e) => handleAddToWishlist(e, offer)}
-                                                                                    href="/home/wishlist"
+                                                                                    href="#"
                                                                                     data-key={offer.productId}
                                                                                     data-product-id={offer.productId}
                                                                                     rel="nofollow"

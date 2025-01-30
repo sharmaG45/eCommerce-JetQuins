@@ -710,7 +710,7 @@ const cart = () => {
                                                                                         <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
                                                                                             <a
                                                                                                 onClick={(e) => handleAddToWishlist(e, offer)}
-                                                                                                href="/home/wishlist"
+                                                                                                href="#"
                                                                                                 data-key={offer.productId}
                                                                                                 data-product-id={offer.productId}
                                                                                                 rel="nofollow"

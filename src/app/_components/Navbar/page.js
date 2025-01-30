@@ -44,6 +44,45 @@ const Navbar = () => {
         }
     ];
 
+    const productItems = [
+        {
+            id: 1,
+            name: "Bitdefender Antivirus",
+            imgAlt: "Bitdefender",
+            imgSrc: "https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Laptops-Tablets-PC.svg",
+            url: "/home/productCategory?title=Bitdefender" // Assuming the product URL for Bitdefender
+        },
+        {
+            id: 2,
+            name: "McAfee Antivirus",
+            imgAlt: "McAfee",
+            imgSrc: "https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Hardware-Components.svg",
+            url: "/home/productCategory?title=McAfee" // Assuming the product URL for McAfee
+        },
+        {
+            id: 3,
+            name: "Trend Micro",
+            imgAlt: "Trend Micro",
+            imgSrc: "https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/TV-HIFI.svg",
+            url: "/home/productCategory?title=Trend Micro" // Assuming the product URL for Trend Micro
+        },
+        {
+            id: 4,
+            name: "Norton Antivirus",
+            imgAlt: "Norton",
+            imgSrc: "https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Computer-Office.svg",
+            url: "/home/productCategory?title=Norton" // Assuming the product URL for Norton
+
+        },
+        {
+            id: 5,
+            name: "Webroot Antivirus",
+            imgAlt: "",
+            imgSrc: "https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones.svg",
+            url: "/home/productCategory?title=Webroot" // Assuming the product URL for Norton
+        },
+    ];
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -89,7 +128,6 @@ const Navbar = () => {
             });
     }
 
-
     const toggleDropdown = () => {
         setIsOpen(!isOpen);
     };
@@ -127,6 +165,11 @@ const Navbar = () => {
     const closeMobileMenu = () => {
         setIsMenuOpen(false);
     };
+
+    // Funstion to open Sidebar
+    const handleSidebar = (e) => {
+
+    }
 
     const handleMenuClick = (id) => {
         setActiveSection((prev) => (prev === id ? null : id));
@@ -312,8 +355,6 @@ const Navbar = () => {
         return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
     };
 
-
-
     useEffect(() => {
         const fetchUserData = async () => {
             try {
@@ -419,7 +460,7 @@ const Navbar = () => {
                                         aria-label="Site logo"
                                     >
                                         <img
-                                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/mega-electronics-logo.svg"
+                                            src="/assets/Images/logo-3.png"
                                             className="attachment-full size-full"
                                             alt=""
                                             style={{ maxWidth: 200 }}
@@ -518,16 +559,16 @@ const Navbar = () => {
                                             </div>
                                         </div>
                                         <div className="info-box-content">
-                                            <div className="info-box-inner reset-last-child">
+                                            <a className="info-box-inner reset-last-child" href="tel:+1(888) 267-5955">
                                                 <h6 style={{ marginBottom: 0, fontSize: 14 }}>
                                                     24 Support
                                                 </h6>
                                                 <p>
                                                     <span style={{ color: "#1c61e7", fontSize: 14 }}>
-                                                        +1 212-334-0212
+                                                        +1 (805) 507-0321
                                                     </span>
                                                 </p>
-                                            </div>
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -580,13 +621,13 @@ const Navbar = () => {
                             <div className="whb-column whb-mobile-center whb-hidden-lg">
                                 <div className="site-logo">
                                     <a
-                                        href="/"
+                                        href="/home"
                                         className="wd-logo wd-main-logo"
                                         rel="home"
                                         aria-label="Site logo"
                                     >
                                         <img
-                                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/mega-electronics-logo.svg"
+                                            src="/assets/Images/Logo-3.png"
                                             className="attachment-full size-full"
                                             alt=""
                                             style={{ maxWidth: 180 }}
@@ -606,17 +647,14 @@ const Navbar = () => {
                                         <span className="wd-tools-text">Login / Register </span>
                                     </a>
                                 </div>
-
-
                             </div>
-
                         </div>
                     </div>
                 </div>
                 <div className="whb-row whb-header-bottom whb-sticky-row whb-with-bg whb-without-border whb-color-dark whb-flex-flex-middle">
                     <div className="container">
                         <div className="whb-flex-row whb-header-bottom-inner">
-                            <div className="whb-column whb-col-left whb-visible-lg">
+                            <div className="whb-column whb-col-left whb-visible-lg" onClick={(e) => handleSidebar(e)}>
                                 <div className="wd-tools-element wd-header-sticky-nav wd-style-text wd-design-8 wd-close-menu-mouseout whb-07amklogpjd7r42vt1ip">
                                     <a rel="nofollow" aria-label="Open sticky navigation">
                                         <span className="wd-tools-inner">
@@ -642,7 +680,7 @@ const Navbar = () => {
                                             className="menu-item menu-item-type-post_type menu-item-object-page menu-item-87 item-level-0 menu-simple-dropdown wd-event-hover"
                                         >
                                             <a
-                                                href="/home/stores"
+                                                href="/home/AboutUs"
 
                                                 className="woodmart-nav-link"
                                             >
@@ -693,7 +731,7 @@ const Navbar = () => {
                                                 >
                                                     <li style={{ padding: "10px 20px" }}>
                                                         <a
-                                                            href="/home/terms"
+                                                            href="/home/terms-and-policy"
                                                             style={{
                                                                 textDecoration: "none",
                                                                 color: "#333",
@@ -705,7 +743,7 @@ const Navbar = () => {
                                                     </li>
                                                     <li style={{ padding: "10px 20px" }}>
                                                         <a
-                                                            href="/home/privacy"
+                                                            href="/home/privacy-policy"
                                                             style={{
                                                                 textDecoration: "none",
                                                                 color: "#333",
@@ -717,7 +755,7 @@ const Navbar = () => {
                                                     </li>
                                                     <li style={{ padding: "10px 20px" }}>
                                                         <a
-                                                            href="/home/return"
+                                                            href="/home/refund-and-cancellation"
                                                             style={{
                                                                 textDecoration: "none",
                                                                 color: "#333",
@@ -899,7 +937,8 @@ const Navbar = () => {
                                     title="My Wishlist"
                                 >
                                     <a
-                                        href="/home/wishlist"
+                                        href="#"
+                                        onClick={(e) => { handleWishlist(e) }}
                                         title="Wishlist products"
                                     >
                                         <span className="wd-tools-icon">
@@ -1197,104 +1236,26 @@ const Navbar = () => {
                 className={`mobile-pages-menu menu wd-nav wd-nav-mobile wd-layout-drilldown wd-drilldown-slide ${activeSection === "menu-mobile-menu-mega-electronics" ? "wd-active" : "wd-hidden"
                     }`}
             >
-                <li
-                    id="menu-item-112"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-112 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
+                {productItems.map((item) => (
+                    <li
+                        key={item.id}
+                        className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children item-level-0"
                     >
-                        <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Laptops-Tablets-PC.svg"
-                            title="Laptops, Tablets & PC"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        />
-                        <span className="nav-link-text">Webroot</span>
-                    </a>
+                        <a className="woodmart-nav-link" onClick={() => { handleProductClick(item.url) }}>
+                            <img
+                                src={item.image}
+                                title={item.title}
+                                loading="lazy"
+                                className="wd-nav-img"
+                                width={18}
+                                height={18}
+                                alt={item.title}
+                            />
+                            <span className="nav-link-text">{item.name}</span>
+                        </a>
+                    </li>
+                ))}
 
-                </li>
-                <li
-                    id="menu-item-108"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-108 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-                        <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Computer-Office.svg"
-                            title="Computer & Office"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        />
-                        <span className="nav-link-text">McAfee</span>
-                    </a>
-
-                </li>
-                <li
-                    id="menu-item-110"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-110 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-                        <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Hardware-Components.svg"
-                            title="Hardware & Components"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        />
-                        <span className="nav-link-text">Norton</span>
-                    </a>
-
-                </li>
-                <li
-                    id="menu-item-114"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-114 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-                        <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones.svg"
-                            title="Smartphones"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        />
-                        <span className="nav-link-text">AVG</span>
-                    </a>
-                </li>
-                <li
-                    id="menu-item-109"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-109 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-                        <img
-                            src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/11/Smartphones.svg"
-                            title="Smartphones"
-                            loading="lazy"
-                            className="wd-nav-img"
-                            width={18}
-                            height={18}
-                        />
-                        <span className="nav-link-text">Avast</span>
-                    </a>
-                </li>
             </ul>
             <ul
                 id="menu-mobile-categories-mega-electronics"
@@ -1307,7 +1268,7 @@ const Navbar = () => {
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4623 item-level-0"
                 >
                     <a
-                        href="/home/"
+                        href="/home/AboutUs"
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">About Us</span>
@@ -1318,10 +1279,32 @@ const Navbar = () => {
                     className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4624 item-level-0"
                 >
                     <a
-                        href="/home/stores"
+                        href="/home/privacy-policy"
                         className="woodmart-nav-link"
                     >
-                        <span className="nav-link-text">Stores</span>
+                        <span className="nav-link-text">Privacy & Policy</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-4624"
+                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4624 item-level-0"
+                >
+                    <a
+                        href="/home/terms-and-policy"
+                        className="woodmart-nav-link"
+                    >
+                        <span className="nav-link-text">Terms & Conditions</span>
+                    </a>
+                </li>
+                <li
+                    id="menu-item-4624"
+                    className="menu-item menu-item-type-post_type menu-item-object-page menu-item-4624 item-level-0"
+                >
+                    <a
+                        href="/home/refund-and-cancellation"
+                        className="woodmart-nav-link"
+                    >
+                        <span className="nav-link-text">Refund & cancellation</span>
                     </a>
                 </li>
                 <li
@@ -1335,24 +1318,12 @@ const Navbar = () => {
                         <span className="nav-link-text">Our Contacts</span>
                     </a>
                 </li>
-                <li
-                    id="menu-item-112"
-                    className="menu-item menu-item-type-taxonomy menu-item-object-product_cat menu-item-has-children menu-item-112 item-level-0"
-                >
-                    <a
-                        href="/"
-                        className="woodmart-nav-link"
-                    >
-
-                        <span className="nav-link-text">Products</span>
-                    </a>
-
-                </li>
 
                 <li className="menu-item menu-item-wishlist wd-with-icon item-level-0">
 
                     <a
-                        href="/home/wishlist"
+                        href="#"
+                        onClick={(e) => handleWishlist(e)}
                         className="woodmart-nav-link"
                     >
                         <span className="nav-link-text">Wishlist</span>

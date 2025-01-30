@@ -1,4 +1,82 @@
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { fireStore } from "@/app/_components/firebase/config";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { toast } from "react-toastify";
+
 const Contact = () => {
+    const [isReadMore, setIsReadMore] = useState(false);
+
+    const [formData, setFormData] = useState({
+        First: "",
+        Last: "",
+        Email: "",
+        "your-message": "",
+    });
+    const [formStatus, setFormStatus] = useState(null);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prevData) => ({
+            ...prevData,
+            [name]: value,
+        }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setFormStatus("loading");
+
+        if (typeof window !== "undefined") {
+            const userData = localStorage.getItem("currentUser");
+            console.log("userData from localStorage:", userData); // Debugging
+
+            const user = userData ? JSON.parse(userData) : null;
+
+            if (!user) {
+                setFormStatus("error");
+                console.error("User not found in localStorage");
+                return;
+            }
+
+            try {
+                const userId = user.uid;
+                const userRef = doc(fireStore, "users", userId);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const data = {
+                        First: formData.First,
+                        Last: formData.Last,
+                        Email: formData.Email,
+                        "your-message": formData["your-message"],
+                        timestamp: new Date(),
+                    };
+
+                    // Save the form data under a sub-collection "messages"
+                    await setDoc(doc(fireStore, "users", userId, "messages", `${new Date().getTime()}`), data);
+
+                    setFormStatus("success");
+                    console.log("Form data saved successfully!");
+                } else {
+                    setFormStatus("error");
+                    console.error("User document does not exist in Firestore");
+                }
+            } catch (error) {
+                setFormStatus("error");
+                console.error("Error saving form data: ", error);
+            }
+        } else {
+            setFormStatus("error");
+            console.error("localStorage is not available.");
+        }
+    };
+
+    const handleReadMore = () => {
+        setIsReadMore(!isReadMore);
+    }
+
     return (
         <>
             <div className="wd-page-content main-page-wrapper">
@@ -45,130 +123,83 @@ const Contact = () => {
                                                                         />
                                                                         <ul />
                                                                     </div>
-                                                                    <form
-                                                                        action="/mega-electronics/our-contacts/#wpcf7-f3792-p22-o1"
-                                                                        method="post"
-                                                                        className="wpcf7-form init"
-                                                                        aria-label="Contact form"
-                                                                        noValidate="novalidate"
-                                                                        data-status="init"
-                                                                    >
-                                                                        <div style={{ display: "none" }}>
-                                                                            <input
-                                                                                type="hidden"
-                                                                                name="_wpcf7"
-                                                                                defaultValue={3792}
-                                                                            />
-                                                                            <input
-                                                                                type="hidden"
-                                                                                name="_wpcf7_version"
-                                                                                defaultValue="5.9.8"
-                                                                            />
-                                                                            <input
-                                                                                type="hidden"
-                                                                                name="_wpcf7_locale"
-                                                                                defaultValue="en_US"
-                                                                            />
-                                                                            <input
-                                                                                type="hidden"
-                                                                                name="_wpcf7_unit_tag"
-                                                                                defaultValue="wpcf7-f3792-p22-o1"
-                                                                            />
-                                                                            <input
-                                                                                type="hidden"
-                                                                                name="_wpcf7_container_post"
-                                                                                defaultValue={22}
-                                                                            />
-                                                                            <input
-                                                                                type="hidden"
-                                                                                name="_wpcf7_posted_data_hash"
-                                                                                defaultValue=""
-                                                                            />
-                                                                        </div>
+                                                                    <form onSubmit={handleSubmit} className="wpcf7-form init" aria-label="Contact form" noValidate>
                                                                         <div className="row">
                                                                             <p className="col-md-6">
-                                                                                <span
-                                                                                    className="wpcf7-form-control-wrap"
-                                                                                    data-name="First"
-                                                                                >
+                                                                                <span className="wpcf7-form-control-wrap" data-name="First">
                                                                                     <input
-                                                                                        size={40}
-                                                                                        maxLength={400}
-                                                                                        className="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
-                                                                                        aria-required="true"
-                                                                                        aria-invalid="false"
-                                                                                        placeholder="First name"
-                                                                                        defaultValue=""
                                                                                         type="text"
                                                                                         name="First"
+                                                                                        placeholder="First name"
+                                                                                        value={formData.First}
+                                                                                        onChange={handleChange}
+                                                                                        className="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                                        aria-required="true"
                                                                                     />
                                                                                 </span>
                                                                             </p>
                                                                             <p className="col-md-6">
-                                                                                <span
-                                                                                    className="wpcf7-form-control-wrap"
-                                                                                    data-name="Last"
-                                                                                >
+                                                                                <span className="wpcf7-form-control-wrap" data-name="Last">
                                                                                     <input
-                                                                                        size={40}
-                                                                                        maxLength={400}
-                                                                                        className="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
-                                                                                        aria-required="true"
-                                                                                        aria-invalid="false"
-                                                                                        placeholder="Last name"
-                                                                                        defaultValue=""
                                                                                         type="text"
                                                                                         name="Last"
+                                                                                        placeholder="Last name"
+                                                                                        value={formData.Last}
+                                                                                        onChange={handleChange}
+                                                                                        className="wpcf7-form-control wpcf7-text wpcf7-validates-as-required"
+                                                                                        aria-required="true"
                                                                                     />
                                                                                 </span>
                                                                             </p>
                                                                         </div>
+
                                                                         <p>
-                                                                            <span
-                                                                                className="wpcf7-form-control-wrap"
-                                                                                data-name="Email"
-                                                                            >
+                                                                            <span className="wpcf7-form-control-wrap" data-name="Email">
                                                                                 <input
-                                                                                    size={40}
-                                                                                    maxLength={400}
-                                                                                    className="wpcf7-form-control wpcf7-email wpcf7-validates-as-required wpcf7-text wpcf7-validates-as-email"
-                                                                                    aria-required="true"
-                                                                                    aria-invalid="false"
-                                                                                    placeholder="Email"
-                                                                                    defaultValue=""
                                                                                     type="email"
                                                                                     name="Email"
+                                                                                    placeholder="Email"
+                                                                                    value={formData.Email}
+                                                                                    onChange={handleChange}
+                                                                                    className="wpcf7-form-control wpcf7-email wpcf7-validates-as-required wpcf7-validates-as-email"
+                                                                                    aria-required="true"
                                                                                 />
                                                                             </span>
                                                                         </p>
+
                                                                         <p>
-                                                                            <span
-                                                                                className="wpcf7-form-control-wrap"
-                                                                                data-name="your-message"
-                                                                            >
+                                                                            <span className="wpcf7-form-control-wrap" data-name="your-message">
                                                                                 <textarea
-                                                                                    cols={40}
-                                                                                    rows={10}
-                                                                                    maxLength={2000}
-                                                                                    className="wpcf7-form-control wpcf7-textarea"
-                                                                                    aria-invalid="false"
-                                                                                    placeholder="Your Message"
                                                                                     name="your-message"
-                                                                                    defaultValue={""}
+                                                                                    placeholder="Your Message"
+                                                                                    value={formData["your-message"]}
+                                                                                    onChange={handleChange}
+                                                                                    className="wpcf7-form-control wpcf7-textarea"
+                                                                                    rows="10"
+                                                                                    maxLength="2000"
                                                                                 />
                                                                             </span>
                                                                         </p>
+
                                                                         <p>
-                                                                            <input
-                                                                                className="wpcf7-form-control wpcf7-submit has-spinner btn btn-color-primary btn-style-semi-round"
+                                                                            <button
                                                                                 type="submit"
-                                                                                defaultValue="Send Message"
-                                                                            />
+                                                                                className="wpcf7-form-control wpcf7-submit has-spinner btn btn-color-primary btn-style-semi-round"
+                                                                            >
+                                                                                {formStatus === "loading" ? "Sending..." : "Send Message"}
+                                                                            </button>
                                                                         </p>
-                                                                        <div
-                                                                            className="wpcf7-response-output"
-                                                                            aria-hidden="true"
-                                                                        />
+
+                                                                        {formStatus === "success" && (
+                                                                            <div className="wpcf7-response-output" role="status">
+                                                                                <p>Your message has been sent successfully!</p>
+                                                                            </div>
+                                                                        )}
+                                                                        {formStatus === "error" && (
+                                                                            <div className="wpcf7-response-output" role="status">
+                                                                                <p>There was an error sending your message. Please try again.</p>
+                                                                            </div>
+                                                                        )}
                                                                     </form>
                                                                 </div>
                                                             </div>
@@ -211,19 +242,14 @@ const Contact = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
-                                                                                &lt;img decoding="async"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/phone.svg"
-                                                                                title="phone" loading="lazy" width="32"
-                                                                                height="32"&gt;
-                                                                            </noscript>
+
                                                                         </span>
                                                                         <span className="wd-list-content list-content">
                                                                             (208) 555-0112
                                                                         </span>
                                                                         <a
                                                                             className="wd-fill"
-                                                                            
+                                                                            href="tel:+1(888) 267-5955"
                                                                             title=""
                                                                             aria-label="List link"
                                                                         />
@@ -240,19 +266,14 @@ const Contact = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
-                                                                                &lt;img decoding="async"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/messenger.svg"
-                                                                                title="messenger" loading="lazy" width="32"
-                                                                                height="32"&gt;
-                                                                            </noscript>
+
                                                                         </span>
                                                                         <span className="wd-list-content list-content">
                                                                             Messenger
                                                                         </span>
                                                                         <a
                                                                             className="wd-fill"
-                                                                            
+
                                                                             title=""
                                                                             aria-label="List link"
                                                                         />
@@ -269,19 +290,14 @@ const Contact = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
-                                                                                &lt;img decoding="async"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/telegram.svg"
-                                                                                title="telegram" loading="lazy" width="32"
-                                                                                height="32"&gt;
-                                                                            </noscript>
+
                                                                         </span>
                                                                         <span className="wd-list-content list-content">
                                                                             Telegram
                                                                         </span>
                                                                         <a
                                                                             className="wd-fill"
-                                                                            
+
                                                                             title=""
                                                                             aria-label="List link"
                                                                         />
@@ -298,19 +314,14 @@ const Contact = () => {
                                                                                 data-ll-status="loaded"
                                                                                 className="entered lazyloaded"
                                                                             />
-                                                                            <noscript>
-                                                                                &lt;img decoding="async"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/email.svg"
-                                                                                title="email" loading="lazy" width="32"
-                                                                                height="32"&gt;
-                                                                            </noscript>
+
                                                                         </span>
                                                                         <span className="wd-list-content list-content">
                                                                             Email: woodmart@mail.com
                                                                         </span>
                                                                         <a
                                                                             className="wd-fill"
-                                                                            
+                                                                            href="mailto:contact@onlineflightreservation.com"
                                                                             title=""
                                                                             aria-label="List link"
                                                                         />
@@ -385,7 +396,7 @@ const Contact = () => {
                                     </div>
                                 </div>
                                 <div className="vc_row wpb_row vc_row-fluid vc_custom_1668011402189 vc_row-has-fill wd-rs-636bd57f5840b">
-                                    <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-635007e861e8d wd-collapsible-content">
+                                    <div className={`wpb_column vc_column_container vc_col-sm-12 wd-rs-63ca988e4d43a wd-collapsible-content ${isReadMore ? 'wd-opened' : ''}`}>
                                         <div className="vc_column-inner vc_custom_1666189296787">
                                             <div className="wpb_wrapper">
                                                 <div
@@ -432,7 +443,7 @@ const Contact = () => {
                                                     id="wd-63c13093ea21c"
                                                     className=" wd-rs-63c13093ea21c  wd-button-wrapper text-left wd-collapsible-button"
                                                 >
-                                                    <a className="btn btn-style-default btn-shape-semi-round btn-size-small btn-icon-pos-right">
+                                                    <a className="btn btn-style-default btn-shape-semi-round btn-size-small btn-icon-pos-right" onClick={handleReadMore}>
                                                         Read More
                                                         <span className="wd-btn-icon">
                                                             <img
@@ -443,12 +454,7 @@ const Contact = () => {
                                                                 height={14}
                                                                 data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-down-black.svg"
                                                             />
-                                                            <noscript>
-                                                                &lt;img decoding="async"
-                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2023/01/chevron-down-black.svg"
-                                                                title="chevron-down-black" loading="lazy" width="14"
-                                                                height="14"&gt;
-                                                            </noscript>
+
                                                         </span>
                                                     </a>
                                                 </div>

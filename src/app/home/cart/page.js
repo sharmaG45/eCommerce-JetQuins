@@ -482,7 +482,7 @@ const cart = () => {
                                                                             <td className="product-thumbnail">
                                                                                 <a href={item.productUrl}>
                                                                                     <img
-                                                                                        src={item.imageUrls}
+                                                                                        src={item.image_url}
                                                                                         alt={item.productName}
                                                                                         width="430"
                                                                                         height="491"
@@ -1243,7 +1243,7 @@ const cart = () => {
                                                     <img
                                                         width={430}
                                                         height={491}
-                                                        src={item.imageUrls}
+                                                        src={item.image_url}
                                                         className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
                                                         alt={item.productName}
                                                         decoding="async"

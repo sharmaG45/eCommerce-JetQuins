@@ -151,18 +151,21 @@ const Navbar = () => {
     }
 
     useEffect(() => {
-        // Fetch the current user's cart items
         const fetchCart = async () => {
             try {
                 // Get user data from localStorage
                 const userData = localStorage.getItem("currentUser");
 
-                // If no user data, exit early
                 if (!userData) {
-                    console.log("No user logged in. Skipping cart fetch.");
+                    console.log("No user logged in. Fetching cart from localStorage.");
+
+                    // Fetch cart from localStorage for guest users
+                    const guestCart = localStorage.getItem("guestCart");
+                    setCartItems(guestCart ? JSON.parse(guestCart) : []);
                     return;
                 }
 
+                // Parse user data
                 const user = JSON.parse(userData);
 
                 // Validate user object
@@ -176,8 +179,8 @@ const Navbar = () => {
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
-                    const cartData = userDoc.data().cart || []; // Retrieve the cart data from the user document
-                    setCartItems(cartData); // Set the cart items to state
+                    const cartData = userDoc.data().cart || [];
+                    setCartItems(cartData); // Set cart items for logged-in users
                 } else {
                     console.log("User document not found.");
                 }
@@ -186,42 +189,59 @@ const Navbar = () => {
             }
         };
 
-        fetchCart(); // Call the fetchCart function to retrieve cart items
+        fetchCart();
     }, []);
 
-
     const removeFromCart = async (productId) => {
-        const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
+        const userData = localStorage.getItem("currentUser");
 
-        const user = JSON.parse(userData); // Parse the user data from localStorage
+        if (!userData) {
+            console.log("No user logged in. Removing item from guest cart.");
 
-        try {
-            // Get user document reference
-            const userRef = doc(fireStore, "users", user.uid);
+            // Get guest cart from localStorage
+            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Find the item to be removed by matching the productId
-            const itemToRemove = cartItems.find(item => item.productId === productId);
+            // Remove the selected item
+            const updatedCart = guestCart.filter(item => item.productId !== productId);
 
-            if (!itemToRemove) {
-                console.log("Item not found in cart.");
-                return;
+            // Update localStorage and state
+            localStorage.setItem("guestCart", JSON.stringify(updatedCart));
+            setCartItems(updatedCart);
+
+            alert("Product removed from cart!");
+            return;
+        }
+
+        // Parse user data
+        const user = JSON.parse(userData);
+        const userId = user?.uid;
+
+        if (userId) {
+            try {
+                const userRef = doc(fireStore, "users", userId);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const userCart = userDoc.data().cart || [];
+
+                    // Find and remove the item
+                    const updatedCart = userCart.filter(item => item.productId !== productId);
+
+                    // Update Firestore
+                    await updateDoc(userRef, { cart: updatedCart });
+
+                    // Update local state
+                    setCartItems(updatedCart);
+
+                    console.log(`Removed item with productId: ${productId}`);
+                    alert("Product removed from cart!");
+                } else {
+                    console.log("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error removing item from cart:", error);
+                alert("Error removing product from cart.");
             }
-
-            // Remove item from cart array in Firestore using arrayRemove
-            await updateDoc(userRef, {
-                cart: arrayRemove(itemToRemove) // Ensure you're passing the whole object
-            });
-
-            // Update local state by filtering out the item
-            setCartItems(cartItems.filter(item => item.productId !== productId));
-
-            console.log(`Removed item with productId: ${productId}`);
-        } catch (error) {
-            console.error("Error removing item from cart:", error);
         }
     };
 
@@ -231,34 +251,60 @@ const Navbar = () => {
             return;
         }
 
-        const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
+        const userData = localStorage.getItem("currentUser");
 
-        const user = JSON.parse(userData); // Parse the user data from localStorage
+        if (!userData) {
+            console.log("No user logged in. Updating quantity in guest cart.");
 
-        try {
-            // Get user document reference
-            const userRef = doc(fireStore, "users", user.uid);
+            // Get guest cart from localStorage
+            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Find the item to update
-            const updatedCart = cartItems.map(item =>
+            // Update the quantity
+            const updatedCart = guestCart.map(item =>
                 item.productId === productId ? { ...item, quantity: newQuantity } : item
             );
 
-            // Update Firestore with new quantity
-            await updateDoc(userRef, {
-                cart: updatedCart
-            });
+            // Save updated cart back to localStorage
+            localStorage.setItem("guestCart", JSON.stringify(updatedCart));
 
             // Update local state
             setCartItems(updatedCart);
 
-            console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
-        } catch (error) {
-            console.error("Error updating quantity in cart:", error);
+            alert("Quantity updated!");
+            return;
+        }
+
+        // Parse user data
+        const user = JSON.parse(userData);
+        const userId = user?.uid;
+
+        if (userId) {
+            try {
+                const userRef = doc(fireStore, "users", userId);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const userCart = userDoc.data().cart || [];
+
+                    // Update the quantity in Firestore
+                    const updatedCart = userCart.map(item =>
+                        item.productId === productId ? { ...item, quantity: newQuantity } : item
+                    );
+
+                    await updateDoc(userRef, { cart: updatedCart });
+
+                    // Update local state
+                    setCartItems(updatedCart);
+
+                    console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
+                    alert("Quantity updated!");
+                } else {
+                    console.log("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error updating quantity in cart:", error);
+                alert("Error updating quantity.");
+            }
         }
     };
 
@@ -266,7 +312,7 @@ const Navbar = () => {
         return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
     };
 
-    // Header wishlist count and cart count
+
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -351,6 +397,11 @@ const Navbar = () => {
             router.push(`/home/productCategory?title=${encodeURIComponent(searchQuery)}`);
         }
     };
+
+    const handleWishlist = (e) => {
+        e.preventDefault();
+        router.push("/home/wishlist");
+    }
 
     return <>
         <header className="whb-header whb-header_469459 whb-sticky-shadow whb-scroll-stick whb-sticky-real whb-hide-on-scroll whb-sticky-prepared">
@@ -617,16 +668,7 @@ const Navbar = () => {
                                                     toggleDropdown();
                                                     setShopOpen(false);
                                                 }}
-                                            // style={{
-                                            //     textDecoration: "none",
-                                            //     color: "#333",
-                                            //     fontSize: "16px",
-                                            //     padding: "10px 15px",
-                                            //     background: "#f8f9fa",
-                                            //     borderRadius: "5px",
-                                            //     display: "inline-block",
-                                            //     cursor: "pointer",
-                                            // }}
+
                                             >
                                                 <span className="nav-link-text">Site Policies</span>
                                             </a>
@@ -784,7 +826,6 @@ const Navbar = () => {
                                     role="navigation"
                                     aria-label="Secondary navigation"
                                 >
-
                                 </div>
                                 <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-7 wd-account-style-icon whb-7qrb5r43fmh57lkx4dry">
                                     {isUserLoggedIn ? (
@@ -935,8 +976,48 @@ const Navbar = () => {
             </div>
         </header>
 
-        {/* My-Account  Modal */}
+        {/* Mobile view */}
 
+        <div className="wd-toolbar wd-toolbar-label-show">
+            <div className="wd-header-mobile-nav whb-wd-header-mobile-nav mobile-style-icon wd-tools-element">
+                <a href="#" onClick={(e) => openMobileMenu(e)}>
+                    <span className="wd-tools-icon" />
+                    <span className="wd-toolbar-label">Menu </span>
+                </a>
+            </div>
+            <div
+                className="wd-header-wishlist wd-tools-element wd-design-5"
+                title="My wishlist"
+            >
+                <a href="#" onClick={(e) => handleWishlist(e)}>
+                    <span className="wd-tools-icon">
+                        <span className="wd-tools-count">{wishlistCount}</span>
+                    </span>
+                    <span className="wd-toolbar-label">Wishlist </span>
+                </a>
+            </div>
+            <div
+                className="wd-header-cart wd-tools-element wd-design-5 cart-widget-opener"
+                title="My cart"
+            >
+                <a onClick={(e) => openCart(e)} style={{ cursor: "pointer" }}>
+                    <span className="wd-tools-icon">
+                        <span className="wd-cart-number wd-tools-count">
+                            {cartCount} <span>items</span>
+                        </span>
+                    </span>
+                    <span className="wd-toolbar-label">Cart </span>
+                </a>
+            </div>
+            <div className="wd-header-my-account wd-tools-element wd-style-icon  login-side-opener">
+                <a onClick={(e) => openModal(e)} style={{ cursor: "pointer" }}>
+                    <span className="wd-tools-icon" />
+                    <span className="wd-toolbar-label">My account </span>
+                </a>
+            </div>
+        </div>
+
+        {/* My-Account  Modal */}
         <SignIn
             isModalOpen={isModalOpen}
             closeModal={closeModal}
@@ -977,7 +1058,7 @@ const Navbar = () => {
                                                 <img
                                                     width={430}
                                                     height={491}
-                                                    src={item.imageUrls}
+                                                    src={item.image_url}
                                                     className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
                                                     alt={item.productName}
                                                     decoding="async"
@@ -1031,7 +1112,17 @@ const Navbar = () => {
                                         </li>
                                     ))
                                 ) : (
-                                    <li>No items in your cart</li>
+                                    <div className="wd-empty-mini-cart">
+                                        <p className="woocommerce-mini-cart__empty-message empty title">
+                                            No products in the cart.
+                                        </p>
+                                        <a
+                                            className="btn wc-backward"
+                                            href="/home/productCategory"
+                                        >
+                                            Return To Shop{" "}
+                                        </a>
+                                    </div>
                                 )}
                             </ul>
                         </div>

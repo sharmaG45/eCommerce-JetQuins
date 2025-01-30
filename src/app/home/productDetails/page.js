@@ -273,18 +273,21 @@ const productDetails = () => {
     }, [searchParams]);
 
     useEffect(() => {
-        // Fetch the current user's cart items
         const fetchCart = async () => {
             try {
                 // Get user data from localStorage
                 const userData = localStorage.getItem("currentUser");
 
-                // If no user data, exit early
                 if (!userData) {
-                    console.log("No user logged in. Skipping cart fetch.");
+                    console.log("No user logged in. Fetching cart from localStorage.");
+
+                    // Fetch cart from localStorage for guest users
+                    const guestCart = localStorage.getItem("guestCart");
+                    setCartItems(guestCart ? JSON.parse(guestCart) : []);
                     return;
                 }
 
+                // Parse user data
                 const user = JSON.parse(userData);
 
                 // Validate user object
@@ -298,8 +301,8 @@ const productDetails = () => {
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
-                    const cartData = userDoc.data().cart || []; // Retrieve the cart data from the user document
-                    setCartItems(cartData); // Set the cart items to state
+                    const cartData = userDoc.data().cart || [];
+                    setCartItems(cartData); // Set cart items for logged-in users
                 } else {
                     console.log("User document not found.");
                 }
@@ -308,79 +311,122 @@ const productDetails = () => {
             }
         };
 
-        fetchCart(); // Call the fetchCart function to retrieve cart items
+        fetchCart();
     }, []);
 
     const removeFromCart = async (productId) => {
-        const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
+        const userData = localStorage.getItem("currentUser");
 
-        const user = JSON.parse(userData); // Parse the user data from localStorage
+        if (!userData) {
+            console.log("No user logged in. Removing item from guest cart.");
 
-        try {
-            // Get user document reference
-            const userRef = doc(fireStore, "users", user.uid);
+            // Get guest cart from localStorage
+            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Find the item to be removed by matching the productId
-            const itemToRemove = cartItems.find(item => item.productId === productId);
+            // Remove the selected item
+            const updatedCart = guestCart.filter(item => item.productId !== productId);
 
-            if (!itemToRemove) {
-                console.log("Item not found in cart.");
-                return;
+            // Update localStorage and state
+            localStorage.setItem("guestCart", JSON.stringify(updatedCart));
+            setCartItems(updatedCart);
+
+            alert("Product removed from cart!");
+            return;
+        }
+
+        // Parse user data
+        const user = JSON.parse(userData);
+        const userId = user?.uid;
+
+        if (userId) {
+            try {
+                const userRef = doc(fireStore, "users", userId);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const userCart = userDoc.data().cart || [];
+
+                    // Find and remove the item
+                    const updatedCart = userCart.filter(item => item.productId !== productId);
+
+                    // Update Firestore
+                    await updateDoc(userRef, { cart: updatedCart });
+
+                    // Update local state
+                    setCartItems(updatedCart);
+
+                    console.log(`Removed item with productId: ${productId}`);
+                    alert("Product removed from cart!");
+                } else {
+                    console.log("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error removing item from cart:", error);
+                alert("Error removing product from cart.");
             }
-
-            // Remove item from cart array in Firestore using arrayRemove
-            await updateDoc(userRef, {
-                cart: arrayRemove(itemToRemove) // Ensure you're passing the whole object
-            });
-
-            // Update local state by filtering out the item
-            setCartItems(cartItems.filter(item => item.productId !== productId));
-
-            console.log(`Removed item with productId: ${productId}`);
-        } catch (error) {
-            console.error("Error removing item from cart:", error);
         }
     };
 
-    const changeQuantity = async (productId, newQuantity, e) => {
-        e.preventDefault();
+    const changeQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
             alert("Quantity cannot be less than 1.");
             return;
         }
 
-        const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
+        const userData = localStorage.getItem("currentUser");
 
-        const user = JSON.parse(userData); // Parse the user data from localStorage
+        if (!userData) {
+            console.log("No user logged in. Updating quantity in guest cart.");
 
-        try {
-            // Get user document reference
-            const userRef = doc(fireStore, "users", user.uid);
+            // Get guest cart from localStorage
+            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Find the item to update
-            const updatedCart = cartItems.map(item =>
+            // Update the quantity
+            const updatedCart = guestCart.map(item =>
                 item.productId === productId ? { ...item, quantity: newQuantity } : item
             );
 
-            // Update Firestore with new quantity
-            await updateDoc(userRef, {
-                cart: updatedCart
-            });
+            // Save updated cart back to localStorage
+            localStorage.setItem("guestCart", JSON.stringify(updatedCart));
 
             // Update local state
             setCartItems(updatedCart);
 
-            console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
-        } catch (error) {
-            console.error("Error updating quantity in cart:", error);
+            alert("Quantity updated!");
+            return;
+        }
+
+        // Parse user data
+        const user = JSON.parse(userData);
+        const userId = user?.uid;
+
+        if (userId) {
+            try {
+                const userRef = doc(fireStore, "users", userId);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const userCart = userDoc.data().cart || [];
+
+                    // Update the quantity in Firestore
+                    const updatedCart = userCart.map(item =>
+                        item.productId === productId ? { ...item, quantity: newQuantity } : item
+                    );
+
+                    await updateDoc(userRef, { cart: updatedCart });
+
+                    // Update local state
+                    setCartItems(updatedCart);
+
+                    console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
+                    alert("Quantity updated!");
+                } else {
+                    console.log("User document not found.");
+                }
+            } catch (error) {
+                console.error("Error updating quantity in cart:", error);
+                alert("Error updating quantity.");
+            }
         }
     };
 
@@ -2978,7 +3024,7 @@ const productDetails = () => {
                                                     <img
                                                         width={430}
                                                         height={491}
-                                                        src={item.imageUrls}
+                                                        src={item.image_url}
                                                         className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
                                                         alt={item.productName}
                                                         decoding="async"
@@ -3024,7 +3070,17 @@ const productDetails = () => {
                                             </li>
                                         ))
                                     ) : (
-                                        <li>No items in your cart</li>
+                                        <div className="wd-empty-mini-cart">
+                                            <p className="woocommerce-mini-cart__empty-message empty title">
+                                                No products in the cart.
+                                            </p>
+                                            <a
+                                                className="btn wc-backward"
+                                                href="/home/productCategory"
+                                            >
+                                                Return To Shop{" "}
+                                            </a>
+                                        </div>
                                     )}
                                 </ul>
                             </div>

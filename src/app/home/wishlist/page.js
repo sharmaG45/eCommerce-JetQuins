@@ -11,41 +11,75 @@ const wishlist = () => {
     const router = useRouter();
 
     // Make sure user is set properly
-    const fetchWishlist = async (userId) => {
-        try {
-            const userRef = doc(fireStore, 'users', userId);
-            const userDoc = await getDoc(userRef);
-
-            if (userDoc.exists()) {
-                // Get wishlist data from Firestore
-                const wishlistData = userDoc.data().wishlist || [];
-                setWishlist(wishlistData); // Update state with wishlist data
-            } else {
-                console.log('No wishlist found for the user');
-            }
-        } catch (error) {
-            console.error('Error fetching wishlist:', error);
-        }
-    };
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('currentUser'));
-        if (user && user.uid) {
-            const userId = user.uid;
-            fetchWishlist(userId); // Fetch wishlist data
+        const fetchWishlist = async (userId) => {
+            try {
+                const userRef = doc(fireStore, "users", userId);
+                const userDoc = await getDoc(userRef);
+
+                if (userDoc.exists()) {
+                    const wishlistData = userDoc.data().wishlist || [];
+                    setWishlist(wishlistData);
+                } else {
+                    console.log("No wishlist found for the user.");
+                }
+            } catch (error) {
+                console.error("Error fetching wishlist:", error);
+            }
+        };
+
+        const userData = localStorage.getItem("currentUser");
+
+        if (!userData) {
+            console.log("No user logged in. Fetching wishlist from localStorage.");
+
+            try {
+                // Fetch wishlist from localStorage safely
+                const guestWishlist = localStorage.getItem("guestWishlist");
+                setWishlist(guestWishlist ? JSON.parse(guestWishlist) : []);
+            } catch (error) {
+                console.error("Error parsing guest wishlist:", error);
+                setWishlist([]); // Reset wishlist if error occurs
+            }
+            return;
+        }
+
+        // Parse user data
+        const user = JSON.parse(userData);
+        if (user?.uid) {
+            fetchWishlist(user.uid); // Fetch Firestore wishlist for logged-in users
         }
     }, []);
-
-    console.log(wishlist, "Wishlist data");
 
 
     const handleRemoveFromWishlist = async (productId) => {
         try {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
+            const userData = localStorage.getItem("currentUser");
+
+            if (!userData) {
+                console.log("No user logged in. Removing from guest wishlist.");
+
+                // Get guest wishlist from localStorage
+                const guestWishlist = JSON.parse(localStorage.getItem("guestWishlist")) || [];
+
+                // Remove the item from guest wishlist
+                const updatedWishlist = guestWishlist.filter(item => item.productId !== productId);
+
+                // Update localStorage and state
+                localStorage.setItem("guestWishlist", JSON.stringify(updatedWishlist));
+                setWishlist(updatedWishlist);
+
+                alert("Product removed from wishlist!");
+                return;
+            }
+
+            // Parse user data
+            const user = JSON.parse(userData);
             const userId = user?.uid;
 
             if (userId) {
-                const userRef = doc(fireStore, 'users', userId);
+                const userRef = doc(fireStore, "users", userId);
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
@@ -59,20 +93,16 @@ const wishlist = () => {
 
                     // Update local state
                     setWishlist(updatedWishlist);
-                    alert('Product removed from wishlist!');
+
+                    alert("Product removed from wishlist!");
+                } else {
+                    console.log("User document not found.");
                 }
             }
         } catch (error) {
-            console.error('Error removing product from wishlist:', error);
-            alert('Error removing product from wishlist.');
+            console.error("Error removing product from wishlist:", error);
+            alert("Error removing product from wishlist.");
         }
-    };
-
-
-    const openCart = (e) => {
-        e.preventDefault();
-
-        setIsCartOpen(true);
     };
 
     // Function to close the modal
@@ -117,53 +147,25 @@ const wishlist = () => {
                                             }}
                                         >
                                             {wishlist.length === 0 ? (
-                                                <div className="wd-page-content main-page-wrapper">
-                                                    <main
-                                                        className="wd-content-layout content-layout-wrapper container"
-                                                        role="main"
-                                                    >
-                                                        <div className="wd-content-area site-content">
-                                                            <article
-                                                                id="post-30"
-                                                                className="entry-content post-30 page type-page status-publish hentry"
-                                                            >
-                                                                <div className="">
-                                                                    <div className="wd-wishlist-content">
-                                                                        <link
-                                                                            rel="stylesheet"
-                                                                            id="wd-page-wishlist-bulk-css"
-                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-page-wishlist-bulk.min.css?ver=8.0.4"
-                                                                            type="text/css"
-                                                                            media="all"
-                                                                        />
-                                                                        <link
-                                                                            rel="stylesheet"
-                                                                            id="wd-woo-opt-products-bg-css"
-                                                                            href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-opt-products-bg.min.css?ver=8.0.4"
-                                                                            type="text/css"
-                                                                            media="all"
-                                                                        />{" "}
-                                                                        <p className="wd-empty-wishlist wd-empty-page">
-                                                                            This wishlist is empty.{" "}
-                                                                        </p>
-                                                                        <div className="wd-empty-page-text">
-                                                                            You don't have any products in the wishlist yet. <br /> You will
-                                                                            find a lot of interesting products on our "Shop" page.{" "}
-                                                                        </div>
-                                                                        <p className="return-to-shop">
-                                                                            <a
-                                                                                className="button"
-                                                                                href="https://woodmart.xtemos.com/mega-electronics/shop/"
-                                                                            >
-                                                                                Return to shop{" "}
-                                                                            </a>
-                                                                        </p>{" "}
-                                                                    </div>
-                                                                </div>
-                                                            </article>
+                                                <>
+                                                    <div className="wd-wishlist-content">
+                                                        <p className="wd-empty-wishlist wd-empty-page">This wishlist is empty. </p>
+                                                        <div className="wd-empty-page-text">
+                                                            You don't have any products in the wishlist yet. <br /> You will find a lot
+                                                            of interesting products on our "Shop" page.{" "}
                                                         </div>
-                                                    </main>
-                                                </div>
+                                                        <p className="return-to-shop">
+                                                            <a
+                                                                className="button"
+                                                                href="/home/productCategory"
+                                                            >
+                                                                Return to shop{" "}
+                                                            </a>
+                                                        </p>
+                                                    </div>
+
+                                                </>
+
 
                                             ) : (
                                                 wishlist.map((offer, index) => (
@@ -195,16 +197,16 @@ const wishlist = () => {
                                                                     >
                                                                         <source
                                                                             type="image/webp"
-                                                                            srcSet={`${offer.imageUrls}?maxHeight=150&maxWidth=225 225w`}
+                                                                            srcSet={`${offer.image_url}?maxHeight=150&maxWidth=225 225w`}
                                                                             sizes="(max-width: 430px) 100vw, 430px"
                                                                         />
                                                                         <img
                                                                             decoding="async"
                                                                             width={430}
                                                                             height={491}
-                                                                            src={offer.imageUrls}
+                                                                            src={offer.image_url}
                                                                             alt={offer.productName}
-                                                                            srcSet={`${offer.imageUrls}?maxHeight=150&maxWidth=225 225w`}
+                                                                            srcSet={`${offer.image_url}?maxHeight=150&maxWidth=225 225w`}
                                                                             sizes="(max-width: 430px) 100vw, 430px"
                                                                         />
                                                                     </picture>

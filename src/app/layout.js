@@ -2,9 +2,8 @@ import "./globals.css";
 import Navbar from "./_components/Navbar/page";
 import Footer from "./_components/Footer/page";
 import Sidebar from "./_components/Sidebar/page";
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
 import { Suspense } from 'react';
+import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer, toast } from "react-toastify";
 
 export const metadata = {
@@ -29,6 +28,9 @@ export default function RootLayout({ children }) {
         />
 
         {/* End */}
+
+        <link href="/assets/wp-content/themes/woodmart/css/parts/woo-page-empty-page.min.css" rel="stylesheet" />
+        <link href="/assets/wp-content/themes/woodmart/css/parts/woo-page-wishlist.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/all.min.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/css.css" rel="stylesheet" />
         <link href="/assets/wp-content/themes/woodmart/css/parts/player.css" rel="stylesheet" />

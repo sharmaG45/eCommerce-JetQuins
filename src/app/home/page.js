@@ -1,15 +1,18 @@
 'use client'
 
+import Script from "next/script";
 import bestOffer from "../../app/assets/scraped_products.json";
 import categories from "../../app/assets/product_categories.json";
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import styles from './Slider.module.css'
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import { doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { toast } from "react-toastify";
-// import img from "../../../public/assets/Images/"
+import bg1 from "../../../public/assets/Images/backgound-1.jpg";
 
 const HomePage = () => {
 
@@ -21,106 +24,98 @@ const HomePage = () => {
     const router = useRouter();
     const sliderRef = useRef(null);
 
-
     console.log(bestOffer, "Image for image");
 
     const handleAddToWishlist = async (e, offer) => {
-        e.preventDefault(); // Prevent the default link behavior
+        e.preventDefault(); // Prevent default behavior
 
-        // Try to get the user from localStorage
-        const user = JSON.parse(localStorage.getItem('currentUser'));
+        // Get user data from localStorage
+        const userData = localStorage.getItem("currentUser");
+        const user = userData ? JSON.parse(userData) : null;
 
-        if (!user) {
-            // If user is not logged in, store wishlist in localStorage
-            const guestWishlist = JSON.parse(localStorage.getItem('guestWishlist')) || [];
-
-            // Check if product already exists in the guest wishlist
-            if (guestWishlist.some(item => item.productId === offer.productId)) {
-                toast.success("Product is already in your wishlist!");
-            } else {
-                guestWishlist.push({ ...offer, timestamp: new Date() });
-                localStorage.setItem('guestWishlist', JSON.stringify(guestWishlist));
-                toast.success("Product added to your wishlist!");
-            }
-            return;
-        }
-
-        // Log the offer object to see if it's structured correctly
-        console.log('Offer:', offer);
-
-        // Static fallback data in case some fields are missing
+        // Fallback data for missing fields
         const staticData = {
-            product_url: 'https://defaultproducturl.com',
-            image_urls: [
-                "https://via.placeholder.com/430x491?text=Image+1",
-                "https://via.placeholder.com/430x491?text=Image+2",
-                "https://via.placeholder.com/430x491?text=Image+3",
-                "https://via.placeholder.com/430x491?text=Image+4"
-            ],
-            brand: 'Default Brand',
-            productId: '00000',
-            productName: 'Default Product',
-            productSku: 'DEFAULTSKU',
-            price: 99.99,
+            product_url: "/",
+            image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
+            brand: "Unknown Brand",
+            productId: "00000",
+            productName: "Default Product",
+            productSku: "DEFAULTSKU",
+            price: 0.0,
             discount: 0
         };
 
-        // Use static data if any required fields are missing
+        // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_urls: offer.image_url && offer.image_url.length > 0 ? offer.image_url : staticData.image_urls,
+            image_url: offer.image_url || staticData.image_url,
+            brand: offer.brand || staticData.brand,
             productId: offer.productId || staticData.productId,
             productName: offer.productName || staticData.productName,
             productSku: offer.productSku || staticData.productSku,
             price: offer.price || staticData.price,
-            discount: offer.discount || staticData.discount,
+            discount: offer.discount || staticData.discount
         };
 
-        console.log('Final Offer Data:', offerData);
+        console.log("Final Offer Data:", offerData);
 
-        try {
-            // Get the user's ID safely
-            const userId = user?.uid;
-            if (!userId) {
-                toast.error("User ID is missing. Please log in.");
+
+        if (!user || !user.uid) {
+            console.log("No user logged in. Saving to guest wishlist.");
+
+            const guestWishlist = JSON.parse(localStorage.getItem("guestWishlist")) || [];
+
+            // Check if product already exists
+            if (guestWishlist.some(item => item.productId === offerData.productId)) {
+                toast.success("Product is already in your wishlist!");
                 return;
             }
 
-            // Reference to the user document in Firestore
+            // Add to guest wishlist
+            guestWishlist.push({ ...offerData, timestamp: new Date() });
+            localStorage.setItem("guestWishlist", JSON.stringify(guestWishlist));
+
+            toast.success("Product added to your wishlist!");
+            return;
+        }
+
+
+        try {
+            const userId = user.uid;
             const userRef = doc(fireStore, "users", userId);
 
-            // Fetch the current user data to check if the wishlist exists
+            // Fetch only the wishlist from Firestore
             const userDoc = await getDoc(userRef);
             let userWishlist = userDoc.exists() ? userDoc.data().wishlist || [] : [];
 
-            // Check if the product is already in the wishlist
-            const existingProductIndex = userWishlist.findIndex(item => item.productId === offerData.productId);
-
-            if (existingProductIndex !== -1) {
+            // Check if product exists
+            if (userWishlist.some(item => item.productId === offerData.productId)) {
                 toast.success("Product is already in your wishlist!");
-            } else {
-                // Add new product to wishlist
-                userWishlist.push({
-                    productUrls: offerData.product_url,
-                    productId: offerData.productId,
-                    productName: offerData.productName,
-                    productSku: offerData.productSku,
-                    imageUrls: offerData.image_urls,
-                    price: offerData.price,
-                    discount: offerData.discount,
-                    timestamp: new Date(),
-                });
-
-                // Update the user's wishlist in Firestore
-                await updateDoc(userRef, { wishlist: userWishlist });
-
-                console.log("Product added to wishlist for user:", userId);
-                toast.success("Product added to your wishlist!");
+                return;
             }
+
+            // Add new product to wishlist
+            userWishlist.push({
+                product_url: offerData.product_url,
+                image_url: offerData.image_url,
+                brand: offerData.brand,
+                productId: offerData.productId,
+                productName: offerData.productName,
+                productSku: offerData.productSku,
+                price: offerData.price,
+                discount: offerData.discount,
+                timestamp: new Date()
+            });
+
+            // Update Firestore
+            await updateDoc(userRef, { wishlist: userWishlist });
+
+            console.log("Wishlist updated for user:", userId);
+            toast.success("Product added to your wishlist!");
 
         } catch (error) {
             console.error("Error adding product to wishlist:", error);
-            toast.error(`Error adding product to wishlist. ${error.message}`);
+            toast.error("Error adding product to wishlist.");
         }
     };
 
@@ -138,114 +133,114 @@ const HomePage = () => {
 
     // Function to open the Cart Modal
     const openCart = async (e, offer) => {
-        e.preventDefault(); // Prevent the default link behavior
+        e.preventDefault(); // Prevent default behavior
 
         const userData = localStorage.getItem("currentUser");
         const user = userData ? JSON.parse(userData) : null;
 
-        // Log the offer object to see if it's structured correctly
+        // Log the offer object to verify structure
         console.log("Offer:", offer);
 
-        // Static fallback data in case some fields are missing
+        // Fallback data for missing fields
         const staticData = {
-            product_url: "https://defaultproducturl.com",
-            image_urls: [
-                "https://via.placeholder.com/430x491?text=Image+1",
-                "https://via.placeholder.com/430x491?text=Image+2",
-                "https://via.placeholder.com/430x491?text=Image+3",
-                "https://via.placeholder.com/430x491?text=Image+4"
-            ],
-            brand: "Default Brand",
+            product_url: "/",
+            image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
+            brand: "Unknown Brand",
             productId: "00000",
             productName: "Default Product",
             productSku: "DEFAULTSKU",
-            price: 99.99,
+            price: 0.0,
             discount: 0,
-            quantity: 1 // Ensuring default quantity is 1
+            quantity: 1,
+            rating: 0,
+            description: "No description available.",
+            how_product_works: "Not available.",
+            other_details: {
+                compatibility: "Unknown",
+                free_trial: "Not available",
+                subscription_model: "Not specified"
+            },
+            faq: []
         };
 
-        // Use static data if any required fields are missing
+        // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_urls: offer.image_url && offer.image_url.length > 0 ? offer.image_url : staticData.image_urls,
+            image_url: offer.image_url || staticData.image_url,
+            brand: offer.brand || staticData.brand,
             productId: offer.productId || staticData.productId,
             productName: offer.productName || staticData.productName,
             productSku: offer.productSku || staticData.productSku,
             price: offer.price || staticData.price,
             discount: offer.discount || staticData.discount,
-            quantity: offer.quantity || staticData.quantity // Default to 1 if quantity is missing
+            quantity: offer.quantity || staticData.quantity,
+            rating: offer.rating || staticData.rating,
+            description: offer.description || staticData.description,
+            how_product_works: offer.how_product_works || staticData.how_product_works,
+            other_details: offer.other_details || staticData.other_details,
+            faq: offer.faq || staticData.faq
         };
 
         console.log("Final Offer Data:", offerData);
 
         if (!user || !user.uid) {
-            // If the user is not logged in, store the cart in localStorage
+            console.log("User not logged in. Saving to guest cart.");
+
             const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Check if the product already exists in the guest cart
-            const existingProductIndex = guestCart.findIndex(item => item.productId === offerData.productId);
+            // Check if the product already exists
+            const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
 
-            if (existingProductIndex !== -1) {
-                // If product exists, increment quantity
-                guestCart[existingProductIndex].quantity += 1;
+            if (existingIndex !== -1) {
+                // Update quantity if product exists
+                guestCart[existingIndex].quantity += 1;
                 toast.success("Product quantity updated in your cart!");
             } else {
-                // If not, add it as a new product
+                // Add new product
                 guestCart.push({ ...offerData, timestamp: new Date() });
                 toast.success("Product added to your cart!");
             }
 
-            // Save updated cart to localStorage
+            // Update localStorage
             localStorage.setItem("guestCart", JSON.stringify(guestCart));
-            setIsCartOpen(true); // Open the cart after adding
+            setIsCartOpen(true); // Open the cart
             return;
         }
 
-        // If the user is logged in, proceed with Firestore update
+
         try {
             const userId = user.uid;
-
-            // Reference to the user document in Firestore
             const userRef = doc(fireStore, "users", userId);
 
-            // Fetch the current user data to check if the cart exists
+            // Fetch existing cart data from Firestore
             const userDoc = await getDoc(userRef);
             let userCart = userDoc.exists() ? userDoc.data().cart || [] : [];
 
-            // Check if the product is already in the cart
-            const existingProductIndex = userCart.findIndex(item => item.productId === offerData.productId);
+            // Check if product exists in Firestore cart
+            const existingIndex = userCart.findIndex(item => item.productId === offerData.productId);
 
-            if (existingProductIndex !== -1) {
-                // If the product exists, increment quantity
-                userCart[existingProductIndex].quantity += 1;
+            if (existingIndex !== -1) {
+                // If exists, update quantity
+                userCart[existingIndex].quantity += 1;
                 toast.success("Product quantity updated in your cart!");
             } else {
-                // If not, add a new product
-                userCart.push({
-                    productUrls: offerData.product_url,
-                    productId: offerData.productId,
-                    productName: offerData.productName,
-                    productSku: offerData.productSku,
-                    imageUrls: offerData.image_urls,
-                    price: offerData.price,
-                    discount: offerData.discount,
-                    quantity: 1, // Starting quantity
-                    timestamp: new Date()
-                });
+                // Add new product
+                userCart.push({ ...offerData, timestamp: new Date() });
                 toast.success("Product added to your cart!");
             }
 
-            // Update the user's cart document in Firestore
+            // Update Firestore cart
             await updateDoc(userRef, { cart: userCart });
 
             console.log("Cart updated for user:", userId);
-            setIsCartOpen(true); // Open the cart after adding
+            setIsCartOpen(true); // Open the cart
 
         } catch (error) {
             console.error("Error adding product to cart:", error);
             toast.error("Error adding product to cart.");
         }
     };
+
 
     const closeCart = () => {
         setIsCartOpen(false);
@@ -491,30 +486,84 @@ const HomePage = () => {
 
                                                 <div className={styles.sliderContainer}>
                                                     <Slider ref={sliderRef} {...sliderSettings}>
-                                                        {slides.map((slide) => (
-                                                            <div
-                                                                key={slide.id}
-                                                                className={styles.slide}
-                                                                style={{
-                                                                    backgroundImage: `url(${slide.backgroundImage || '/assets/Images/default.jpg'})`,
-                                                                    backgroundSize: 'cover',
-                                                                    backgroundPosition: 'center',
-                                                                    backgroundRepeat: 'no-repeat',
-                                                                }}
-                                                            >
-                                                                {/* <img src="/assets/Images/backgound-1.jpg" alt="image loaded"></img> */}
-                                                                <div className={styles.content}>
-                                                                    <h4 className={styles.title}>{slide.title}</h4>
-                                                                    <p className={styles.description}>{slide.description}</p>
-                                                                    <a href={slide.buttonLink} className={styles.button} target="_blank" rel="noopener noreferrer">
-                                                                        {slide.buttonText}
-                                                                    </a>
-                                                                </div>
+
+                                                        {/* Slide-1 */}
+                                                        <div
+                                                            className={styles.slide}
+                                                            style={{
+                                                                backgroundImage: `url('/assets/Images/backgound-1.jpg')`, // Ensure path is correct
+                                                                backgroundSize: "cover", // Ensures the image covers the entire slide area
+                                                                backgroundPosition: "center", // Centers the image
+                                                                backgroundRepeat: "no-repeat", // Prevents tiling
+                                                                minHeight: "460px", // Ensures the slide takes proper height
+                                                            }}
+                                                        >
+                                                            {/* Optionally, uncomment this image element for an image fallback */}
+                                                            {/* <img src="/assets/Images/backgound-1.jpg" alt="image loaded" /> */}
+
+                                                            <div className={styles.content}>
+                                                                <h4 className={styles.title}>Apple Shopping Event</h4>
+                                                                <p className={styles.description}>
+                                                                    Shop great deals on MacBook, iPad, iPhone and more.
+                                                                </p>
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer">
+                                                                    Shop Now
+                                                                </a>
                                                             </div>
-                                                        ))}
+                                                        </div>
+
+                                                        {/* Slide-2 */}
+                                                        <div
+                                                            className={styles.slide}
+                                                            style={{
+                                                                backgroundImage: `url('/assets/Images/backgound-1.jpg')`, // Ensure path is correct
+                                                                backgroundSize: "cover", // Ensures the image covers the entire slide area
+                                                                backgroundPosition: "center", // Centers the image
+                                                                backgroundRepeat: "no-repeat", // Prevents tiling
+                                                                minHeight: "460px", // Ensures the slide takes proper height
+                                                            }}
+                                                        >
+                                                            {/* Optionally, uncomment this image element for an image fallback */}
+                                                            {/* <img src="/assets/Images/backgound-1.jpg" alt="image loaded" /> */}
+
+                                                            <div className={styles.content}>
+                                                                <h4 className={styles.title}>Apple Shopping Event</h4>
+                                                                <p className={styles.description}>
+                                                                    Shop great deals on MacBook, iPad, iPhone and more.
+                                                                </p>
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer">
+                                                                    Shop Now
+                                                                </a>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Slide-3 */}
+                                                        <div
+                                                            className={styles.slide}
+                                                            style={{
+                                                                backgroundImage: `url('/assets/Images/backgound-1.jpg')`, // Ensure path is correct
+                                                                backgroundSize: "cover", // Ensures the image covers the entire slide area
+                                                                backgroundPosition: "center", // Centers the image
+                                                                backgroundRepeat: "no-repeat", // Prevents tiling
+                                                                minHeight: "460px", // Ensures the slide takes proper height
+                                                            }}
+                                                        >
+                                                            {/* Optionally, uncomment this image element for an image fallback */}
+                                                            {/* <img src="/assets/Images/backgound-1.jpg" alt="image loaded" /> */}
+
+                                                            <div className={styles.content}>
+                                                                <h4 className={styles.title}>Apple Shopping Event</h4>
+                                                                <p className={styles.description}>
+                                                                    Shop great deals on MacBook, iPad, iPhone and more.
+                                                                </p>
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer">
+                                                                    Shop Now
+                                                                </a>
+                                                            </div>
+                                                        </div>
+
+
                                                     </Slider>
-
-
                                                     <button className={styles.prevButton} onClick={goToPrev}>
                                                         Previous
                                                     </button>
@@ -712,25 +761,14 @@ const HomePage = () => {
                                                                     <div className="product-element-top wd-quick-shop">
                                                                         <a className="product-image-link" >
                                                                             <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
-                                                                                {/* {offer.image_url.map((url, imageIndex) => (
-                                                                                    <div
-                                                                                        className="wd-product-grid-slide"
-                                                                                        key={imageIndex}
-                                                                                        data-image-url={url}
-                                                                                        data-image-srcset={`${url} 700w, ${url.replace(".jpg", "-263x300.jpg")} 263w, ${url.replace(".jpg", "-88x100.jpg")} 88w, ${url.replace(".jpg", "-430x491.jpg")} 430w, ${url.replace(".jpg", "-180x206.jpg")} 180w`}
-                                                                                        data-image-id={imageIndex}
 
-                                                                                    />
-                                                                                ))} */}
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
                                                                                 <div className="wd-prev" />
                                                                                 <div className="wd-next" />
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-pagin">
-                                                                                {/* {offer.image_url.map((_, imageIndex) => (
-                                                                                    <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
-                                                                                ))} */}
+
                                                                             </div>
                                                                             <div className="product-labels labels-rounded-sm">
                                                                                 <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
@@ -865,7 +903,7 @@ const HomePage = () => {
                                                                             <span className="wd-label">SKU: </span>
                                                                             <span>{offer.productSku}</span>
                                                                         </div>
-                                                                        {/* Add new data */}
+
                                                                         <div className="fade-in-block wd-scroll">
                                                                             <div className="hover-content-wrap">
                                                                                 <div className={`hover-content wd-more-desc wd-more-desc-calculated ${isMore ? "wd-more-desc-full" : ""}`}
@@ -1892,7 +1930,7 @@ const HomePage = () => {
                                                                 style={{ cursor: "grab" }}
                                                             >
 
-                                                                {bestOffer.slice(0,5).map((product) => (
+                                                                {bestOffer.slice(0, 5).map((product) => (
                                                                     <div
                                                                         key={product.productId}
                                                                         className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
@@ -2306,7 +2344,7 @@ const HomePage = () => {
                                                     <img
                                                         width={430}
                                                         height={491}
-                                                        src={item.imageUrls}
+                                                        src={item.image_url}
                                                         className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
                                                         alt={item.productName}
                                                         decoding="async"

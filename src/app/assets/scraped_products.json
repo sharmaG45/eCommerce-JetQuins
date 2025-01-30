@@ -12,7 +12,7 @@
         "productSku": "SNQLED55QN85A",
         "price": 159.99,
         "discount": 0,
-        "quantity":1,
+        "quantity": 1,
         "rating": 4.5,
         "description": "Norton 360 Deluxe provides advanced protection for your devices with real-time threat protection, a secure VPN, and password manager for online security.",
         "how_product_works": "Norton 360 Deluxe works by continuously monitoring your devices for potential threats, offering real-time protection, and automatically blocking harmful websites. It also provides a secure VPN for private browsing and a password manager for managing your passwords securely.",
@@ -45,7 +45,7 @@
         "price": 249.99,
         "discount": 0,
         "rating": 4.6,
-        "quantity":1,
+        "quantity": 1,
         "description": "Norton 360 Premium provides robust protection for up to 10 devices with additional features like 100GB cloud storage and advanced VPN security.",
         "how_product_works": "Norton 360 Premium delivers next-level protection with its real-time antivirus, firewall, VPN, and backup storage. It also includes tools to safeguard personal data and block phishing attacks.",
         "other_details": {
@@ -77,7 +77,7 @@
         "price": 49.99,
         "discount": 10,
         "rating": 4.3,
-        "quantity":1,
+        "quantity": 1,
         "description": "Norton 360 Standard offers essential protection with antivirus, firewall, and VPN for one device.",
         "how_product_works": "Norton 360 Standard provides core security with real-time antivirus scanning, an advanced firewall, and a VPN for online anonymity.",
         "other_details": {
@@ -109,7 +109,7 @@
         "price": 39.99,
         "discount": 0,
         "rating": 4.1,
-        "quantity":1,
+        "quantity": 1,
         "description": "Norton Security Anti-Virus offers basic virus protection with real-time scanning, internet security features, and firewall to block cyber threats.",
         "how_product_works": "Norton Security Anti-Virus scans your device for malware and viruses in real-time, providing comprehensive protection against a variety of online threats. It also includes a smart firewall to prevent unauthorized access.",
         "other_details": {
@@ -141,7 +141,7 @@
         "price": 299.99,
         "discount": 10,
         "rating": 4.7,
-        "quantity":1,
+        "quantity": 1,
         "description": "Norton 360 Platinum offers premium protection for up to 20 devices, including advanced threat protection, a secure VPN, and backup storage.",
         "how_product_works": "Norton 360 Platinum offers extensive protection with its multi-device coverage, real-time antivirus scanning, firewall, VPN, and cloud backup to safeguard your data and privacy.",
         "other_details": {
@@ -173,7 +173,7 @@
         "price": 99.99,
         "discount": 0,
         "rating": 4.7,
-        "quantity":1,
+        "quantity": 1,
         "description": "McAfee Total Protection offers complete security with antivirus, firewall, and identity theft protection for your devices and personal information.",
         "how_product_works": "McAfee Total Protection works by providing continuous antivirus protection, advanced firewall security, and tools to protect your identity from theft. It also includes a password manager and a secure VPN for enhanced privacy.",
         "other_details": {
@@ -194,7 +194,7 @@
     },
     {
         "product_url": "/",
-        "image_url": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/bf3543b5-2059-43a0-9f83-b9c35bf4cf29.jpg;maxHeight=150;maxWidth=225",
+        "image_url": "https://i5.walmartimages.com/seo/McAfee-Total-Protection-Antivirus-Security-Software-5-Devices-1-Year-Subscription-Product-Key_41d9f50b-8679-440c-bf31-33fd0505d36d.bdeb1a899507de7d0bdb4e7c3fe2169d.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
         "labels": [
             "HOT",
             "NEW"
@@ -206,7 +206,7 @@
         "price": 129.99,
         "discount": 0,
         "rating": 4.8,
-        "quantity":1,
+        "quantity": 1,
         "description": "McAfee Total Protection Advanced offers enhanced protection for multiple devices, including advanced firewall protection, VPN, and identity theft protection.",
         "how_product_works": "McAfee Total Protection Advanced offers robust online security with its powerful firewall, VPN, and antivirus protection. It also includes identity theft protection and a secure password manager.",
         "other_details": {
@@ -239,7 +239,7 @@
         "price": 89.99,
         "discount": 20,
         "rating": 4.8,
-        "quantity":1,
+        "quantity": 1,
         "description": "Bitdefender Total Security offers top-tier protection with antivirus, firewall, anti-phishing, and a secure VPN, ensuring safety for your devices and online activities.",
         "how_product_works": "Bitdefender Total Security utilizes multiple layers of defense including antivirus protection, firewall security, and anti-phishing technology. It also includes a VPN for secure browsing and privacy protection, making it ideal for individuals who value their online security.",
         "other_details": {
@@ -271,7 +271,7 @@
         "price": 59.99,
         "discount": 10,
         "rating": 4.4,
-        "quantity":1,
+        "quantity": 1,
         "description": "Webroot Internet Security Plus offers lightweight and fast antivirus protection with identity theft protection and password management.",
         "how_product_works": "Webroot Internet Security Plus uses a cloud-based approach for virus detection, scanning files and processes in real-time without using heavy system resources.",
         "other_details": {
@@ -303,7 +303,7 @@
         "price": 119.99,
         "discount": 20,
         "rating": 4.6,
-        "quantity":1,
+        "quantity": 1,
         "description": "AVG Ultimate provides advanced antivirus protection, secure VPN, and performance optimization tools for your devices.",
         "how_product_works": "AVG Ultimate combines antivirus, internet security, and optimization tools to detect and block malware, enhance device performance, and protect your privacy online.",
         "other_details": {
@@ -336,7 +336,7 @@
         "price": 99.99,
         "discount": 15,
         "rating": 4.5,
-        "quantity":1,
+        "quantity": 1,
         "description": "Avast Premium Security offers comprehensive antivirus and ransomware protection for all your devices, along with advanced firewall and webcam protection.",
         "how_product_works": "Avast Premium Security uses AI-driven algorithms to detect and block viruses, spyware, and ransomware in real-time while protecting your online privacy with an advanced firewall.",
         "other_details": {
@@ -368,7 +368,7 @@
         "price": 79.99,
         "discount": 10,
         "rating": 4.7,
-        "quantity":1,
+        "quantity": 1,
         "description": "Trend Micro Maximum Security offers top-notch antivirus, anti-phishing, and parental controls for your digital safety.",
         "how_product_works": "Trend Micro Maximum Security provides proactive threat detection and blocking, ensuring secure browsing and protection against phishing and ransomware.",
         "other_details": {

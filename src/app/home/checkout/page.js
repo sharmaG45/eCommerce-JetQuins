@@ -233,6 +233,9 @@ const checkout = () => {
         fetchCart(); // Call the fetchCart function to retrieve cart items
     }, [])
 
+    console.log(cartItems, "Cart Data");
+
+
     const removeFromCart = async (productId, e) => {
         e.preventDefault();
         const userData = localStorage.getItem('currentUser');
@@ -269,7 +272,7 @@ const checkout = () => {
             console.error("Error removing item from cart:", error);
         }
     };
-    
+
     const changeQuantity = async (productId, newQuantity, e) => {
         e.preventDefault()
         if (newQuantity < 1) {
@@ -12446,7 +12449,7 @@ const checkout = () => {
                                                                                                     className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
                                                                                                     decoding="async"
                                                                                                     height="491"
-                                                                                                    src={item.imageUrls} // Display the first image
+                                                                                                    src={item.image_url} // Display the first image
                                                                                                     width="430"
                                                                                                 />
                                                                                             </div>

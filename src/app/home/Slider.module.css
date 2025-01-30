@@ -1,3 +1,4 @@
+/* Container for the slider */
 .sliderContainer {
   max-width: 100%;
   overflow: hidden;
@@ -5,6 +6,7 @@
   position: relative;
 }
 
+/* Style for each slide */
 .slide {
   display: flex;
   align-items: center;
@@ -13,14 +15,13 @@
   color: #fff;
   text-align: center;
   position: relative;
-  background-size: cover;
-  /* Ensures the background image is scaled properly */
-  background-position: center;
-  /* Centers the image */
-  background-repeat: no-repeat;
-  /* Prevents image tiling */
+  background-size: cover; /* Ensure background image covers the entire slide */
+  background-position: center; /* Center the image */
+  background-repeat: no-repeat; /* Prevents image tiling */
+  min-height: 460px; /* Ensures the height is consistent */
 }
 
+/* Dark overlay to improve text contrast */
 .slide::before {
   content: "";
   position: absolute;
@@ -28,80 +29,96 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
-  /* Dark overlay for better text contrast */
-  z-index: 1;
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent overlay */
+  z-index: 1; /* Overlay stays behind the content */
 }
 
+/* Content styling on top of the overlay */
 .content {
-  z-index: 2;
-  /* Stays on top of the overlay */
   position: relative;
+  z-index: 2; /* Ensures it stays on top of the overlay */
   max-width: 600px;
   margin: auto;
   text-align: center;
+  padding: 20px; /* Padding for some space inside the content */
 }
 
+/* Slide title styling */
 .title {
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 10px;
   color: #fff;
-  /* Ensure text contrast */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6); /* Adds text shadow for better readability */
 }
 
+/* Description styling */
 .description {
   font-size: 1.2rem;
   margin-bottom: 20px;
   color: #ddd;
-  /* Slightly muted text for better readability */
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6); /* Adds text shadow for better readability */
 }
 
+/* Button styling */
 .button {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #007bff; /* Blue background */
   color: #fff;
   text-decoration: none;
   border-radius: 5px;
   font-size: 1rem;
-  transition: background-color 0.3s ease;
-  /* Smooth hover effect */
+  transition: background-color 0.3s ease; /* Smooth background color change */
 }
 
 .button:hover {
-  background-color: #0056b3;
+  background-color: #0056b3; /* Darker blue when hovered */
 }
 
-/* Custom Navigation Buttons */
+/* Custom navigation buttons styling */
 .prevButton,
 .nextButton {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
   color: #fff;
   border: none;
-  border-radius: 50%;
+  border-radius: 50%; /* Circular buttons */
   width: 40px;
   height: 40px;
   font-size: 1.2rem;
   cursor: pointer;
-  z-index: 10;
+  z-index: 10; /* Ensure the buttons stay on top of the slide */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .prevButton {
-  left: 10px;
+  left: 10px; /* Position the "previous" button on the left */
 }
 
 .nextButton {
-  right: 10px;
+  right: 10px; /* Position the "next" button on the right */
 }
 
+/* Hover effect for navigation buttons */
 .prevButton:hover,
 .nextButton:hover {
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.8); /* Darker background on hover */
+}
+
+/* Optional: Style for dots (if enabled in the slider settings) */
+.slick-dots {
+  bottom: 20px;
+}
+
+.slick-dots li button:before {
+  color: #fff; /* White dots */
+}
+
+.slick-dots li.slick-active button:before {
+  color: #007bff; /* Highlight active dot in blue */
 }

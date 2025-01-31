@@ -5,14 +5,13 @@ import bestOffer from "../../app/assets/scraped_products.json";
 import categories from "../../app/assets/product_categories.json";
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {  fireStore } from "@/app/_components/firebase/config";
+import { fireStore } from "@/app/_components/firebase/config";
 import styles from './Slider.module.css'
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { toast } from "react-toastify";
-import bg1 from "../../../public/assets/Images/backgound-1.jpg";
 
 const HomePage = () => {
 
@@ -495,18 +494,27 @@ const HomePage = () => {
                                                         {/* Slide-1 */}
                                                         <div
                                                             className={styles.slide}
-                                                            style={{
-                                                                backgroundImage: `url('/assets/Images/backgound-1.jpg')`, // Ensure path is correct
-                                                                backgroundSize: "cover", // Ensures the image covers the entire slide area
-                                                                backgroundPosition: "center", // Centers the image
-                                                                backgroundRepeat: "no-repeat", // Prevents tiling
-                                                                minHeight: "460px", // Ensures the slide takes proper height
-                                                            }}
+                                                            style={{ width: "100%" }}
+
                                                         >
                                                             {/* Optionally, uncomment this image element for an image fallback */}
                                                             {/* <img src="/assets/Images/backgound-1.jpg" alt="image loaded" /> */}
 
-                                                            <div className={styles.content}>
+                                                            <div style={{
+                                                                backgroundImage: "url('/assets/Images/backgound-1.jpg')", // Ensure path is correct
+                                                                backgroundSize: "cover",
+                                                                backgroundPosition: "center",
+                                                                minHeight: "400px",
+                                                                width: "100%",
+                                                                height: "460px",
+                                                                objectfit: "contain",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                color: "#fff",
+                                                                fontSize: "24px",
+                                                                fontWeight: "bold",
+                                                                width: "100%"
+                                                            }} className={styles.content}>
                                                                 <h4 className={styles.title}>Apple Shopping Event</h4>
                                                                 <p className={styles.description}>
                                                                     Shop great deals on MacBook, iPad, iPhone and more.
@@ -520,18 +528,27 @@ const HomePage = () => {
                                                         {/* Slide-2 */}
                                                         <div
                                                             className={styles.slide}
-                                                            style={{
-                                                                backgroundImage: `url('/assets/Images/backgound-1.jpg')`, // Ensure path is correct
-                                                                backgroundSize: "cover", // Ensures the image covers the entire slide area
-                                                                backgroundPosition: "center", // Centers the image
-                                                                backgroundRepeat: "no-repeat", // Prevents tiling
-                                                                minHeight: "460px", // Ensures the slide takes proper height
-                                                            }}
+                                                            style={{ width: "100%" }}
+
                                                         >
                                                             {/* Optionally, uncomment this image element for an image fallback */}
                                                             {/* <img src="/assets/Images/backgound-1.jpg" alt="image loaded" /> */}
 
-                                                            <div className={styles.content}>
+                                                            <div style={{
+                                                                backgroundImage: "url('/assets/Images/backgound-2.jpg')", // Ensure path is correct
+                                                                backgroundSize: "cover",
+                                                                backgroundPosition: "center",
+                                                                minHeight: "400px",
+                                                                width: "100%",
+                                                                height: "460px",
+                                                                objectfit: "contain",  /* Ensures the full image is visible */
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                color: "#fff",
+                                                                fontSize: "24px",
+                                                                fontWeight: "bold",
+                                                                width: "100%"
+                                                            }} className={styles.content}>
                                                                 <h4 className={styles.title}>Apple Shopping Event</h4>
                                                                 <p className={styles.description}>
                                                                     Shop great deals on MacBook, iPad, iPhone and more.
@@ -545,18 +562,27 @@ const HomePage = () => {
                                                         {/* Slide-3 */}
                                                         <div
                                                             className={styles.slide}
-                                                            style={{
-                                                                backgroundImage: `url('/assets/Images/backgound-1.jpg')`, // Ensure path is correct
-                                                                backgroundSize: "cover", // Ensures the image covers the entire slide area
-                                                                backgroundPosition: "center", // Centers the image
-                                                                backgroundRepeat: "no-repeat", // Prevents tiling
-                                                                minHeight: "460px", // Ensures the slide takes proper height
-                                                            }}
+                                                            style={{ width: "100%" }}
+
                                                         >
                                                             {/* Optionally, uncomment this image element for an image fallback */}
                                                             {/* <img src="/assets/Images/backgound-1.jpg" alt="image loaded" /> */}
 
-                                                            <div className={styles.content}>
+                                                            <div style={{
+                                                                backgroundImage: "url('/assets/Images/backgound-3.jpg')", // Ensure path is correct
+                                                                backgroundSize: "cover",
+                                                                backgroundPosition: "center",
+                                                                minHeight: "400px",
+                                                                width: "100%",
+                                                                height: "460px",
+                                                                objectfit: "contain",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                color: "#fff",
+                                                                fontSize: "24px",
+                                                                fontWeight: "bold",
+                                                                width: "100%"
+                                                            }} className={styles.content}>
                                                                 <h4 className={styles.title}>Apple Shopping Event</h4>
                                                                 <p className={styles.description}>
                                                                     Shop great deals on MacBook, iPad, iPhone and more.

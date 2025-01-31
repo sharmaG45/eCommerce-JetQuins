@@ -1,4 +1,43 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 const Footer = () => {
+    const [isShopOpen, setShopOpen] = useState(false);
+    const router = useRouter();
+    const products = [
+        {
+            id: 1,
+            name: "Bitdefender Antivirus",
+            url: "/home/productCategory?title=Bitdefender" // Assuming the product URL for Bitdefender
+        },
+        {
+            id: 2,
+            name: "McAfee Antivirus",
+            url: "/home/productCategory?title=McAfee" // Assuming the product URL for McAfee
+        },
+        {
+            id: 3,
+            name: "Trend Micro",
+            url: "/home/productCategory?title=Trend Micro" // Assuming the product URL for Trend Micro
+        },
+        {
+            id: 4,
+            name: "Norton Antivirus",
+            url: "/home/productCategory?title=Norton" // Assuming the product URL for Norton
+
+        },
+        {
+            id: 5,
+            name: "Webroot Antivirus",
+            url: "/home/productCategory?title=Webroot" // Assuming the product URL for Norton
+        }
+    ];
+    const handleProductClick = (productUrl) => {
+        router.push(`${productUrl}`)
+        setShopOpen(false);
+    }
     return <>
         <footer
             data-wpr-lazyrender={1}
@@ -17,7 +56,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-lg-3 vc_col-md-3 wd-rs-63778ce5a2174">
                             <div className="vc_column-inner vc_custom_1668779245150">
                                 <div className="wpb_wrapper">
-                                    
+
                                     <div className="info-box-wrapper inline-element">
                                         <div
                                             id="wd-6388b350c4846"
@@ -66,7 +105,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-lg-3 vc_col-md-3 wd-rs-63778cefd2df2">
                             <div className="vc_column-inner vc_custom_1668779255112">
                                 <div className="wpb_wrapper">
-                                    
+
                                     <div className="info-box-wrapper inline-element">
                                         <div
                                             id="wd-6380d4af0732d"
@@ -115,7 +154,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-lg-3 vc_col-md-3 wd-rs-63778cf8a58b3">
                             <div className="vc_column-inner vc_custom_1668779264766">
                                 <div className="wpb_wrapper">
-                                    
+
                                     <div className="info-box-wrapper inline-element">
                                         <div
                                             id="wd-6380d4b93e561"
@@ -164,7 +203,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-lg-3 vc_col-md-3 wd-rs-63778d01f4178">
                             <div className="vc_column-inner vc_custom_1668779274593">
                                 <div className="wpb_wrapper">
-                                    
+
                                     <div className="info-box-wrapper inline-element">
                                         <div
                                             id="wd-6380d4c2b2d46"
@@ -235,7 +274,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-8 vc_col-lg-3 vc_col-md-3 wd-rs-63778d71e35d0">
                             <div className="vc_column-inner vc_custom_1668779382032">
                                 <div className="wpb_wrapper">
-                                    
+
                                     <div
                                         id="wd-6388ba0e775af"
                                         className="wd-image wd-wpb wd-rs-6388ba0e775af text-left vc_custom_1669904956863"
@@ -320,7 +359,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-4 vc_col-lg-2 vc_col-md-2 wd-rs-63778d6c0f98c">
                             <div className="vc_column-inner vc_custom_1668779376777">
                                 <div className="wpb_wrapper">
-                                    
+
                                     <div
                                         id="wd-63501cef7f4b2"
                                         className="wd-text-block wd-wpb reset-last-child wd-rs-63501cef7f4b2 text-left wd-font-weight-500 color-title wd-fontsize-m font-primary vc_custom_1666194678735"
@@ -332,39 +371,22 @@ const Footer = () => {
                                             <a>
                                                 <span className="nav-link-text"></span>
                                             </a>
+
                                             <ul className="sub-sub-menu">
-                                                <li className="true">
-                                                    <a
-                                                        href="#"
-                                                        title="true"
-                                                    >
-                                                        Mcafee
-                                                    </a>
-                                                </li>
-                                                <li className="true">
-                                                    <a
-                                                        href="#"
-                                                        title="true"
-                                                    >
-                                                        Bitdefender
-                                                    </a>
-                                                </li>
-                                                <li className="true">
-                                                    <a
-                                                        href="#"
-                                                        title="true"
-                                                    >
-                                                        Webroot
-                                                    </a>
-                                                </li>
-                                                <li className="true">
-                                                    <a
-                                                        href="#"
-                                                        title="true"
-                                                    >
-                                                        Trend Micro
-                                                    </a>
-                                                </li>
+                                                {products.map((product) => (
+                                                    <li className="true" key={product.id}>
+                                                        <a
+                                                            href="#"
+                                                            title="true"
+                                                            onClick={(e) => {
+                                                                e.preventDefault(); // Prevent default link behavior
+                                                                handleProductClick(product.url); // Redirect to the product URL
+                                                            }}
+                                                        >
+                                                            {product.name}
+                                                        </a>
+                                                    </li>
+                                                ))}
 
                                             </ul>
                                         </li>
@@ -375,7 +397,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-4 vc_col-lg-2 vc_col-md-2 wd-rs-63778d598935d">
                             <div className="vc_column-inner vc_custom_1668779356225">
                                 <div className="wpb_wrapper">
-                                    
+
                                     <div
                                         id="wd-63501cff3c4b0"
                                         className="wd-text-block wd-wpb reset-last-child wd-rs-63501cff3c4b0 text-left wd-font-weight-500 color-title wd-fontsize-m font-primary vc_custom_1666194692241"
@@ -390,7 +412,7 @@ const Footer = () => {
                                             <ul className="sub-sub-menu">
                                                 <li className="true">
                                                     <a
-                                                        href="#"
+                                                        href="/home/AboutUs"
                                                         title="About Us"
                                                     >
                                                         About Us
@@ -398,7 +420,7 @@ const Footer = () => {
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="#"
+                                                        href="/home/terms-and-policy"
                                                         title="Terms & Condition"
                                                     >
                                                         Terms & Condition
@@ -406,7 +428,7 @@ const Footer = () => {
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="#"
+                                                        href="/home/privacy-policy"
                                                         title="Privacy Policy"
                                                     >
                                                         Privacy Policy
@@ -414,7 +436,7 @@ const Footer = () => {
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="#"
+                                                        href="/home/refund-and-cancellation"
                                                         title="Refund & Cancellation Policy"
                                                     >
                                                         Refund & Cancellation Policy
@@ -422,7 +444,7 @@ const Footer = () => {
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="#"
+                                                        href="/home/FAQ"
                                                         title="FAQ"
                                                     >
                                                         FAQ
@@ -438,7 +460,7 @@ const Footer = () => {
                         <div className="wpb_column vc_column_container vc_col-sm-4 vc_col-lg-2 vc_col-md-2 wd-rs-63778d53277cd">
                             <div className="vc_column-inner vc_custom_1668779351601">
                                 <div className="wpb_wrapper">
-                                    
+
                                     <div
                                         id="wd-63501d0614f13"
                                         className="wd-text-block wd-wpb reset-last-child wd-rs-63501d0614f13 text-left wd-font-weight-500 color-title wd-fontsize-m font-primary vc_custom_1666194698611"
@@ -461,20 +483,20 @@ const Footer = () => {
                                                 </li>
                                                 <li className="true">
                                                     <a
-                                                        href="/"
+                                                        href="/home/ourContact"
                                                         title="Our Contacts"
                                                     >
                                                         Our contacts
                                                     </a>
                                                 </li>
-                                                <li className="true">
+                                                {/* <li className="true">
                                                     <a
                                                         href="/"
                                                         title="Promotions"
                                                     >
                                                         Promotions
                                                     </a>
-                                                </li>
+                                                </li> */}
                                                 <li className="true">
                                                     <a title="true">
                                                         Stores

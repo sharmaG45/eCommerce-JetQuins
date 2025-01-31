@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { auth, fireStore } from "../../_components/firebase/config";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { toast } from "react-toastify";
+import Cartwidget from "@/app/_components/Cart-widget/page";
 
 const productDetails = () => {
     const [filteredProducts, setFilteredProducts] = useState([]);
@@ -2914,137 +2915,7 @@ const productDetails = () => {
 
             {/* Cart Modal */}
 
-            <div className={`cart-widget-side wd-side-hidden wd-right ${isCartOpen ? 'wd-opened' : ''}`}>
-                <div className="wd-heading">
-                    <span className="title">Shopping cart</span>
-                    <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
-                        <a rel="nofollow" onClick={closeCart}>
-                            Close
-                        </a>
-                    </div>
-                </div>
-                <div className="widget woocommerce widget_shopping_cart">
-                    <div className="widget_shopping_cart_content">
-                        <div className="shopping-cart-widget-body wd-scroll">
-                            <div className="wd-scroll-content">
-                                <ul className="cart_list product_list_widget woocommerce-mini-cart ">
-                                    {cartItems.length > 0 ? (
-                                        cartItems.map((item, index) => (
-                                            <li key={index} className="woocommerce-mini-cart-item mini_cart_item">
-                                                <a href={item.productUrl} className="cart-item-link wd-fill">
-                                                    Show
-                                                </a>
-                                                <a
-                                                    href="#"
-                                                    className="remove remove_from_cart_button"
-                                                    aria-label={`Remove ${item.productName} from cart`}
-                                                    onClick={() => removeFromCart(item.productId)} // Implement remove functionality
-                                                >
-                                                    ×
-                                                </a>
-                                                <a href={item.productUrl} className="cart-item-image">
-                                                    <img
-                                                        width={430}
-                                                        height={491}
-                                                        src={item.image_url}
-                                                        className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                        alt={item.productName}
-                                                        decoding="async"
-                                                    />
-                                                </a>
-                                                <div className="cart-info">
-                                                    <span className="wd-entities-title">{item.productName}</span>
-                                                    <div className="wd-product-detail wd-product-sku">
-                                                        <span className="wd-label">SKU: </span>
-                                                        <span>{item.productSku}</span>
-                                                    </div>
-                                                    <div className="quantity">
-                                                        <input
-                                                            type="button"
-                                                            value="-"
-                                                            className="minus btn"
-                                                            onClick={(e) => changeQuantity(item.productId, item.quantity - 1, e)} // Decrease quantity
-                                                        />
-                                                        <label
-                                                            className="screen-reader-text"
-                                                            htmlFor={`quantity_${item.productId}`}
-                                                        >
-                                                            {item.productName} quantity
-                                                        </label>
-                                                        <input
-                                                            type="number"
-                                                            id={`quantity_${item.productId}`}
-                                                            className="input-text qty text"
-                                                            value={item.quantity}
-                                                            aria-label="Product quantity"
-                                                            min={1}
-                                                            onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value), e)} // Set new quantity
-                                                        />
-                                                        <input
-                                                            type="button"
-                                                            value="+"
-                                                            className="plus btn"
-                                                            onClick={(e) => changeQuantity(item.productId, item.quantity + 1, e)} // Increase quantity
-                                                        />
-                                                    </div>
-
-                                                </div>
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <div className="wd-empty-mini-cart">
-                                            <p className="woocommerce-mini-cart__empty-message empty title">
-                                                No products in the cart.
-                                            </p>
-                                            <a
-                                                className="btn wc-backward"
-                                                href="/home/productCategory"
-                                            >
-                                                Return To Shop{" "}
-                                            </a>
-                                        </div>
-                                    )}
-                                </ul>
-                            </div>
-                        </div>
-                        <div className="shopping-cart-widget-footer">
-                            <p className="woocommerce-mini-cart__total total">
-                                <strong>Subtotal:</strong>
-                                <span className="woocommerce-Price-amount amount">
-                                    <bdi>
-                                        <span className="woocommerce-Price-currencySymbol">$</span>
-                                        {calculateSubtotal()}
-                                    </bdi>
-                                </span>
-                            </p>
-                            <div className="wd-progress-bar wd-free-progress-bar">
-                                <div className="progress-msg">
-                                    Your order qualifies for free shipping!
-                                </div>
-                                <div className="progress-area">
-                                    <div className="progress-bar" style={{ width: "100%" }} />
-                                </div>
-                            </div>
-                            <p className="woocommerce-mini-cart__buttons buttons">
-                                <a
-                                    href="#"
-                                    className="button btn-cart wc-forward"
-                                    onClick={handleViewCart}
-                                >
-                                    View cart
-                                </a>
-                                <a
-                                    href="#"
-                                    className="button checkout wc-forward"
-                                    onClick={handleCheckout}
-                                >
-                                    Checkout
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Cartwidget isCartOpen={isCartOpen} closeCart={closeCart} setIsCartOpen={setIsCartOpen} />
             <div className={`wd-close-side wd-fill ${isCartOpen ? 'wd-close-side-opened' : ''}`} />
         </>
     )

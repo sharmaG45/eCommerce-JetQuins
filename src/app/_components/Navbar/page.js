@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect,useContext  } from 'react';
 import { useRouter } from 'next/navigation';
 import SignIn from '../SignIn/page';
 import { doc, getDoc, arrayRemove, updateDoc } from 'firebase/firestore';
@@ -7,6 +8,8 @@ import { fireStore, auth } from '../../_components/firebase/config';
 import bestOffer from '@/app/assets/scraped_products.json';
 import { signOut } from "firebase/auth";
 import { toast } from 'react-toastify';
+import Cartwidget from '../Cart-widget/page';
+import { CartContext } from "../CartContext/page";
 
 const Navbar = () => {
 
@@ -93,6 +96,7 @@ const Navbar = () => {
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
 
+    const { data, dispatch } = useContext(CartContext);
     const [wishlistCount, setWishlistCount] = useState(0);
     const [cartCount, setCartCount] = useState(0);
     const [cartTotal, setCartTotal] = useState(0.0);
@@ -175,186 +179,6 @@ const Navbar = () => {
         setActiveSection((prev) => (prev === id ? null : id));
     };
 
-    const handleCheckout = (e) => {
-        e.preventDefault(); // Prevent the default link navigation
-        const storedUser = localStorage.getItem("currentUser");
-        if (storedUser) {
-            router.push('/home/checkout'); // Navigate to the checkout page
-        } else {
-            toast.error("Please log in to proceed to checkout.");
-            router.push('/myAccount/SignUp');
-        }
-        setIsCartOpen(false); // Close the cart (if you have this state)
-    };
-
-    const handleViewCart = (e) => {
-        e.preventDefault();
-        router.push('/home/cart');
-        setIsCartOpen(false);
-    }
-
-    useEffect(() => {
-        const fetchCart = async () => {
-            try {
-                // Get user data from localStorage
-                const userData = localStorage.getItem("currentUser");
-
-                if (!userData) {
-                    console.log("No user logged in. Fetching cart from localStorage.");
-
-                    // Fetch cart from localStorage for guest users
-                    const guestCart = localStorage.getItem("guestCart");
-                    setCartItems(guestCart ? JSON.parse(guestCart) : []);
-                    return;
-                }
-
-                // Parse user data
-                const user = JSON.parse(userData);
-
-                // Validate user object
-                if (!user || !user.uid) {
-                    console.error("Invalid user data.");
-                    return;
-                }
-
-                // Get the user's cart data from Firestore
-                const userRef = doc(fireStore, "users", user.uid);
-                const userDoc = await getDoc(userRef);
-
-                if (userDoc.exists()) {
-                    const cartData = userDoc.data().cart || [];
-                    setCartItems(cartData); // Set cart items for logged-in users
-                } else {
-                    console.log("User document not found.");
-                }
-            } catch (error) {
-                console.error("Error fetching cart data:", error);
-            }
-        };
-
-        fetchCart();
-    }, []);
-
-    const removeFromCart = async (productId) => {
-        const userData = localStorage.getItem("currentUser");
-
-        if (!userData) {
-            console.log("No user logged in. Removing item from guest cart.");
-
-            // Get guest cart from localStorage
-            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-
-            // Remove the selected item
-            const updatedCart = guestCart.filter(item => item.productId !== productId);
-
-            // Update localStorage and state
-            localStorage.setItem("guestCart", JSON.stringify(updatedCart));
-            setCartItems(updatedCart);
-
-            alert("Product removed from cart!");
-            return;
-        }
-
-        // Parse user data
-        const user = JSON.parse(userData);
-        const userId = user?.uid;
-
-        if (userId) {
-            try {
-                const userRef = doc(fireStore, "users", userId);
-                const userDoc = await getDoc(userRef);
-
-                if (userDoc.exists()) {
-                    const userCart = userDoc.data().cart || [];
-
-                    // Find and remove the item
-                    const updatedCart = userCart.filter(item => item.productId !== productId);
-
-                    // Update Firestore
-                    await updateDoc(userRef, { cart: updatedCart });
-
-                    // Update local state
-                    setCartItems(updatedCart);
-
-                    console.log(`Removed item with productId: ${productId}`);
-                    alert("Product removed from cart!");
-                } else {
-                    console.log("User document not found.");
-                }
-            } catch (error) {
-                console.error("Error removing item from cart:", error);
-                alert("Error removing product from cart.");
-            }
-        }
-    };
-
-    const changeQuantity = async (productId, newQuantity) => {
-        if (newQuantity < 1) {
-            alert("Quantity cannot be less than 1.");
-            return;
-        }
-
-        const userData = localStorage.getItem("currentUser");
-
-        if (!userData) {
-            console.log("No user logged in. Updating quantity in guest cart.");
-
-            // Get guest cart from localStorage
-            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-
-            // Update the quantity
-            const updatedCart = guestCart.map(item =>
-                item.productId === productId ? { ...item, quantity: newQuantity } : item
-            );
-
-            // Save updated cart back to localStorage
-            localStorage.setItem("guestCart", JSON.stringify(updatedCart));
-
-            // Update local state
-            setCartItems(updatedCart);
-
-            alert("Quantity updated!");
-            return;
-        }
-
-        // Parse user data
-        const user = JSON.parse(userData);
-        const userId = user?.uid;
-
-        if (userId) {
-            try {
-                const userRef = doc(fireStore, "users", userId);
-                const userDoc = await getDoc(userRef);
-
-                if (userDoc.exists()) {
-                    const userCart = userDoc.data().cart || [];
-
-                    // Update the quantity in Firestore
-                    const updatedCart = userCart.map(item =>
-                        item.productId === productId ? { ...item, quantity: newQuantity } : item
-                    );
-
-                    await updateDoc(userRef, { cart: updatedCart });
-
-                    // Update local state
-                    setCartItems(updatedCart);
-
-                    console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
-                    alert("Quantity updated!");
-                } else {
-                    console.log("User document not found.");
-                }
-            } catch (error) {
-                console.error("Error updating quantity in cart:", error);
-                alert("Error updating quantity.");
-            }
-        }
-    };
-
-    const calculateSubtotal = () => {
-        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
-    };
-
     useEffect(() => {
         const fetchUserData = async () => {
             try {
@@ -403,7 +227,7 @@ const Navbar = () => {
     }, []);
 
 
-    console.log(cartItems, "cart Details");
+    // console.log(cartItems, "cart Details");
 
     const [searchQuery, setSearchQuery] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -1065,145 +889,7 @@ const Navbar = () => {
 
         {/* Cart Modal */}
 
-        <div className={`cart-widget-side wd-side-hidden wd-right ${isCartOpen ? 'wd-opened' : ''}`}>
-            <div className="wd-heading">
-                <span className="title">Shopping cart</span>
-                <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
-                    <a rel="nofollow" onClick={closeCart}>
-                        Close
-                    </a>
-                </div>
-            </div>
-            <div className="widget woocommerce widget_shopping_cart">
-                <div className="widget_shopping_cart_content">
-                    <div className="shopping-cart-widget-body wd-scroll">
-                        <div className="wd-scroll-content">
-                            <ul className="cart_list product_list_widget woocommerce-mini-cart ">
-                                {cartItems.length > 0 ? (
-                                    cartItems.map((item, index) => (
-                                        <li key={index} className="woocommerce-mini-cart-item mini_cart_item">
-                                            <a href={item.productUrl} className="cart-item-link wd-fill">
-                                                Show
-                                            </a>
-                                            <a
-                                                href="#"
-                                                className="remove remove_from_cart_button"
-                                                aria-label={`Remove ${item.productName} from cart`}
-                                                onClick={() => removeFromCart(item.productId)} // Implement remove functionality
-                                            >
-                                                ×
-                                            </a>
-                                            <a href={item.productUrl} className="cart-item-image">
-                                                <img
-                                                    width={430}
-                                                    height={491}
-                                                    src={item.image_url}
-                                                    className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                    alt={item.productName}
-                                                    decoding="async"
-                                                />
-                                            </a>
-                                            <div className="cart-info">
-                                                <span className="wd-entities-title">{item.productName}</span>
-                                                <div className="wd-product-detail wd-product-sku">
-                                                    <span className="wd-label">SKU: </span>
-                                                    <span>{item.productSku}</span>
-                                                </div>
-                                                <div className="quantity">
-                                                    <input
-                                                        type="button"
-                                                        value="-"
-                                                        className="minus btn"
-                                                        onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Decrease quantity
-                                                    />
-                                                    <label
-                                                        className="screen-reader-text"
-                                                        htmlFor={`quantity_${item.productId}`}
-                                                    >
-                                                        {item.productName} quantity
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        id={`quantity_${item.productId}`}
-                                                        className="input-text qty text"
-                                                        value={item.quantity}
-                                                        aria-label="Product quantity"
-                                                        min={1}
-                                                        onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))} // Set new quantity
-                                                    />
-                                                    <input
-                                                        type="button"
-                                                        value="+"
-                                                        className="plus btn"
-                                                        onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Increase quantity
-                                                    />
-                                                </div>
-                                                <span className="quantity">
-                                                    {item.quantity} ×
-                                                    <span className="woocommerce-Price-amount amount">
-                                                        <bdi>
-                                                            <span className="woocommerce-Price-currencySymbol">$</span>
-                                                            {item.price * item.quantity}
-                                                        </bdi>
-                                                    </span>
-                                                </span>
-                                            </div>
-                                        </li>
-                                    ))
-                                ) : (
-                                    <div className="wd-empty-mini-cart">
-                                        <p className="woocommerce-mini-cart__empty-message empty title">
-                                            No products in the cart.
-                                        </p>
-                                        <a
-                                            className="btn wc-backward"
-                                            href="/home/productCategory"
-                                        >
-                                            Return To Shop{" "}
-                                        </a>
-                                    </div>
-                                )}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="shopping-cart-widget-footer">
-                        <p className="woocommerce-mini-cart__total total">
-                            <strong>Subtotal:</strong>
-                            <span className="woocommerce-Price-amount amount">
-                                <bdi>
-                                    <span className="woocommerce-Price-currencySymbol">$</span>
-                                    {calculateSubtotal()}
-                                </bdi>
-                            </span>
-                        </p>
-                        <div className="wd-progress-bar wd-free-progress-bar">
-                            <div className="progress-msg">
-                                Your order qualifies for free shipping!
-                            </div>
-                            <div className="progress-area">
-                                <div className="progress-bar" style={{ width: "100%" }} />
-                            </div>
-                        </div>
-                        <p className="woocommerce-mini-cart__buttons buttons">
-                            <a
-                                href="#"
-                                className="button btn-cart wc-forward"
-                                onClick={handleViewCart}
-                            >
-                                View cart
-                            </a>
-                            <a
-                                href="#"
-                                className="button checkout wc-forward"
-                                onClick={(e) => handleCheckout(e)}
-                            >
-                                Checkout
-                            </a>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <Cartwidget isCartOpen={isCartOpen} closeCart={closeCart} setIsCartOpen={setIsCartOpen} />
 
         {/* Mobile Menu Bar */}
 

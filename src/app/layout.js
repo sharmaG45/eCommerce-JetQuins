@@ -6,6 +6,7 @@ import Sidebar from "./_components/Sidebar/page";
 import { Suspense } from 'react';
 import 'react-toastify/dist/ReactToastify.css';
 import { ToastContainer, toast } from "react-toastify";
+import { CartContextProvider } from "./_components/CartContext/page";
 
 export const metadata = {
   title: "Cheap Flights, Compare Flights & Airline Deals - onlineflightreservations.com",
@@ -376,15 +377,16 @@ export default function RootLayout({ children }) {
         className="home page-template-default page page-id-15 theme-woodmart woocommerce-js wrapper-custom  categories-accordion-on woodmart-ajax-shop-on sticky-toolbar-on hide-larger-price wd-sticky-nav-enabled wpb-js-composer js-comp-ver-7.8 vc_responsiv"
       >
         <Suspense fallback={<p>Loading...</p>}>
-          <Sidebar />
+         <CartContextProvider>
+         <Sidebar />
           <div className="wd-page-wrapper website-wrapper">
             <Navbar />
             <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
             {children}
             <a className="scrollToTop" aria-label="Scroll to top button" />
             <Footer />
-
           </div>
+         </CartContextProvider>
         </Suspense>
       </body>
     </html>

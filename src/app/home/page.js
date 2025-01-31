@@ -3,7 +3,7 @@
 import Script from "next/script";
 import bestOffer from "../../app/assets/scraped_products.json";
 import categories from "../../app/assets/product_categories.json";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { fireStore } from "@/app/_components/firebase/config";
 import styles from './Slider.module.css'
@@ -12,6 +12,8 @@ import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { toast } from "react-toastify";
+import Cartwidget from "../_components/Cart-widget/page";
+import { CartContext } from "../_components/CartContext/page";
 
 const HomePage = () => {
 
@@ -22,6 +24,8 @@ const HomePage = () => {
     const [cartItems, setCartItems] = useState([]);
     const router = useRouter();
     const sliderRef = useRef(null);
+
+    const { data, dispatch } = useContext(CartContext);
 
     console.log(bestOffer, "Image for image");
 
@@ -136,7 +140,6 @@ const HomePage = () => {
 
         const user = JSON.parse(localStorage.getItem("currentUser"));
 
-
         // Log the offer object to verify structure
         console.log("Offer:", offer);
 
@@ -185,31 +188,36 @@ const HomePage = () => {
         if (!user || !user.uid) {
             console.log("User not logged in. Saving to guest cart.");
 
-            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+            // Get guest cart from Context (avoid localStorage usage)
+            let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Check if the product already exists
+            // Check if the product already exists in the guest cart
             const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
 
             if (existingIndex !== -1) {
-                // Update quantity if product exists
+                // If product exists, update quantity
                 guestCart[existingIndex].quantity += 1;
+                dispatch({ type: "Update", payload: guestCart });
                 toast.success("Product quantity updated in your cart!");
             } else {
-                // Add new product
+                // Add new product to the cart
                 guestCart.push({ ...offerData, timestamp: new Date() });
+                dispatch({ type: "Add", payload: offerData });
+                localStorage.setItem("guestCart", JSON.stringify(guestCart));
                 toast.success("Product added to your cart!");
             }
 
-            // Update localStorage
+            // Save updated cart to Context and localStorage (no duplicates)
             localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
             setIsCartOpen(true); // Open the cart
             return;
         }
 
 
+        // Handle logged-in users (Firestore integration)
         try {
-            const userId = user.uid;
-            const userRef = doc(fireStore, "users", userId);
+            const userRef = doc(fireStore, "users", user.uid);
 
             // Fetch existing cart data from Firestore
             const userDoc = await getDoc(userRef);
@@ -231,9 +239,11 @@ const HomePage = () => {
             // Update Firestore cart
             await updateDoc(userRef, { cart: userCart });
 
-            console.log("Cart updated for user:", userId);
-            setIsCartOpen(true); // Open the cart
+            // Dispatch updated cart state
+            dispatch({ type: "Update", payload: userCart });
 
+            console.log("Cart updated for user:", user.uid);
+            setIsCartOpen(true); // Open the cart
         } catch (error) {
             console.error("Error adding product to cart:", error);
             toast.error("Error adding product to cart.");
@@ -244,25 +254,6 @@ const HomePage = () => {
     const closeCart = () => {
         setIsCartOpen(false);
     };
-
-    const handleCheckout = (e) => {
-        e.preventDefault(); // Prevent the default link navigation
-        const storedUser = localStorage.getItem("currentUser");
-        if (storedUser) {
-            router.push('/home/checkout'); // Navigate to the checkout page
-        } else {
-            toast.error("Please log in to proceed to checkout.");
-            router.push('/myAccount/SignUp');
-        }
-        setIsCartOpen(false); // Close the cart (if you have this state)
-    };
-
-    //comment added
-    const handleViewCart = (e) => {
-        e.preventDefault();
-        router.push('/home/cart');
-        setIsCartOpen(false);
-    }
 
     useEffect(() => {
         // Fetch the current user's cart items
@@ -303,7 +294,7 @@ const HomePage = () => {
         fetchCart(); // Call the fetchCart function to retrieve cart items
     }, []);
 
-    console.log(cartItems, "Carts Data");
+    // console.log(cartItems, "Carts Data");
 
     // Slider
     const sliderSettings = {
@@ -392,82 +383,6 @@ const HomePage = () => {
         if (sliderRef.current) {
             sliderRef.current.slickPrev();
         }
-    };
-
-    const removeFromCart = async (productId) => {
-        const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
-
-        const user = JSON.parse(userData); // Parse the user data from localStorage
-
-        try {
-            // Get user document reference
-            const userRef = doc(fireStore, "users", user.uid);
-
-            // Find the item to be removed by matching the productId
-            const itemToRemove = cartItems.find(item => item.productId === productId);
-
-            if (!itemToRemove) {
-                console.log("Item not found in cart.");
-                return;
-            }
-
-            // Remove item from cart array in Firestore using arrayRemove
-            await updateDoc(userRef, {
-                cart: arrayRemove(itemToRemove) // Ensure you're passing the whole object
-            });
-
-            // Update local state by filtering out the item
-            setCartItems(cartItems.filter(item => item.productId !== productId));
-
-            console.log(`Removed item with productId: ${productId}`);
-        } catch (error) {
-            console.error("Error removing item from cart:", error);
-        }
-    };
-
-    const changeQuantity = async (productId, newQuantity) => {
-        if (newQuantity < 1) {
-            alert("Quantity cannot be less than 1.");
-            return;
-        }
-
-        const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
-
-        const user = JSON.parse(userData); // Parse the user data from localStorage
-
-        try {
-            // Get user document reference
-            const userRef = doc(fireStore, "users", user.uid);
-
-            // Find the item to update
-            const updatedCart = cartItems.map(item =>
-                item.productId === productId ? { ...item, quantity: newQuantity } : item
-            );
-
-            // Update Firestore with new quantity
-            await updateDoc(userRef, {
-                cart: updatedCart
-            });
-
-            // Update local state
-            setCartItems(updatedCart);
-
-            console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
-        } catch (error) {
-            console.error("Error updating quantity in cart:", error);
-        }
-    };
-
-    const calculateSubtotal = () => {
-        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
     };
 
     const PRODUCTS_PER_PAGE = 5;
@@ -1883,7 +1798,7 @@ const HomePage = () => {
                                                                         decoding="async"
                                                                         width={580}
                                                                         height={365}
-                                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-580x365.png"
+                                                                        src="/assets/Images/media-vpn.avif"
                                                                         className="attachment-580x365 size-580x365 entered lazyloaded"
                                                                         alt
                                                                         data-lazy-srcset="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img.png 580w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-400x252.png 400w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-100x63.png 100w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-430x271.png 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-180x113.png 180w"
@@ -1891,7 +1806,7 @@ const HomePage = () => {
                                                                         data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-580x365.png"
                                                                         data-ll-status="loaded"
                                                                         sizes="(max-width: 580px) 100vw, 580px"
-                                                                        srcSet="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img.png 580w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-400x252.png 400w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-100x63.png 100w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-430x271.png 430w, https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/apple-shopping-event-full-img-180x113.png 180w"
+                                                                        srcSet="/assets/Images/media-vpn.avif"
                                                                     />
 
                                                                 </div>
@@ -1907,12 +1822,11 @@ const HomePage = () => {
                                                                 >
                                                                     <div className="liner-continer">
                                                                         <h4 className="woodmart-title-container title  wd-font-weight- wd-fontsize-l">
-                                                                            Apple Shopping Event
+                                                                            Network Security and Antivirus Protection Sale
                                                                         </h4>
                                                                     </div>
                                                                     <div className="title-after_title reset-last-child  wd-fontsize-xs">
-                                                                        Hurry and get discounts on all Apple devices up to
-                                                                        20%
+                                                                        Stay Safe Online with Top Network Security and Antivirus Protection – Discounts Up to 25%!
                                                                     </div>
                                                                 </div>
                                                                 <div className="wd-countdown-timer  color-scheme-dark text-left wd-rs- ">
@@ -2375,149 +2289,7 @@ const HomePage = () => {
 
             {/* Cart Modal */}
 
-            <div className={`cart-widget-side wd-side-hidden wd-right ${isCartOpen ? 'wd-opened' : ''}`}>
-                <div className="wd-heading">
-                    <span className="title">Shopping cart</span>
-                    <div className="close-side-widget wd-action-btn wd-style-text wd-cross-icon">
-                        <a rel="nofollow" onClick={closeCart}>
-                            Close
-                        </a>
-                    </div>
-                </div>
-                <div className="widget woocommerce widget_shopping_cart">
-                    <div className="widget_shopping_cart_content">
-                        <div className="shopping-cart-widget-body wd-scroll">
-                            <div className="wd-scroll-content">
-                                <ul className="cart_list product_list_widget woocommerce-mini-cart ">
-                                    {cartItems.length > 0 ? (
-                                        cartItems.map((item, index) => (
-                                            <li key={index} className="woocommerce-mini-cart-item mini_cart_item">
-                                                <a href={item.productUrl} className="cart-item-link wd-fill">
-                                                    Show
-                                                </a>
-                                                <a
-                                                    href="#"
-                                                    className="remove remove_from_cart_button"
-                                                    aria-label={`Remove ${item.productName} from cart`}
-                                                    onClick={() => removeFromCart(item.productId)} // Implement remove functionality
-                                                >
-                                                    ×
-                                                </a>
-                                                <a href={item.productUrl} className="cart-item-image">
-                                                    <img
-                                                        width={430}
-                                                        height={491}
-                                                        src={item.image_url}
-                                                        className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                        alt={item.productName}
-                                                        decoding="async"
-                                                    />
-                                                </a>
-                                                <div className="cart-info">
-                                                    <span className="wd-entities-title">{item.productName}</span>
-                                                    <div className="wd-product-detail wd-product-sku">
-                                                        <span className="wd-label">SKU: </span>
-                                                        <span>{item.productSku}</span>
-                                                    </div>
-                                                    <div className="quantity">
-                                                        <input
-                                                            type="button"
-                                                            value="-"
-                                                            className="minus btn"
-                                                            onClick={() => changeQuantity(item.productId, item.quantity - 1)} // Decrease quantity
-                                                        />
-                                                        <label
-                                                            className="screen-reader-text"
-                                                            htmlFor={`quantity_${item.productId}`}
-                                                        >
-                                                            {item.productName} quantity
-                                                        </label>
-                                                        <input
-                                                            type="number"
-                                                            id={`quantity_${item.productId}`}
-                                                            className="input-text qty text"
-                                                            value={item.quantity}
-                                                            aria-label="Product quantity"
-                                                            min={1}
-                                                            onChange={(e) => changeQuantity(item.productId, parseInt(e.target.value))} // Set new quantity
-                                                        />
-                                                        <input
-                                                            type="button"
-                                                            value="+"
-                                                            className="plus btn"
-                                                            onClick={() => changeQuantity(item.productId, item.quantity + 1)} // Increase quantity
-                                                        />
-                                                    </div>
-                                                    <span className="quantity">
-                                                        {item.quantity} ×
-                                                        <span className="woocommerce-Price-amount amount">
-                                                            <bdi>
-                                                                <span className="woocommerce-Price-currencySymbol">$</span>
-                                                                {item.price * item.quantity}
-                                                            </bdi>
-                                                        </span>
-                                                    </span>
-                                                </div>
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <div className="wd-empty-mini-cart">
-                                            <p className="woocommerce-mini-cart__empty-message empty title">
-                                                No products in the cart.
-                                            </p>
-                                            <a
-                                                className="btn wc-backward"
-                                                href="/home/productCategory"
-                                            >
-                                                Return To Shop{" "}
-                                            </a>
-                                        </div>
-
-                                    )}
-                                </ul>
-                            </div>
-                        </div>
-                        <div className="shopping-cart-widget-footer">
-                            <p className="woocommerce-mini-cart__total total">
-                                <strong>Subtotal:</strong>
-                                <span className="woocommerce-Price-amount amount">
-                                    <bdi>
-                                        <span className="woocommerce-Price-currencySymbol">$</span>
-                                        {calculateSubtotal()}
-                                    </bdi>
-                                </span>
-                            </p>
-                            <div className="wd-progress-bar wd-free-progress-bar">
-                                <div className="progress-msg">
-                                    Your order qualifies for free shipping!
-                                </div>
-                                <div className="progress-area">
-                                    <div className="progress-bar" style={{ width: "100%" }} />
-                                </div>
-                            </div>
-                            <p className="woocommerce-mini-cart__buttons buttons">
-                                <a
-                                    href="#"
-                                    className="button btn-cart wc-forward"
-                                    onClick={(e) => { handleViewCart(e) }}
-                                >
-                                    View cart
-                                </a>
-                                <a
-                                    href="#"
-                                    className="button checkout wc-forward"
-                                    onClick={(e) => {
-
-                                        handleCheckout(e)
-                                    }}
-                                >
-                                    Checkout
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <Cartwidget isCartOpen={isCartOpen} closeCart={closeCart} setIsCartOpen={setIsCartOpen} />
 
             <div className={`wd-close-side wd-fill ${isCartOpen ? 'wd-close-side-opened' : ''}`} />
 

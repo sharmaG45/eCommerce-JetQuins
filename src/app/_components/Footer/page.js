@@ -242,7 +242,7 @@ const Footer = () => {
                                     >
                                         <a href="/">
                                             <img
-                                                src="/assets/Images/logo-3.png"
+                                                src="/assets/Images/Logo-3.png"
                                                 title="mega-electronics-logo"
                                                 width={200}
                                                 height={34}

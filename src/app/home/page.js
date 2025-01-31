@@ -29,8 +29,8 @@ const HomePage = () => {
         e.preventDefault(); // Prevent default behavior
 
         // Get user data from localStorage
-        const userData = localStorage.getItem("currentUser");
-        const user = userData ? JSON.parse(userData) : null;
+        const user = JSON.parse(localStorage.getItem("currentUser"));
+        // const user = userData ? JSON.parse(userData) : null;
 
         // Fallback data for missing fields
         const staticData = {
@@ -134,8 +134,8 @@ const HomePage = () => {
     const openCart = async (e, offer) => {
         e.preventDefault(); // Prevent default behavior
 
-        const userData = localStorage.getItem("currentUser");
-        const user = userData ? JSON.parse(userData) : null;
+        const user = JSON.parse(localStorage.getItem("currentUser"));
+
 
         // Log the offer object to verify structure
         console.log("Offer:", offer);
@@ -685,45 +685,45 @@ const HomePage = () => {
                                                                     transform: "translate3d(0px, 0px, 0px)",
                                                                 }}
                                                             >
-                                                                  {categories.map((category) => (
-                                                                        <div
-                                                                            key={category.id}
-                                                                            className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
-                                                                            style={{ width: "190px", cursor: "pointer" }}
-                                                                            onClick={() => handleCategoryClick(category)}
-                                                                        >
-                                                                            <div className="category-grid-item wd-cat cat-design-alt wd-with-subcat product-category product first" data-loop={1}>
-                                                                                <div className="wrapp-category">
-                                                                                    <div className="category-image-wrapp">
-                                                                                        <a className="category-image" aria-label="Category image">
-                                                                                            <picture decoding="async" className="attachment-200 size-200">
-                                                                                                <img
-                                                                                                    decoding="async"
-                                                                                                    src={category.image}
-                                                                                                    alt={category.title}
-                                                                                                />
-                                                                                            </picture>
+                                                                {categories.map((category) => (
+                                                                    <div
+                                                                        key={category.id}
+                                                                        className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
+                                                                        style={{ width: "190px", cursor: "pointer" }}
+                                                                        onClick={() => handleCategoryClick(category)}
+                                                                    >
+                                                                        <div className="category-grid-item wd-cat cat-design-alt wd-with-subcat product-category product first" data-loop={1}>
+                                                                            <div className="wrapp-category">
+                                                                                <div className="category-image-wrapp">
+                                                                                    <a className="category-image" aria-label="Category image">
+                                                                                        <picture decoding="async" className="attachment-200 size-200">
+                                                                                            <img
+                                                                                                decoding="async"
+                                                                                                src={category.image}
+                                                                                                alt={category.title}
+                                                                                            />
+                                                                                        </picture>
+                                                                                    </a>
+                                                                                </div>
+                                                                                <div className="hover-mask">
+                                                                                    <h3 className="wd-entities-title">
+                                                                                        {category.title} <mark className="count">({category.productsCount})</mark>
+                                                                                    </h3>
+                                                                                    <div className="more-products">
+                                                                                        <a >
+                                                                                            {category.productsCount} products
                                                                                         </a>
                                                                                     </div>
-                                                                                    <div className="hover-mask">
-                                                                                        <h3 className="wd-entities-title">
-                                                                                            {category.title} <mark className="count">({category.productsCount})</mark>
-                                                                                        </h3>
-                                                                                        <div className="more-products">
-                                                                                            <a >
-                                                                                                {category.productsCount} products
-                                                                                            </a>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <a
-
-                                                                                        className="category-link wd-fill"
-                                                                                        aria-label={`Product category ${category.title}`}
-                                                                                    />
                                                                                 </div>
+                                                                                <a
+
+                                                                                    className="category-link wd-fill"
+                                                                                    aria-label={`Product category ${category.title}`}
+                                                                                />
                                                                             </div>
                                                                         </div>
-                                                                    ))}
+                                                                    </div>
+                                                                ))}
                                                                 {/* <Slider {...settings} >
                                                                   
                                                                 </Slider> */}

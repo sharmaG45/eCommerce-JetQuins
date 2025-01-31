@@ -319,29 +319,33 @@ const HomePage = () => {
     };
 
     // Product Slider
-    const Settings = {
-        dots: false,
+    const settings = {
+        dots: true,
         infinite: true,
-        speed: 500,
-        slidesToShow: 4, // Adjust based on screen size
+        speed: 700,
+        slidesToShow: 6,
         slidesToScroll: 1,
+        autoplay: true,
+        autoplaySpeed: 20000,
+        adaptiveHeight: true,
+        arrows: false,
         responsive: [
             {
-                breakpoint: 1024,
-                settings: {
-                    slidesToShow: 3,
-                },
-            },
-            {
-                breakpoint: 768,
+                breakpoint: 980,
                 settings: {
                     slidesToShow: 2,
+                    slidesToScroll: 1,
+                    arrows: false,
+                    dots: true,
                 },
             },
             {
-                breakpoint: 480,
+                breakpoint: 767,
                 settings: {
                     slidesToShow: 1,
+                    slidesToScroll: 1,
+                    arrows: false,
+                    dots: true,
                 },
             },
         ],
@@ -654,7 +658,9 @@ const HomePage = () => {
                                                     id="wd-678497ab2fe96"
                                                     className="products woocommerce wd-carousel-container wd-cats-element wd-rs-637e42d972764 wd-wpb wd-img-width wd-cats"
                                                 >
+
                                                     <div className="wd-carousel-inner">
+
                                                         <div
                                                             className="wd-carousel wd-grid wd-initialized wd-horizontal wd-watch-progress wd-backface-hidden"
                                                             data-scroll_per_page="yes"
@@ -666,6 +672,7 @@ const HomePage = () => {
                                                                 "--wd-gap-sm": "10px",
                                                             }}
                                                         >
+
                                                             <div
                                                                 className="wd-carousel-wrap"
                                                                 style={{
@@ -678,49 +685,49 @@ const HomePage = () => {
                                                                     transform: "translate3d(0px, 0px, 0px)",
                                                                 }}
                                                             >
-
-                                                                {categories.map((category) => (
-                                                                    <div
-                                                                        key={category.id}
-                                                                        className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
-                                                                        style={{ width: "190px", cursor: "pointer" }}
-                                                                        onClick={() => handleCategoryClick(category)}
-                                                                    >
-                                                                        <div className="category-grid-item wd-cat cat-design-alt wd-with-subcat product-category product first" data-loop={1}>
-                                                                            <div className="wrapp-category">
-                                                                                <div className="category-image-wrapp">
-                                                                                    <a className="category-image" aria-label="Category image">
-                                                                                        <picture decoding="async" className="attachment-200 size-200">
-                                                                                            <img
-                                                                                                decoding="async"
-                                                                                                src={category.image}
-                                                                                                alt={category.title}
-                                                                                            />
-                                                                                        </picture>
-                                                                                    </a>
-                                                                                </div>
-                                                                                <div className="hover-mask">
-                                                                                    <h3 className="wd-entities-title">
-                                                                                        {category.title} <mark className="count">({category.productsCount})</mark>
-                                                                                    </h3>
-                                                                                    <div className="more-products">
-                                                                                        <a >
-                                                                                            {category.productsCount} products
+                                                                  {categories.map((category) => (
+                                                                        <div
+                                                                            key={category.id}
+                                                                            className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
+                                                                            style={{ width: "190px", cursor: "pointer" }}
+                                                                            onClick={() => handleCategoryClick(category)}
+                                                                        >
+                                                                            <div className="category-grid-item wd-cat cat-design-alt wd-with-subcat product-category product first" data-loop={1}>
+                                                                                <div className="wrapp-category">
+                                                                                    <div className="category-image-wrapp">
+                                                                                        <a className="category-image" aria-label="Category image">
+                                                                                            <picture decoding="async" className="attachment-200 size-200">
+                                                                                                <img
+                                                                                                    decoding="async"
+                                                                                                    src={category.image}
+                                                                                                    alt={category.title}
+                                                                                                />
+                                                                                            </picture>
                                                                                         </a>
                                                                                     </div>
-                                                                                </div>
-                                                                                <a
+                                                                                    <div className="hover-mask">
+                                                                                        <h3 className="wd-entities-title">
+                                                                                            {category.title} <mark className="count">({category.productsCount})</mark>
+                                                                                        </h3>
+                                                                                        <div className="more-products">
+                                                                                            <a >
+                                                                                                {category.productsCount} products
+                                                                                            </a>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <a
 
-                                                                                    className="category-link wd-fill"
-                                                                                    aria-label={`Product category ${category.title}`}
-                                                                                />
+                                                                                        className="category-link wd-fill"
+                                                                                        aria-label={`Product category ${category.title}`}
+                                                                                    />
+                                                                                </div>
                                                                             </div>
                                                                         </div>
-                                                                    </div>
-                                                                ))}
-
+                                                                    ))}
+                                                                {/* <Slider {...settings} >
+                                                                  
+                                                                </Slider> */}
                                                             </div>
-
                                                         </div>
                                                         <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-icon-1">
                                                             <div className="wd-btn-arrow wd-prev wd-disabled wd-lock">
@@ -1982,6 +1989,9 @@ const HomePage = () => {
                                                                 className="wd-carousel-wrap"
                                                                 style={{ cursor: "grab" }}
                                                             >
+                                                                {/* <Slider {...settings} >
+                                                                  
+                                                                </Slider> */}
 
                                                                 {bestOffer.slice(0, 5).map((product) => (
                                                                     <div

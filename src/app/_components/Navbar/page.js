@@ -630,7 +630,7 @@ const Navbar = () => {
                                             src="/assets/Images/Logo-3.png"
                                             className="attachment-full size-full"
                                             alt=""
-                                            
+
                                             decoding="async"
                                         />
                                     </a>
@@ -1195,7 +1195,7 @@ const Navbar = () => {
                             <a
                                 href="#"
                                 className="button checkout wc-forward"
-                                onClick={handleCheckout}
+                                onClick={(e) => handleCheckout(e)}
                             >
                                 Checkout
                             </a>

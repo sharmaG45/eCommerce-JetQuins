@@ -142,7 +142,13 @@ const wishlist = () => {
                                     <div className="wd-products-element wd-wpb">
                                         <div
                                             className="products wd-products grid-columns-3 elements-grid pagination-links wd-grid-g title-line-one wd-stretch-cont-lg wd-products-with-bg"
-
+                                            style={{
+                                                '--wd-col-lg': '3',
+                                                '--wd-col-md': '3',
+                                                '--wd-col-sm': '2',
+                                                '--wd-gap-lg': '20px',
+                                                '--wd-gap-sm': '10px'
+                                            }}
                                         >
                                             {wishlist.length === 0 ? (
                                                 <>

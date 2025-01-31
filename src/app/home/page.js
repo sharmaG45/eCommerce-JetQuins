@@ -811,8 +811,8 @@ const HomePage = () => {
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
-                                                                    <div className="product-element-top wd-quick-shop" onClick={() => handleProductDetails(offer.productName)}>
-                                                                        <a className="product-image-link" >
+                                                                    <div className="product-element-top wd-quick-shop" >
+                                                                        <a className="product-image-link" onClick={() => handleProductDetails(offer.productName)}>
                                                                             <div className="wd-product-grid-slider wd-fill" >
 
                                                                             </div>
@@ -1689,8 +1689,8 @@ const HomePage = () => {
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
-                                                                    <div className="product-element-top wd-quick-shop" onClick={() => handleProductDetails(offer.productName)}>
-                                                                        <a className="product-image-link" >
+                                                                    <div className="product-element-top wd-quick-shop" >
+                                                                        <a className="product-image-link"  >
                                                                             <div className="wd-product-grid-slider wd-fill" >
                                                                                 {/* {offer.image_url.map((url, imageIndex) => (
                                                                                     <div
@@ -2121,8 +2121,8 @@ const HomePage = () => {
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
-                                                                    <div className="product-element-top wd-quick-shop" onClick={() => handleProductDetails(offer.productName)}>
-                                                                        <a className="product-image-link" >
+                                                                    <div className="product-element-top wd-quick-shop" >
+                                                                        <a className="product-image-link" onClick={() => handleProductDetails(offer.productName)}>
                                                                             <div className="wd-product-grid-slider wd-fill" >
                                                                                 {/* {offer.image_url.map((url, imageIndex) => (
                                                                                     <div

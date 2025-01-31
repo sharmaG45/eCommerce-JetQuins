@@ -460,7 +460,7 @@ const Navbar = () => {
                                         aria-label="Site logo"
                                     >
                                         <img
-                                            src="/assets/Images/logo-3.png"
+                                            src="/assets/Images/Logo-3.png"
                                             className="attachment-full size-full"
                                             alt=""
                                             style={{ maxWidth: 200 }}

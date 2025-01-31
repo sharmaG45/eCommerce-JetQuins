@@ -318,34 +318,64 @@ const HomePage = () => {
         arrows: false,
     };
 
-    const slides = [
-        {
-            id: "slide-1",
-            title: "Apple Shopping Event",
-            description: "Shop great deals on MacBook, iPad, iPhone and more.",
-            buttonText: "Shop Now",
-            buttonLink: "#",
-            backgroundImage: "/assets/Images/backgound-1.jpg",
-        },
-        {
-            id: "slide-2",
-            title: "The new Google Pixel 7",
-            description: "Shop great deals on MacBook, iPad, iPhone and more.",
-            buttonText: "Pre-Order Now",
-            buttonLink: "#",
-            backgroundImage: "/assets/Images/backgound-2.jpg",
-        },
-        {
-            id: "slide-3",
-            title: "Discount on all Smart appliances up to 25%",
-            description: "Shop great deals on MacBook, iPad, iPhone and more.",
-            buttonText: "Shop Now",
-            buttonLink: "#",
-            backgroundImage: "/assets/Images/backgound-3.jpg",
-        },
-    ];
+    // Product Slider
+    const Settings = {
+        dots: false,
+        infinite: true,
+        speed: 500,
+        slidesToShow: 4, // Adjust based on screen size
+        slidesToScroll: 1,
+        responsive: [
+            {
+                breakpoint: 1024,
+                settings: {
+                    slidesToShow: 3,
+                },
+            },
+            {
+                breakpoint: 768,
+                settings: {
+                    slidesToShow: 2,
+                },
+            },
+            {
+                breakpoint: 480,
+                settings: {
+                    slidesToShow: 1,
+                },
+            },
+        ],
+    };
 
-    console.log(slides, "json data for slider");
+
+    // const slides = [
+    //     {
+    //         id: "slide-1",
+    //         title: "Apple Shopping Event",
+    //         description: "Shop great deals on MacBook, iPad, iPhone and more.",
+    //         buttonText: "Shop Now",
+    //         buttonLink: "#",
+    //         backgroundImage: "/assets/Images/backgound-1.jpg",
+    //     },
+    //     {
+    //         id: "slide-2",
+    //         title: "The new Google Pixel 7",
+    //         description: "Shop great deals on MacBook, iPad, iPhone and more.",
+    //         buttonText: "Pre-Order Now",
+    //         buttonLink: "#",
+    //         backgroundImage: "/assets/Images/backgound-2.jpg",
+    //     },
+    //     {
+    //         id: "slide-3",
+    //         title: "Discount on all Smart appliances up to 25%",
+    //         description: "Shop great deals on MacBook, iPad, iPhone and more.",
+    //         buttonText: "Shop Now",
+    //         buttonLink: "#",
+    //         backgroundImage: "/assets/Images/backgound-3.jpg",
+    //     },
+    // ];
+
+    // console.log(slides, "json data for slider");
 
 
     const goToNext = () => {
@@ -593,7 +623,6 @@ const HomePage = () => {
                                                             </div>
                                                         </div>
 
-
                                                     </Slider>
                                                     <button className={styles.prevButton} onClick={goToPrev}>
                                                         Previous
@@ -649,6 +678,7 @@ const HomePage = () => {
                                                                     transform: "translate3d(0px, 0px, 0px)",
                                                                 }}
                                                             >
+
                                                                 {categories.map((category) => (
                                                                     <div
                                                                         key={category.id}
@@ -661,18 +691,10 @@ const HomePage = () => {
                                                                                 <div className="category-image-wrapp">
                                                                                     <a className="category-image" aria-label="Category image">
                                                                                         <picture decoding="async" className="attachment-200 size-200">
-                                                                                            <source
-                                                                                                type="image/webp"
-
-
-                                                                                            />
                                                                                             <img
                                                                                                 decoding="async"
-
                                                                                                 src={category.image}
                                                                                                 alt={category.title}
-
-
                                                                                             />
                                                                                         </picture>
                                                                                     </a>
@@ -789,9 +811,9 @@ const HomePage = () => {
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
-                                                                    <div className="product-element-top wd-quick-shop">
+                                                                    <div className="product-element-top wd-quick-shop" onClick={() => handleProductDetails(offer.productName)}>
                                                                         <a className="product-image-link" >
-                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
+                                                                            <div className="wd-product-grid-slider wd-fill" >
 
                                                                             </div>
                                                                             <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
@@ -1667,9 +1689,9 @@ const HomePage = () => {
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
-                                                                    <div className="product-element-top wd-quick-shop">
+                                                                    <div className="product-element-top wd-quick-shop" onClick={() => handleProductDetails(offer.productName)}>
                                                                         <a className="product-image-link" >
-                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
+                                                                            <div className="wd-product-grid-slider wd-fill" >
                                                                                 {/* {offer.image_url.map((url, imageIndex) => (
                                                                                     <div
                                                                                         className="wd-product-grid-slide"
@@ -2099,9 +2121,9 @@ const HomePage = () => {
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
 
-                                                                    <div className="product-element-top wd-quick-shop">
+                                                                    <div className="product-element-top wd-quick-shop" onClick={() => handleProductDetails(offer.productName)}>
                                                                         <a className="product-image-link" >
-                                                                            <div className="wd-product-grid-slider wd-fill" onClick={() => handleProductDetails(offer.productName)}>
+                                                                            <div className="wd-product-grid-slider wd-fill" >
                                                                                 {/* {offer.image_url.map((url, imageIndex) => (
                                                                                     <div
                                                                                         className="wd-product-grid-slide"

@@ -572,7 +572,7 @@ const Navbar = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="whb-space-element " style={{ width: 20 }} />
+                                {/* <div className="whb-space-element " style={{ width: 20 }} />
                                 <div className="info-box-wrapper  whb-qb4njeyuiye2my4ln8v6">
                                     <div
                                         id="wd-6780f8eb9178a"
@@ -608,7 +608,7 @@ const Navbar = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                             <div className="whb-column whb-mobile-left whb-hidden-lg">
                                 <div className="wd-tools-element wd-header-mobile-nav wd-style-icon wd-design-1 whb-2pcq59rrgv7khz6hxoix" onClick={openMobileMenu} >
@@ -630,7 +630,7 @@ const Navbar = () => {
                                             src="/assets/Images/Logo-3.png"
                                             className="attachment-full size-full"
                                             alt=""
-                                            style={{ maxWidth: 180 }}
+                                            
                                             decoding="async"
                                         />
                                     </a>

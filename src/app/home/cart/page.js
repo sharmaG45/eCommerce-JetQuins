@@ -75,7 +75,7 @@ const cart = () => {
         const userData = localStorage.getItem('currentUser');
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
-
+// Addd
         try {
             // Get user document reference
             const userRef = doc(fireStore, "users", user.uid);

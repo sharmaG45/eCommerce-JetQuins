@@ -82,7 +82,7 @@ const cart = () => {
             await updateDoc(userRef, {
                 cart: arrayRemove({ productId }) // Remove item by productId from the cart array
             });
-
+// Addddd
             // Update local state
             setCartItems(cartItems.filter(item => item.productId !== productId));
 

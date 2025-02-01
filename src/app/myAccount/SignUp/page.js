@@ -50,7 +50,8 @@ const signup = () => {
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                alert("User not found. Please register first.");
+            
+                toast.error("User not found. Please register first.")
                 return;
             }
 
@@ -78,7 +79,7 @@ const signup = () => {
             }, 1500);
         } catch (error) {
             console.error("Error during login:", error);
-            // alert("Error: " + error.message);
+        
             toast.error(`Error: ${error.message}`)
         }
     };
@@ -106,7 +107,6 @@ const signup = () => {
             setIsRegister(false);
         } catch (error) {
             console.error("Error during registration:", error);
-            // alert(error.message);
             toast.error(`Error during registration:, ${error.message}`)
         }
     };

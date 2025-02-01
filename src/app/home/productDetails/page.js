@@ -301,62 +301,11 @@ const productDetails = () => {
         fetchCart();
     }, []);
 
-    const removeFromCart = async (productId) => {
-        const userData = localStorage.getItem("currentUser");
 
-        if (!userData) {
-            console.log("No user logged in. Removing item from guest cart.");
-
-            // Get guest cart from localStorage
-            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-
-            // Remove the selected item
-            const updatedCart = guestCart.filter(item => item.productId !== productId);
-
-            // Update localStorage and state
-            localStorage.setItem("guestCart", JSON.stringify(updatedCart));
-            setCartItems(updatedCart);
-
-            alert("Product removed from cart!");
-            return;
-        }
-
-        // Parse user data
-        const user = JSON.parse(userData);
-        const userId = user?.uid;
-
-        if (userId) {
-            try {
-                const userRef = doc(fireStore, "users", userId);
-                const userDoc = await getDoc(userRef);
-
-                if (userDoc.exists()) {
-                    const userCart = userDoc.data().cart || [];
-
-                    // Find and remove the item
-                    const updatedCart = userCart.filter(item => item.productId !== productId);
-
-                    // Update Firestore
-                    await updateDoc(userRef, { cart: updatedCart });
-
-                    // Update local state
-                    setCartItems(updatedCart);
-
-                    console.log(`Removed item with productId: ${productId}`);
-                    alert("Product removed from cart!");
-                } else {
-                    console.log("User document not found.");
-                }
-            } catch (error) {
-                console.error("Error removing item from cart:", error);
-                alert("Error removing product from cart.");
-            }
-        }
-    };
 
     const changeQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
-            alert("Quantity cannot be less than 1.");
+            toast.error("Quantity cannot be less than 1.");
             return;
         }
 
@@ -379,7 +328,7 @@ const productDetails = () => {
             // Update local state
             setCartItems(updatedCart);
 
-            alert("Quantity updated!");
+            toast.success("Quantity updated!");
             return;
         }
 
@@ -406,13 +355,13 @@ const productDetails = () => {
                     setCartItems(updatedCart);
 
                     console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
-                    alert("Quantity updated!");
+                    toast.success("Quantity updated!");
                 } else {
                     console.log("User document not found.");
                 }
             } catch (error) {
                 console.error("Error updating quantity in cart:", error);
-                alert("Error updating quantity.");
+                toast.error("Error updating quantity.");
             }
         }
     };

@@ -23,11 +23,6 @@ const signin = ({ isModalOpen, closeModal, setIsModalOpen }) => {
         });
     };
 
-    // useEffect((e)=>{
-    //     handleLoginSubmit(e);
-    //     handleCreateAccount();
-    // },[])
-
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         const { username, password } = loginData;
@@ -39,7 +34,7 @@ const signin = ({ isModalOpen, closeModal, setIsModalOpen }) => {
             const querySnapshot = await getDocs(q);
 
             if (querySnapshot.empty) {
-                alert("User not found. Please register first.");
+                toast.error("User not found. Please register first.")
                 return;
             }
 
@@ -57,14 +52,11 @@ const signin = ({ isModalOpen, closeModal, setIsModalOpen }) => {
 
             console.log("Login successful:", user);
 
-            // Step 4: Redirect or show success message
-            // alert("Login successful!");
             toast.success("Login successful!")
             setIsModalOpen(false) // Redirect to dashboard after successful login
         } catch (error) {
             console.error("Error during login:", error);
-            toast.error(`Error: ${error.message}`)
-            // alert("Error: " + error.message);
+            toast.error(`Error during login:: ${error.message}`)
         }
     };
 

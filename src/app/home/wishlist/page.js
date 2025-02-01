@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import Cartwidget from "@/app/_components/Cart-widget/page";
+import { toast } from "react-toastify";
 
 const wishlist = () => {
 
@@ -73,7 +74,7 @@ const wishlist = () => {
                 localStorage.setItem("guestWishlist", JSON.stringify(updatedWishlist));
                 setWishlist(updatedWishlist);
 
-                alert("Product removed from wishlist!");
+                toast.success("Product removed from wishlist!")
                 return;
             }
 
@@ -97,14 +98,14 @@ const wishlist = () => {
                     // Update local state
                     setWishlist(updatedWishlist);
 
-                    alert("Product removed from wishlist!");
+                    toast.success("Product removed from wishlist!");
                 } else {
                     console.log("User document not found.");
                 }
             }
         } catch (error) {
             console.error("Error removing product from wishlist:", error);
-            alert("Error removing product from wishlist.");
+            toast.success("Error removing product from wishlist.");
         }
     };
 

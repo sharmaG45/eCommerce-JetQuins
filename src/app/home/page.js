@@ -27,7 +27,7 @@ const HomePage = () => {
 
     const { data, dispatch } = useContext(CartContext);
 
-    console.log(bestOffer, "Image for image");
+    // console.log(bestOffer, "All products");
 
     const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent default behavior

@@ -207,7 +207,6 @@ const checkout = () => {
             const userData = localStorage.getItem('currentUser');
 
             if (!userData) {
-                // alert("Please log in first.");
                 toast.error("Please log in first.")
                 return; // Exit if no user is logged in
             }
@@ -240,7 +239,7 @@ const checkout = () => {
         e.preventDefault();
         const userData = localStorage.getItem('currentUser');
         if (!userData) {
-            // alert("Please log in first.");
+
             toast.error("Please log in first.");
             return;
         }
@@ -276,16 +275,12 @@ const checkout = () => {
     const changeQuantity = async (productId, newQuantity, e) => {
         e.preventDefault()
         if (newQuantity < 1) {
-            alert("Quantity cannot be less than 1.");
+            toast.error("Quantity cannot be less than 1.");
             return;
         }
 
         const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
-
+    
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
         try {

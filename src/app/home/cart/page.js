@@ -47,12 +47,6 @@ const cart = () => {
         // Fetch the current user's cart items
         const fetchCart = async () => {
             const userData = localStorage.getItem('currentUser');
-
-            // if (!userData) {
-            //     alert("Please log in first.");
-            //     return; // Exit if no user is logged in
-            // }
-
             const user = JSON.parse(userData); // Parse the user data from localStorage
 
             try {
@@ -77,10 +71,6 @@ const cart = () => {
     const handleRemoveItem = async (e, productId) => {
         e.preventDefault();
         const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -105,15 +95,13 @@ const cart = () => {
     const handleQuantityChange = async (productId, newQuantity, e) => {
         e.preventDefault();
         if (newQuantity < 1) {
-            alert("Quantity cannot be less than 1.");
+
+            toast.error("Quantity cannot be less than 1.")
             return;
         }
 
         const userData = localStorage.getItem('currentUser');
-        // if (!userData) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
+
 
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
@@ -147,11 +135,6 @@ const cart = () => {
     const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent the default link behavior
         const user = JSON.parse(localStorage.getItem('currentUser')); // Assuming user info is stored in localStorage
-
-        // if (!user) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
 
         // Log the offer object to see if it's structured correctly
         console.log('Offer:', offer);
@@ -203,7 +186,7 @@ const cart = () => {
 
             if (existingProductIndex !== -1) {
                 // If the product is found, notify the user that it's already in the wishlist
-                alert("Product is already in your wishlist!");
+                toast.success("Product is already in your wishlist!");
                 // Optionally, redirect to the wishlist page if you want to
                 // router.push('/home/wishlist');
             } else {
@@ -223,7 +206,7 @@ const cart = () => {
                 await updateDoc(userRef, { wishlist: userWishlist });
 
                 console.log("Product added to wishlist for user:", userId);
-                alert("Product added to your wishlist!");
+                toast.success("Product added to your wishlist!");
             }
 
             // Optionally open the wishlist after adding
@@ -231,7 +214,7 @@ const cart = () => {
 
         } catch (error) {
             console.error("Error adding product to wishlist:", error);
-            alert("Error adding product to wishlist.");
+            toast.error("Error adding product to wishlist.");
         }
     };
 
@@ -239,11 +222,6 @@ const cart = () => {
         e.preventDefault(); // Prevent the default link behavior
 
         const user = JSON.parse(localStorage.getItem('currentUser'));
-
-        // if (!user) {
-        //     alert("Please log in first.");
-        //     return;
-        // }
 
         // Log the offer object to see if it's structured correctly
         console.log('Offer:', offer);
@@ -301,7 +279,7 @@ const cart = () => {
                 await updateDoc(userRef, { cart: userCart });
 
                 console.log("Product quantity incremented in cart for user:", userId);
-                alert("Product quantity updated in your cart!");
+                toast.success("Product quantity updated in your cart!");
             } else {
                 // If the product is not in the cart, add it as a new product
                 userCart.push({
@@ -320,13 +298,13 @@ const cart = () => {
                 await updateDoc(userRef, { cart: userCart });
 
                 console.log("Product added to cart for user:", userId);
-                alert("Product added to your cart!");
+                toast.success("Product added to your cart!");
             }
 
             setIsCartOpen(true); // Open the cart after adding/updating
         } catch (error) {
             console.error("Error adding product to cart:", error);
-            alert("Error adding product to cart.");
+            toast.error("Error adding product to cart.");
         }
     };
 

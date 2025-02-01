@@ -1,12 +1,13 @@
 'use client';
 
 import bestOffer from "../../assets/scraped_products.json";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { getFirestore, doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { auth, fireStore } from "@/app/_components/firebase/config";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import Cartwidget from "@/app/_components/Cart-widget/page";
+import { CartContext } from "@/app/_components/CartContext/page";
 
 // Hello
 
@@ -17,6 +18,7 @@ const cart = () => {
     const [totalPrice, setTotalPrice] = useState(0);
     const [isAdded, setIsAdded] = useState(false);
     const router = useRouter();
+    const { data, dispatch } = useContext(CartContext);
 
     const handleCheckout = (e) => {
         e.preventDefault(); // Prevent the default link navigation
@@ -219,89 +221,114 @@ const cart = () => {
     };
 
     const openCart = async (e, offer) => {
-        e.preventDefault(); // Prevent the default link behavior
+        e.preventDefault(); // Prevent default behavior
 
-        const user = JSON.parse(localStorage.getItem('currentUser'));
+        const user = JSON.parse(localStorage.getItem("currentUser"));
 
-        // Log the offer object to see if it's structured correctly
-        console.log('Offer:', offer);
+        // Log the offer object to verify structure
+        console.log("Offer:", offer);
 
-        // Static fallback data in case some fields are missing
+        // Fallback data for missing fields
         const staticData = {
-            product_url: 'https://defaultproducturl.com',
-            image_urls: [
-                "https://via.placeholder.com/430x491?text=Image+1",
-                "https://via.placeholder.com/430x491?text=Image+2",
-                "https://via.placeholder.com/430x491?text=Image+3",
-                "https://via.placeholder.com/430x491?text=Image+4"
-            ],
-            brand: 'Default Brand',
-            productId: '00000',
-            productName: 'Default Product',
-            productSku: 'DEFAULTSKU',
-            price: 99.99,
-            discount: 0
+            product_url: "/",
+            image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
+            brand: "Unknown Brand",
+            productId: "00000",
+            productName: "Default Product",
+            productSku: "DEFAULTSKU",
+            price: 0.0,
+            discount: 0,
+            quantity: 1,
+            rating: 0,
+            description: "No description available.",
+            how_product_works: "Not available.",
+            other_details: {
+                compatibility: "Unknown",
+                free_trial: "Not available",
+                subscription_model: "Not specified"
+            },
+            faq: []
         };
 
-        // Use static data if any required fields are missing
+        // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_urls: offer.image_urls && offer.image_urls.length > 0 ? offer.image_urls : staticData.image_urls,
+            image_url: offer.image_url || staticData.image_url,
+            brand: offer.brand || staticData.brand,
             productId: offer.productId || staticData.productId,
             productName: offer.productName || staticData.productName,
             productSku: offer.productSku || staticData.productSku,
             price: offer.price || staticData.price,
             discount: offer.discount || staticData.discount,
+            quantity: offer.quantity || staticData.quantity,
+            rating: offer.rating || staticData.rating,
+            description: offer.description || staticData.description,
+            how_product_works: offer.how_product_works || staticData.how_product_works,
+            other_details: offer.other_details || staticData.other_details,
+            faq: offer.faq || staticData.faq
         };
 
-        // Log the final offer data (either user-provided or static)
-        console.log('Final Offer Data:', offerData);
+        console.log("Final Offer Data:", offerData);
 
-        try {
-            // Get the user's ID
-            const userId = user.uid;
+        if (!user || !user.uid) {
+            console.log("User not logged in. Saving to guest cart.");
 
-            // Reference to the user document in the 'users' collection
-            const userRef = doc(fireStore, "users", userId);
+            // Get guest cart from Context (avoid localStorage usage)
+            let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Fetch the current user data to check if the cart exists
-            const userDoc = await getDoc(userRef);
-            let userCart = userDoc.exists() ? userDoc.data().cart || [] : [];
+            // Check if the product already exists in the guest cart
+            const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
 
-            // Check if the product is already in the cart
-            const existingProductIndex = userCart.findIndex(item => item.productId === offerData.productId);
-
-            if (existingProductIndex !== -1) {
-                // If the product is found, increment the quantity in place
-                userCart[existingProductIndex].quantity += 1;
-
-                // Update the user's cart document with the new quantity
-                await updateDoc(userRef, { cart: userCart });
-
-                console.log("Product quantity incremented in cart for user:", userId);
+            if (existingIndex !== -1) {
+                // If product exists, update quantity
+                guestCart[existingIndex].quantity += 1;
+                dispatch({ type: "Update", payload: guestCart });
                 toast.success("Product quantity updated in your cart!");
             } else {
-                // If the product is not in the cart, add it as a new product
-                userCart.push({
-                    productUrls: offerData.product_url,
-                    productId: offerData.productId,
-                    productName: offerData.productName,
-                    productSku: offerData.productSku,
-                    imageUrls: offerData.image_urls,
-                    price: offerData.price,
-                    discount: offerData.discount,
-                    quantity: 1, // Starting quantity
-                    timestamp: new Date(),
-                });
-
-                // Update the user's cart document with the new product
-                await updateDoc(userRef, { cart: userCart });
-
-                console.log("Product added to cart for user:", userId);
+                // Add new product to the cart
+                guestCart.push({ ...offerData, timestamp: new Date() });
+                dispatch({ type: "Add", payload: offerData });
+                localStorage.setItem("guestCart", JSON.stringify(guestCart));
                 toast.success("Product added to your cart!");
             }
 
-            setIsCartOpen(true); // Open the cart after adding/updating
+            // Save updated cart to Context and localStorage (no duplicates)
+            localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
+            setIsCartOpen(true); // Open the cart
+            return;
+        }
+
+
+        // Handle logged-in users (Firestore integration)
+        try {
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Fetch existing cart data from Firestore
+            const userDoc = await getDoc(userRef);
+            let userCart = userDoc.exists() ? userDoc.data().cart || [] : [];
+
+            // Check if product exists in Firestore cart
+            const existingIndex = userCart.findIndex(item => item.productId === offerData.productId);
+
+            if (existingIndex !== -1) {
+                // If exists, update quantity
+                userCart[existingIndex].quantity += 1;
+                toast.success("Product quantity updated in your cart!");
+            } else {
+                // Add new product
+                userCart.push({ ...offerData, timestamp: new Date() });
+                toast.success("Product added to your cart!");
+            }
+
+            // Update Firestore cart
+            await updateDoc(userRef, { cart: userCart });
+
+            // Dispatch updated cart state
+            dispatch({ type: "Update", payload: userCart });
+
+            console.log("Cart updated for user:", user.uid);
+            setIsCartOpen(true); // Open the cart
         } catch (error) {
             console.error("Error adding product to cart:", error);
             toast.error("Error adding product to cart.");
@@ -405,12 +432,12 @@ const cart = () => {
 
                                                                 {/* Added */}
 
-                                                                {cartItems.length > 0 ? (
-                                                                    cartItems.map((item) => (
+                                                                {data.length > 0 ? (
+                                                                    data.map((item) => (
                                                                         <tr key={item.productId} className="cart_item">
                                                                             <td className="product-remove">
                                                                                 <button
-                                                                                    aria-label={`Remove ${item.productName}`}
+
                                                                                     className="remove"
                                                                                     onClick={(e) => handleRemoveItem(item.productId, e)}
                                                                                 >
@@ -986,7 +1013,7 @@ const cart = () => {
                                                                                 <a
                                                                                     className="checkout-button button alt wc-forward"
                                                                                     onClick={() => handleCheckout(e)}
-                                                                                    href="/">
+                                                                                    href="#">
                                                                                     Proceed to checkout
                                                                                 </a>
                                                                             </div>

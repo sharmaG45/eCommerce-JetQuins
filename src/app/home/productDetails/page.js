@@ -17,7 +17,6 @@ const productDetails = () => {
     const [isAdded, setIsAdded] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
-
     const { data, dispatch } = useContext(CartContext);
 
     const handleAddToWishlist = async (e, offer) => {
@@ -311,6 +310,7 @@ const productDetails = () => {
     }, []);
 
 
+
     const changeQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
             toast.error("Quantity cannot be less than 1.");
@@ -374,6 +374,10 @@ const productDetails = () => {
         }
     };
 
+    const calculateSubtotal = () => {
+        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
+    };
+
     const handleCheckout = (e) => {
         e.preventDefault(); // Prevent the default link navigation
         const storedUser = localStorage.getItem("currentUser");
@@ -386,6 +390,8 @@ const productDetails = () => {
         setIsCartOpen(false); // Close the cart (if you have this state)
         // add new code
     };
+
+
 
     return (
         <>
@@ -684,7 +690,7 @@ const productDetails = () => {
                                                                     name="wd-add-to-cart"
                                                                     onClick={(e) => {
                                                                         e.preventDefault(); // Prevent form submission
-                                                                        handleCheckout();
+                                                                        handleCheckout(e);
                                                                     }}
                                                                     type="button" // changed to "button" to prevent form submission
                                                                     value="2435"

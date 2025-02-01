@@ -267,6 +267,7 @@ const Navbar = () => {
         if (searchQuery.trim()) {
             router.push(`/home/productCategory?title=${encodeURIComponent(searchQuery)}`);
         }
+        setShowSuggestions(false);
     };
 
     const handleWishlist = (e) => {
@@ -277,6 +278,7 @@ const Navbar = () => {
     const handleProductDetails = (brandDetails, e) => {
         e.preventDefault();
         router.push(`/home/productDetails?brand=${brandDetails}`);
+        setShowSuggestions(false);
     }
 
     return <>

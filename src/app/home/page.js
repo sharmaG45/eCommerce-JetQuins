@@ -10,7 +10,7 @@ import styles from './Slider.module.css'
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
-import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayRemove, getDocs, collection } from "firebase/firestore";
 import { toast } from "react-toastify";
 import Cartwidget from "../_components/Cart-widget/page";
 import { CartContext } from "../_components/CartContext/page";
@@ -27,7 +27,6 @@ const HomePage = () => {
 
     const { data, dispatch } = useContext(CartContext);
 
-    // console.log(bestOffer, "All products");
 
     const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent default behavior
@@ -122,6 +121,99 @@ const HomePage = () => {
         }
     };
 
+    // const handleAddToWishlist = async (e, offer) => {
+    //     e.preventDefault(); // Prevent default behavior
+
+    //     // Get user data from localStorage
+    //     const user = JSON.parse(localStorage.getItem("currentUser"));
+    //     // const user = userData ? JSON.parse(userData) : null;
+
+    //     // Fallback data for missing fields
+    //     const staticData = {
+    //         product_url: "/",
+    //         image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
+    //         brand: "Unknown Brand",
+    //         productId: "00000",
+    //         productName: "Default Product",
+    //         productSku: "DEFAULTSKU",
+    //         price: 0.0,
+    //         discount: 0
+    //     };
+
+    //     // Merge offer data with fallback values
+    //     const offerData = {
+    //         product_url: offer.product_url || staticData.product_url,
+    //         image_url: offer.image_url || staticData.image_url,
+    //         brand: offer.brand || staticData.brand,
+    //         productId: offer.productId || staticData.productId,
+    //         productName: offer.productName || staticData.productName,
+    //         productSku: offer.productSku || staticData.productSku,
+    //         price: offer.price || staticData.price,
+    //         discount: offer.discount || staticData.discount
+    //     };
+
+    //     console.log("Final Offer Data:", offerData);
+
+
+    //     if (!user || !user.uid) {
+    //         console.log("No user logged in. Saving to guest wishlist.");
+
+    //         const guestWishlist = JSON.parse(localStorage.getItem("guestWishlist")) || [];
+
+    //         // Check if product already exists
+    //         if (guestWishlist.some(item => item.productId === offerData.productId)) {
+    //             toast.success("Product is already in your wishlist!");
+    //             return;
+    //         }
+
+    //         // Add to guest wishlist
+    //         guestWishlist.push({ ...offerData, timestamp: new Date() });
+    //         localStorage.setItem("guestWishlist", JSON.stringify(guestWishlist));
+
+    //         toast.success("Product added to your wishlist!");
+    //         return;
+    //     }
+
+
+    //     try {
+    //         const userId = user.uid;
+    //         const userRef = doc(fireStore, "users", userId);
+
+    //         // Fetch only the wishlist from Firestore
+    //         const userDoc = await getDoc(userRef);
+    //         let userWishlist = userDoc.exists() ? userDoc.data().wishlist || [] : [];
+
+    //         // Check if product exists
+    //         if (userWishlist.some(item => item.productId === offerData.productId)) {
+    //             toast.success("Product is already in your wishlist!");
+    //             return;
+    //         }
+
+    //         // Add new product to wishlist
+    //         userWishlist.push({
+    //             product_url: offerData.product_url,
+    //             image_url: offerData.image_url,
+    //             brand: offerData.brand,
+    //             productId: offerData.productId,
+    //             productName: offerData.productName,
+    //             productSku: offerData.productSku,
+    //             price: offerData.price,
+    //             discount: offerData.discount,
+    //             timestamp: new Date()
+    //         });
+
+    //         // Update Firestore
+    //         await updateDoc(userRef, { wishlist: userWishlist });
+
+    //         console.log("Wishlist updated for user:", userId);
+    //         toast.success("Product added to your wishlist!");
+
+    //     } catch (error) {
+    //         console.error("Error adding product to wishlist:", error);
+    //         toast.error("Error adding product to wishlist.");
+    //     }
+    // };
+
     const handleCategoryClick = (category) => {
         console.log(category.title, "Category");
 
@@ -135,13 +227,14 @@ const HomePage = () => {
     }
 
     // Function to open the Cart Modal
+
     const openCart = async (e, offer) => {
         e.preventDefault(); // Prevent default behavior
 
         const user = JSON.parse(localStorage.getItem("currentUser"));
 
         // Log the offer object to verify structure
-        console.log("Offer:", offer);
+        console.log("Offer:", offer.productData);
 
         // Fallback data for missing fields
         const staticData = {
@@ -168,15 +261,15 @@ const HomePage = () => {
         // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_url: offer.image_url || staticData.image_url,
-            brand: offer.brand || staticData.brand,
-            productId: offer.productId || staticData.productId,
-            productName: offer.productName || staticData.productName,
-            productSku: offer.productSku || staticData.productSku,
-            price: offer.price || staticData.price,
-            discount: offer.discount || staticData.discount,
-            quantity: offer.quantity || staticData.quantity,
-            rating: offer.rating || staticData.rating,
+            image_url: offer.productData.productImages[0] || staticData.image_url,
+            brand: offer.productData.attribute.Brands || staticData.brand,
+            productId: offer.id || staticData.productId,
+            productName: offer.productData.productInfo.productName || staticData.productName,
+            productSku: offer.id || staticData.productSku,
+            price: offer.productData.priceInfo.Price || staticData.price,
+            discount: offer.productData.priceInfo.discount_Price || staticData.discount,
+            quantity: offer.productData.productInfo.quantity || staticData.quantity,
+            rating: offer.productData.productInfo.rating || staticData.rating,
             description: offer.description || staticData.description,
             how_product_works: offer.how_product_works || staticData.how_product_works,
             other_details: offer.other_details || staticData.other_details,
@@ -251,6 +344,126 @@ const HomePage = () => {
     };
 
 
+
+
+    // const openCart = async (e, offer) => {
+    //     e.preventDefault(); // Prevent default behavior
+
+    //     const user = JSON.parse(localStorage.getItem("currentUser"));
+
+    //     // Log the offer object to verify structure
+    //     console.log("Offer:", offer);
+
+    //     // Fallback data for missing fields
+    //     const staticData = {
+    //         product_url: "/",
+    //         image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
+    //         brand: "Unknown Brand",
+    //         productId: "00000",
+    //         productName: "Default Product",
+    //         productSku: "DEFAULTSKU",
+    //         price: 0.0,
+    //         discount: 0,
+    //         quantity: 1,
+    //         rating: 0,
+    //         description: "No description available.",
+    //         how_product_works: "Not available.",
+    //         other_details: {
+    //             compatibility: "Unknown",
+    //             free_trial: "Not available",
+    //             subscription_model: "Not specified"
+    //         },
+    //         faq: []
+    //     };
+
+    //     // Merge offer data with fallback values
+    //     const offerData = {
+    //         product_url: offer.product_url || staticData.product_url,
+    //         image_url: offer.image_url || staticData.image_url,
+    //         brand: offer.brand || staticData.brand,
+    //         productId: offer.productId || staticData.productId,
+    //         productName: offer.productName || staticData.productName,
+    //         productSku: offer.productSku || staticData.productSku,
+    //         price: offer.price || staticData.price,
+    //         discount: offer.discount || staticData.discount,
+    //         quantity: offer.quantity || staticData.quantity,
+    //         rating: offer.rating || staticData.rating,
+    //         description: offer.description || staticData.description,
+    //         how_product_works: offer.how_product_works || staticData.how_product_works,
+    //         other_details: offer.other_details || staticData.other_details,
+    //         faq: offer.faq || staticData.faq
+    //     };
+
+    //     console.log("Final Offer Data:", offerData);
+
+    //     if (!user || !user.uid) {
+    //         console.log("User not logged in. Saving to guest cart.");
+
+    //         // Get guest cart from Context (avoid localStorage usage)
+    //         let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+
+    //         // Check if the product already exists in the guest cart
+    //         const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
+
+    //         if (existingIndex !== -1) {
+    //             // If product exists, update quantity
+    //             guestCart[existingIndex].quantity += 1;
+    //             dispatch({ type: "Update", payload: guestCart });
+    //             toast.success("Product quantity updated in your cart!");
+    //         } else {
+    //             // Add new product to the cart
+    //             guestCart.push({ ...offerData, timestamp: new Date() });
+    //             dispatch({ type: "Add", payload: offerData });
+    //             localStorage.setItem("guestCart", JSON.stringify(guestCart));
+    //             toast.success("Product added to your cart!");
+    //         }
+
+    //         // Save updated cart to Context and localStorage (no duplicates)
+    //         localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
+    //         setIsCartOpen(true); // Open the cart
+    //         return;
+    //     }
+
+
+    //     // Handle logged-in users (Firestore integration)
+    //     try {
+    //         const userRef = doc(fireStore, "users", user.uid);
+
+    //         // Fetch existing cart data from Firestore
+    //         const userDoc = await getDoc(userRef);
+    //         let userCart = userDoc.exists() ? userDoc.data().cart || [] : [];
+
+    //         // Check if product exists in Firestore cart
+    //         const existingIndex = userCart.findIndex(item => item.productId === offerData.productId);
+
+    //         if (existingIndex !== -1) {
+    //             // If exists, update quantity
+    //             userCart[existingIndex].quantity += 1;
+    //             toast.success("Product quantity updated in your cart!");
+    //         } else {
+    //             // Add new product
+    //             userCart.push({ ...offerData, timestamp: new Date() });
+    //             toast.success("Product added to your cart!");
+    //         }
+
+    //         // Update Firestore cart
+    //         await updateDoc(userRef, { cart: userCart });
+
+    //         // Dispatch updated cart state
+    //         dispatch({ type: "Update", payload: userCart });
+
+    //         console.log("Cart updated for user:", user.uid);
+    //         setIsCartOpen(true); // Open the cart
+    //     } catch (error) {
+    //         console.error("Error adding product to cart:", error);
+    //         toast.error("Error adding product to cart.");
+    //     }
+    // };
+
+
+
+
     const closeCart = () => {
         setIsCartOpen(false);
     };
@@ -293,8 +506,6 @@ const HomePage = () => {
 
         fetchCart(); // Call the fetchCart function to retrieve cart items
     }, []);
-
-    // console.log(cartItems, "Carts Data");
 
     // Slider
     const sliderSettings = {
@@ -342,37 +553,6 @@ const HomePage = () => {
         ],
     };
 
-
-    // const slides = [
-    //     {
-    //         id: "slide-1",
-    //         title: "Apple Shopping Event",
-    //         description: "Shop great deals on MacBook, iPad, iPhone and more.",
-    //         buttonText: "Shop Now",
-    //         buttonLink: "#",
-    //         backgroundImage: "/assets/Images/backgound-1.jpg",
-    //     },
-    //     {
-    //         id: "slide-2",
-    //         title: "The new Google Pixel 7",
-    //         description: "Shop great deals on MacBook, iPad, iPhone and more.",
-    //         buttonText: "Pre-Order Now",
-    //         buttonLink: "#",
-    //         backgroundImage: "/assets/Images/backgound-2.jpg",
-    //     },
-    //     {
-    //         id: "slide-3",
-    //         title: "Discount on all Smart appliances up to 25%",
-    //         description: "Shop great deals on MacBook, iPad, iPhone and more.",
-    //         buttonText: "Shop Now",
-    //         buttonLink: "#",
-    //         backgroundImage: "/assets/Images/backgound-3.jpg",
-    //     },
-    // ];
-
-    // console.log(slides, "json data for slider");
-
-
     const goToNext = () => {
         if (sliderRef.current) {
             sliderRef.current.slickNext();
@@ -418,6 +598,34 @@ const HomePage = () => {
     const handleMore = () => {
         setIsMore(!isMore);
     }
+
+    const [products, setProducts] = useState([]);
+
+    useEffect(() => {
+        // Create a function to fetch data
+        const fetchProducts = async () => {
+            try {
+                // Reference to the 'createProduct' collection
+                const productsRef = collection(fireStore, "create_Product"); // Use `collection` instead of `doc` to reference a collection
+                const querySnapshot = await getDocs(productsRef); // Fetch documents from the collection
+
+                // Map through the documents and return the data
+                const products = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data() // Assuming you store product data as fields in Firestore
+                }));
+
+                console.log("Fetched Products: ", products);
+                localStorage.setItem('product', JSON.stringify(products));
+                setProducts(products); // Set products state
+            } catch (error) {
+                console.error("Error fetching products: ", error);
+            }
+        };
+
+        // Call the async function
+        fetchProducts();
+    }, []);
 
     return (
         <>
@@ -720,13 +928,159 @@ const HomePage = () => {
                                                             "--wd-gap-sm": "10px",
                                                         }}
                                                     >
+                                                        {products.map((offer, index) => (
+                                                            <div
+                                                                className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product"
+                                                                data-loop={index}
+                                                                data-id={offer.id} // Assuming you have unique IDs for each product
+                                                                key={offer.id} // Use a unique key for each product
+                                                                style={{ cursor: "pointer" }}
+                                                            >
+                                                                <div className="product-wrapper">
+                                                                    <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
+                                                                    <div className="product-element-top wd-quick-shop">
+                                                                        <a className="product-image-link" onClick={() => handleProductDetails(offer.productData.productInfo.productName)}>
+                                                                            <div className="wd-product-grid-slider wd-fill" />
+                                                                            <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
+                                                                                <div className="wd-prev" />
+                                                                                <div className="wd-next" />
+                                                                            </div>
+                                                                            <div className="wd-product-grid-slider-pagin" />
+                                                                            <div className="product-labels labels-rounded-sm">
+                                                                                <span className="onsale product-label">{offer.productData.priceInfo.discount_Price}%</span> {/* Assuming you have discount info */}
+                                                                            </div>
+                                                                            <picture decoding="async" className="attachment-large size-large">
+                                                                                <source
+                                                                                    type="image/webp"
+                                                                                    data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                    srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                    sizes="(max-width: 700px) 100vw, 700px"
+                                                                                />
+                                                                                <img
+                                                                                    decoding="async"
+                                                                                    width={700}
+                                                                                    height={800}
+                                                                                    src={offer.productData.productImages[0]}
+                                                                                    data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                    data-lazy-sizes="(max-width: 700px) 100vw, 700px"
+                                                                                    className="entered lazyloaded"
+                                                                                    sizes="(max-width: 700px) 100vw, 700px"
+                                                                                    srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                />
+                                                                            </picture>
+                                                                        </a>
+                                                                        <div className="wd-buttons wd-pos-r-t">
+                                                                            <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
+                                                                                <a
+                                                                                    href="#"
+                                                                                    data-id={offer.id}
+                                                                                    rel="nofollow"
+                                                                                    data-added-text="Compare products"
+                                                                                >
+                                                                                    <span>Compare</span>
+                                                                                </a>
+                                                                            </div>
+                                                                            <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
+                                                                                <a className="open-quick-view quick-view-button" rel="nofollow" data-id={offer.id}>
+                                                                                    Quick view
+                                                                                </a>
+                                                                            </div>
+                                                                            <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
+                                                                                <a
+                                                                                    onClick={(e) => handleAddToWishlist(e, offer)}
+                                                                                    href="#"
+                                                                                    data-key={offer.id}
+                                                                                    data-product-id={offer.id}
+                                                                                    rel="nofollow"
+                                                                                    data-added-text="Browse Wishlist"
+                                                                                >
+                                                                                    <span>{isAdded ? 'Added to Wishlist' : 'Add to Wishlist'}</span>
+                                                                                </a>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
 
-                                                        {bestOffers.map((offer, index) => (
+                                                                    <div className="product-element-bottom">
+                                                                        <h3 className="wd-entities-title">
+                                                                            <a href={offer.product_url}>
+                                                                                {offer.productData.productInfo.productName}
+                                                                            </a>
+                                                                        </h3>
+                                                                        <div className="wd-product-cats">
+                                                                            <a href={offer.productData.attribute.category_url} rel="tag">
+                                                                                {offer.productData.attribute.category}
+                                                                            </a>
+                                                                        </div>
+                                                                        <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
+                                                                            <span style={{ width: `${(offer.rating / 5) * 100}%` }}>
+                                                                                Rated <strong className="rating">{offer.rating}</strong> out of 5
+                                                                            </span>
+                                                                        </div>
+                                                                        <p className="wd-product-stock stock wd-style-default in-stock">
+                                                                            {offer.stockStatus}
+                                                                        </p>
+                                                                        <div className="wrap-price">
+                                                                            <span className="price">
+                                                                                <del aria-hidden="true">
+                                                                                    <span className="woocommerce-Price-amount amount">
+                                                                                        <bdi>
+                                                                                            <span className="woocommerce-Price-currencySymbol">
+                                                                                                $
+                                                                                            </span>
+                                                                                            {offer.productData.priceInfo.costPrice}
+                                                                                        </bdi>
+                                                                                    </span>
+                                                                                </del>
+                                                                                <span className="screen-reader-text">
+                                                                                    Original price was: {offer.productData.priceInfo.costPrice}.
+                                                                                </span>
+                                                                                <ins aria-hidden="true">
+                                                                                    <span className="woocommerce-Price-amount amount">
+                                                                                        <bdi>
+                                                                                            <span className="woocommerce-Price-currencySymbol">
+                                                                                                $
+                                                                                            </span>
+                                                                                            {offer.productData.priceInfo.Price}
+                                                                                        </bdi>
+                                                                                    </span>
+                                                                                </ins>
+                                                                                <span className="screen-reader-text">
+                                                                                    Current price is: $ {offer.productData.priceInfo.Price}.
+                                                                                </span>
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="wd-add-btn wd-add-btn-replace">
+                                                                            <a
+                                                                                href="#"
+                                                                                aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2435"
+                                                                                data-quantity={1}
+                                                                                className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
+                                                                                data-product_id={offer.id}
+                                                                                data-product_sku={offer.productCode}
+                                                                                aria-label={`Add to cart: ${offer.productName}`}
+                                                                                rel="nofollow"
+                                                                                onClick={(e) => openCart(e, offer)}
+                                                                            >
+                                                                                <span>Add to cart</span>
+                                                                            </a>
+                                                                            <span id="woocommerce_loop_add_to_cart_link_describedby_2435" className="screen-reader-text"></span>
+                                                                        </div>
+                                                                        <div className="wd-product-detail wd-product-sku">
+                                                                            <span className="wd-label">SKU: </span>
+                                                                            <span>{offer.id}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+
+
+                                                        {/* {bestOffers.map((offer, index) => (
                                                             <div
                                                                 className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
                                                                 data-loop={index}
-                                                                data-id={offer.productId} // Assuming you have unique IDs for each product
-                                                                key={offer.productId} // Use a unique key for each product
+                                                                data-id={offer.productId} 
+                                                                key={offer.productId} 
                                                                 style={{ cursor: "pointer" }}
 
                                                             >
@@ -746,7 +1100,7 @@ const HomePage = () => {
 
                                                                             </div>
                                                                             <div className="product-labels labels-rounded-sm">
-                                                                                <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
+                                                                                <span className="onsale product-label">{offer.discount}%</span> 
                                                                             </div>
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
@@ -851,7 +1205,7 @@ const HomePage = () => {
                                                                                     </span>
                                                                                 </ins>
                                                                                 <span className="screen-reader-text">
-                                                                                    Current price is: $449.00.
+                                                                                    Current price is: $ {offer.price}.
                                                                                 </span>
                                                                             </span>
                                                                         </div>
@@ -1481,7 +1835,7 @@ const HomePage = () => {
 
                                                                     </div>
                                                                 </div>
-                                                            </div>))}
+                                                            </div>))} */}
                                                     </div>
                                                 </div>
                                             </div>

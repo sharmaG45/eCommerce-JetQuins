@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import bestOffer from "../../assets/scraped_products.json";
 import { useRouter, useSearchParams } from "next/navigation";
 import { auth, fireStore } from "../../_components/firebase/config";
 import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
 import { toast } from "react-toastify";
 import Cartwidget from "@/app/_components/Cart-widget/page";
+import { CartContext } from "@/app/_components/CartContext/page";
 
 const productDetails = () => {
     const [filteredProducts, setFilteredProducts] = useState([]);
@@ -16,6 +17,8 @@ const productDetails = () => {
     const [isAdded, setIsAdded] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
+
+    const { data, dispatch } = useContext(CartContext);
 
     const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent default behavior
@@ -118,8 +121,7 @@ const productDetails = () => {
     const openCart = async (e, offer) => {
         e.preventDefault(); // Prevent default behavior
 
-        const userData = localStorage.getItem("currentUser");
-        const user = userData ? JSON.parse(userData) : null;
+        const user = JSON.parse(localStorage.getItem("currentUser"));
 
         // Log the offer object to verify structure
         console.log("Offer:", offer);
@@ -169,31 +171,36 @@ const productDetails = () => {
         if (!user || !user.uid) {
             console.log("User not logged in. Saving to guest cart.");
 
-            const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+            // Get guest cart from Context (avoid localStorage usage)
+            let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
 
-            // Check if the product already exists
+            // Check if the product already exists in the guest cart
             const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
 
             if (existingIndex !== -1) {
-                // Update quantity if product exists
+                // If product exists, update quantity
                 guestCart[existingIndex].quantity += 1;
+                dispatch({ type: "Update", payload: guestCart });
                 toast.success("Product quantity updated in your cart!");
             } else {
-                // Add new product
+                // Add new product to the cart
                 guestCart.push({ ...offerData, timestamp: new Date() });
+                dispatch({ type: "Add", payload: offerData });
+                localStorage.setItem("guestCart", JSON.stringify(guestCart));
                 toast.success("Product added to your cart!");
             }
 
-            // Update localStorage
+            // Save updated cart to Context and localStorage (no duplicates)
             localStorage.setItem("guestCart", JSON.stringify(guestCart));
+
             setIsCartOpen(true); // Open the cart
             return;
         }
 
 
+        // Handle logged-in users (Firestore integration)
         try {
-            const userId = user.uid;
-            const userRef = doc(fireStore, "users", userId);
+            const userRef = doc(fireStore, "users", user.uid);
 
             // Fetch existing cart data from Firestore
             const userDoc = await getDoc(userRef);
@@ -215,9 +222,11 @@ const productDetails = () => {
             // Update Firestore cart
             await updateDoc(userRef, { cart: userCart });
 
-            console.log("Cart updated for user:", userId);
-            setIsCartOpen(true); // Open the cart
+            // Dispatch updated cart state
+            dispatch({ type: "Update", payload: userCart });
 
+            console.log("Cart updated for user:", user.uid);
+            setIsCartOpen(true); // Open the cart
         } catch (error) {
             console.error("Error adding product to cart:", error);
             toast.error("Error adding product to cart.");
@@ -302,7 +311,6 @@ const productDetails = () => {
     }, []);
 
 
-
     const changeQuantity = async (productId, newQuantity) => {
         if (newQuantity < 1) {
             toast.error("Quantity cannot be less than 1.");
@@ -366,10 +374,6 @@ const productDetails = () => {
         }
     };
 
-    const calculateSubtotal = () => {
-        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2);
-    };
-
     const handleCheckout = (e) => {
         e.preventDefault(); // Prevent the default link navigation
         const storedUser = localStorage.getItem("currentUser");
@@ -382,11 +386,6 @@ const productDetails = () => {
         setIsCartOpen(false); // Close the cart (if you have this state)
         // add new code
     };
-
-    const handleViewCart = () => {
-        router.push('/home/cart');
-        setIsCartOpen(false);
-    }
 
     return (
         <>

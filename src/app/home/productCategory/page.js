@@ -1,7 +1,7 @@
 'use client';
 
 import bestOffer from "../../assets/scraped_products.json";
-import React, { useState, useEffect,Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 
@@ -29,7 +29,8 @@ const smartPhone = () => {
 
         fetchAndFilter();
     }, [searchParams]);
-    console.log(filteredProducts, "All Filter Data");
+
+    // console.log(filteredProducts, "All Filter Data");
 
 
     const handleProductClick = (product) => {
@@ -37,11 +38,8 @@ const smartPhone = () => {
         router.push(`/home/productDetails?brand=${product.productName}`)
     }
 
-
-
     return (
         <>
-        <Suspense fallback={<p>Loading...</p>}></Suspense>
             <div className="wd-page-content main-page-wrapper">
                 <main
                     className="wd-content-layout content-layout-wrapper container wd-builder-on wd-sidebar-hidden-sm"
@@ -51,13 +49,58 @@ const smartPhone = () => {
                             <div className="vc_row wpb_row vc_row-fluid vc_custom_1672326631913 wd-rs-63adade1da04b">
                                 <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-lg-12 wd-col-content-md-sm wd-col-content-sm wd-alignment-left wd-rs-64fb1122efc8b">
                                     <div className="vc_column-inner vc_custom_1694175532071">
+                                        {/* Start new Section */}
+                                        <section
+                                            style={{
+                                                width: "100%",
+                                                backgroundColor: "#1e61e4",
+                                                textAlign: "center",
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                padding: "20px",
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    width: "100%",
+                                                    maxWidth: "800px", // Limits width on larger screens
+                                                    padding: "20px",
+                                                    // backgroundColor: "#1e61e4",
+                                                    boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+                                                }}
+                                            >
+                                                <h2
+                                                    style={{
+                                                        fontSize: "2rem", // Default for small screens
+                                                        fontWeight: "bold",
+                                                        marginBottom: "20px",
+                                                        color: "white",
+                                                        lineHeight: "1.2",
+                                                        maxWidth: "90%",
+                                                        margin: "auto",
+                                                        whiteSpace: "normal",
+                                                        wordWrap: "break-word",
+                                                        textAlign: "center",
+                                                        // Responsive styles using media queries
+                                                        "@media (minWidth: 768px)": {
+                                                            fontSize: "3rem", // Bigger font for tablets and desktops
+                                                        },
+                                                    }}
+                                                >
+                                                    Best Deal On {searchParams.get("title")} Antivirus
+                                                </h2>
+                                            </div>
+                                        </section>
+
+                                        {/* End new Section */}
                                         <div className="wpb_wrapper">
                                             <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1669293421553 vc_row-o-content-middle vc_row-flex wd-rs-637f656807e9b">
                                                 <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-lg-4 wd-enabled-flex wd-rs-637ce7ffc0800">
                                                     <div className="vc_column-inner vc_custom_1669130241411">
                                                         <div className="wpb_wrapper">
                                                             <div className="wd-woo-page-title wd-wpb wd-rs-635289c806692 vc_custom_1666353633027 text-left">
-                                                                <h1 className="entry-title title">Apple iPhone</h1>
+                                                                <h1 className="entry-title title">{searchParams.get('title')}</h1>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -149,7 +192,7 @@ const smartPhone = () => {
                                                                             data-product_id={product.productId}
                                                                             data-product_sku={product.productSku}
                                                                             data-quantity="1"
-                                                                            onClick={()=>{handleProductClick(product)}}
+                                                                            onClick={() => { handleProductClick(product) }}
                                                                             rel="nofollow">
                                                                             <span>Buy Now</span>
                                                                         </a>

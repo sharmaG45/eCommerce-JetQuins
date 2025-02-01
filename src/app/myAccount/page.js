@@ -1,26 +1,50 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { signOut } from "firebase/auth";
+import { toast } from 'react-toastify';
+import SignUp from "./SignUp/page";
+import { fireStore, auth } from '../_components/firebase/config';
 
 const Dashboard = () => {
 
     const [username, setUsername] = useState('');
     const [currentUser, setCurrentUser] = useState(null);
+    const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
 
     useEffect(() => {
-        // Retrieve the user authentication data from sessionStorage
+        // Retrieve the user authentication data from localStorage
         if (typeof window !== "undefined") {
-            const currentUser = localStorage.getItem('currentUser');
-            if (currentUser) {
-                const user = JSON.parse(currentUser);
+            const storedUser = localStorage.getItem("currentUser");
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
                 setCurrentUser(user);
-                setUsername(user.displayName); // Set the username once on mount
+                setIsUserLoggedIn(true); // Set to true if a user exists
+                setUsername(user.displayName);
             }
         }
-    }, [])
+    }, []);
+
+    const handleSignOut = (e) => {
+        e.preventDefault();
+        signOut(auth)
+            .then(() => {
+                // Remove user session info from localStorage
+                localStorage.removeItem("currentUser");
+                setIsUserLoggedIn(false); // Update state to reflect logout
+
+                // Show success toast message
+                toast.success("You have successfully signed out.");
+            })
+            .catch((error) => {
+                console.error("Sign-out error: ", error);
+                toast.error("An error occurred while signing out. Please try again.");
+            });
+    };
+
     return (
         <>
-            <div className="wd-page-content main-page-wrapper">
+            {isUserLoggedIn ? (<div className="wd-page-content main-page-wrapper">
                 <main
                     className="wd-content-layout content-layout-wrapper container"
                     role="main"
@@ -68,13 +92,13 @@ const Dashboard = () => {
                                                     </a>
                                                 </li>
                                                 <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--wishlist">
-                                                    <a href="/">
+                                                    <a href="/home/wishlist">
                                                         Wishlist
                                                     </a>
                                                 </li>
                                                 <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--customer-logout">
-                                                    <a href="/">
-                                                        Logout
+                                                    <a href='/' onClick={(e) => handleSignOut(e)}>
+                                                        <span>Logout</span>
                                                     </a>
                                                 </li>
                                             </ul>
@@ -131,13 +155,13 @@ const Dashboard = () => {
                                                 </a>
                                             </div>
                                             <div className="wishlist-link">
-                                                <a href="/">
+                                                <a href="/home/wishlist">
                                                     Wishlist
                                                 </a>
                                             </div>
                                             <div className="customer-logout-link">
-                                                <a href="/">
-                                                    Logout
+                                                <a href='/' onClick={(e) => handleSignOut(e)}>
+                                                    <span>Logout</span>
                                                 </a>
                                             </div>
                                         </div>
@@ -147,7 +171,11 @@ const Dashboard = () => {
                         </article>
                     </div>
                 </main>
-            </div>
+            </div>) : (
+                <SignUp />
+            )}
+
+            {/* {isUserLoggedIn && <SignUp />} */}
 
         </>
     )

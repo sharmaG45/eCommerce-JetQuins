@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect,useContext  } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import SignIn from '../SignIn/page';
 import { doc, getDoc, arrayRemove, updateDoc } from 'firebase/firestore';
@@ -150,6 +150,12 @@ const Navbar = () => {
         setIsModalOpen(false);
     };
 
+    // Function to open the My Account Mobile View
+    const openMobileModal = (e) => {
+        e.preventDefault();
+        router.push('/myAccount');
+    };
+
     // Function to open the Cart Modal
     const openCart = (e) => {
         e.preventDefault();
@@ -240,7 +246,7 @@ const Navbar = () => {
                 product.productName.toLowerCase().includes(searchQuery.toLowerCase())
             );
             setFilteredProducts(filtered);
-            setShowSuggestions(true); // Show suggestions if query is non-empty
+            setShowSuggestions(filtered.length > 0); // Show suggestions if query is non-empty
         } else {
             setFilteredProducts([]); // Clear suggestions when query is empty
             setShowSuggestions(false); // Hide suggestions if query is empty
@@ -256,8 +262,8 @@ const Navbar = () => {
     }
 
     // Handle form submit (Search button click)
-    const handleSubmit = (event) => {
-        event.preventDefault();
+    const handleSubmit = (e) => {
+        e.preventDefault();
         if (searchQuery.trim()) {
             router.push(`/home/productCategory?title=${encodeURIComponent(searchQuery)}`);
         }
@@ -266,6 +272,11 @@ const Navbar = () => {
     const handleWishlist = (e) => {
         e.preventDefault();
         router.push("/home/wishlist");
+    }
+
+    const handleProductDetails = (brandDetails, e) => {
+        e.preventDefault();
+        router.push(`/home/productDetails?brand=${brandDetails}`);
     }
 
     return <>
@@ -294,7 +305,7 @@ const Navbar = () => {
                                 </div>
                             </div>
                             <div className="whb-column whb-col-center whb-visible-lg">
-                                <div className="whb-space-element " style={{ width: 20 }} />
+                                <div className="whb-space-element " style={{ width: "20px" }} />
                                 <div className="wd-search-form wd-header-search-form wd-display-form whb-1yjd6g8pvqgh79uo6oce">
                                     <form
                                         role="search"
@@ -306,30 +317,33 @@ const Navbar = () => {
                                             className="s"
                                             placeholder="Search for products"
                                             value={searchQuery}
-                                            onChange={(event) => { setSearchQuery(event.target.value); }}
+                                            onChange={(event) => setSearchQuery(event.target.value)}
                                             name="s"
                                             aria-label="Search"
                                             title="Search for products"
                                             required
                                         />
                                         <input type="hidden" name="post_type" value="product" />
+                                        <span className="wd-clear-search" />
+
                                         <button type="submit" className="searchsubmit">
                                             <span>Search</span>
                                         </button>
                                     </form>
 
-                                    {showSuggestions && searchQuery.trim() && (
+                                    {showSuggestions && (
                                         <div className="search-results-wrapper">
-                                            <div className="wd-dropdown-results wd-scroll wd-dropdown">
+                                            <div className={`wd-dropdown-results wd-scroll wd-dropdown ${showSuggestions ? 'wd-opened' : ''}`}>
                                                 <div className="wd-scroll-content">
                                                     <div className="autocomplete-suggestions">
                                                         {filteredProducts.map((product, index) => (
-                                                            <div className="autocomplete-suggestion" key={index}>
+                                                            <div className="autocomplete-suggestion" key={index} onClick={(e) => handleProductDetails(product.productName, e)} // Add the click handler
+                                                                style={{ cursor: "pointer" }}>
                                                                 <div className="suggestion-thumb">
                                                                     <img
                                                                         width={430}
                                                                         height={491}
-                                                                        src={product.imageUrl || "https://example.com/default-image.jpg"} // Placeholder if product image is missing
+                                                                        src={product.image_url} // Placeholder if product image is missing
                                                                         className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
                                                                         alt={product.productName}
                                                                         decoding="async"
@@ -461,8 +475,7 @@ const Navbar = () => {
                                 </div>
                             </div>
                             <div className="whb-column whb-mobile-right whb-hidden-lg">
-
-                                <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-1 wd-account-style-icon login-side-opener whb-hehq7b9i6crxiw1rjzt3" onClick={openModal}>
+                                <div className="wd-header-my-account wd-tools-element wd-event-hover wd-design-1 wd-account-style-icon login-side-opener whb-hehq7b9i6crxiw1rjzt3" onClick={(e) => openMobileModal(e)} style={{ cursor: "pointer" }}>
                                     <a
 
                                         title="My account"
@@ -699,7 +712,7 @@ const Navbar = () => {
                                             <div className="wd-dropdown wd-dropdown-menu wd-dropdown-my-account wd-design-default">
                                                 <ul className="wd-sub-menu">
                                                     <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--dashboard is-active">
-                                                        <a href="/home/userDashboard">
+                                                        <a href="/myAccount">
                                                             <span>Dashboard</span>
                                                         </a>
                                                     </li>
@@ -724,7 +737,7 @@ const Navbar = () => {
                                                         </a>
                                                     </li>
                                                     <li className="woocommerce-MyAccount-navigation-link woocommerce-MyAccount-navigation-link--wishlist">
-                                                        <a href="/">
+                                                        <a href="/home/wishlist">
                                                             <span>Wishlist</span>
                                                         </a>
                                                     </li>
@@ -801,37 +814,66 @@ const Navbar = () => {
                                 <div className="wd-search-form wd-header-search-form-mobile wd-display-form whb-kv1cizir1p1hjpwwydal">
                                     <form
                                         role="search"
-                                        method="get"
-                                        className="searchform  wd-style-with-bg-2 wd-cat-style-bordered woodmart-ajax-search"
-                                        action="https://woodmart.xtemos.com/mega-electronics/"
-                                        data-thumbnail={1}
-                                        data-price={1}
-                                        data-post_type="product"
-                                        data-count={20}
-                                        data-sku={0}
-                                        data-symbols_count={3}
+                                        className="searchform wd-style-with-bg-2 wd-cat-style-default woodmart-ajax-search"
+                                        onSubmit={handleSubmit}
                                     >
                                         <input
                                             type="text"
                                             className="s"
                                             placeholder="Search for products"
-                                            defaultValue=""
+                                            value={searchQuery}
+                                            onChange={(event) => setSearchQuery(event.target.value)}
                                             name="s"
                                             aria-label="Search"
                                             title="Search for products"
-                                            required=""
+                                            required
                                         />
-                                        <input type="hidden" name="post_type" defaultValue="product" />
+                                        <input type="hidden" name="post_type" value="product" />
+                                        <span className="wd-clear-search" />
+
                                         <button type="submit" className="searchsubmit">
-                                            <span>Search </span>
+                                            <span>Search</span>
                                         </button>
                                     </form>
-                                    <div className="search-results-wrapper">
-                                        <div className="wd-dropdown-results wd-scroll wd-dropdown">
-                                            <div className="wd-scroll-content" />
+
+                                    {showSuggestions && (
+                                        <div className="search-results-wrapper">
+                                            <div className={`wd-dropdown-results wd-scroll wd-dropdown ${showSuggestions ? 'wd-opened' : ''}`}>
+                                                <div className="wd-scroll-content">
+                                                    <div className="autocomplete-suggestions">
+                                                        {filteredProducts.map((product, index) => (
+                                                            <div className="autocomplete-suggestion" key={index} onClick={(e) => handleProductDetails(product.productName, e)} // Add the click handler
+                                                                style={{ cursor: "pointer" }}>
+                                                                <div className="suggestion-thumb">
+                                                                    <img
+                                                                        width={430}
+                                                                        height={491}
+                                                                        src={product.image_url}
+                                                                        className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
+                                                                        alt={product.productName}
+                                                                        decoding="async"
+                                                                        loading="lazy"
+                                                                    />
+                                                                </div>
+                                                                <div className="suggestion-content wd-set-mb reset-last-child">
+                                                                    <h4 className="wd-entities-title">{product.productName}</h4>
+                                                                    <p className="price">
+                                                                        <span className="woocommerce-Price-amount amount">
+                                                                            <bdi>
+                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.price}
+                                                                            </bdi>
+                                                                        </span>
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -839,7 +881,7 @@ const Navbar = () => {
             </div>
         </header>
 
-        {/* Mobile view */}
+        {/* Mobile view Bottom*/}
 
         <div className="wd-toolbar wd-toolbar-label-show">
             <div className="wd-header-mobile-nav whb-wd-header-mobile-nav mobile-style-icon wd-tools-element">

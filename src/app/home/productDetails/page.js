@@ -4,21 +4,35 @@ import React, { useState, useEffect, useContext } from "react";
 import bestOffer from "../../assets/scraped_products.json";
 import { useRouter, useSearchParams } from "next/navigation";
 import { auth, fireStore } from "../../_components/firebase/config";
-import { doc, getDoc, updateDoc, arrayRemove } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { toast } from "react-toastify";
 import Cartwidget from "@/app/_components/Cart-widget/page";
 import { CartContext } from "@/app/_components/CartContext/page";
 
 const productDetails = () => {
+
     const [filteredProducts, setFilteredProducts] = useState([]);
     const [cartItems, setCartItems] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [products, setProducts] = useState([]);
+    const [bestOffers, setBestOffers] = useState([]);
     const [isAdded, setIsAdded] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
-
     const { data, dispatch } = useContext(CartContext);
+
+    const accordionData = [
+        { title: "Product details", content: "Detailed product description goes here." },
+        { title: "About the brand", content: "Brand information goes here." },
+        { title: "Specifications", content: "Product specifications are listed here." },
+        { title: "Warranty", content: "Warranty details and coverage information." },
+    ];
+
+    const [openIndex, setOpenIndex] = useState(null);
+
+    const toggleAccordion = (index) => {
+        setOpenIndex(openIndex === index ? null : index);
+    };
 
     const handleAddToWishlist = async (e, offer) => {
         e.preventDefault(); // Prevent default behavior
@@ -123,8 +137,7 @@ const productDetails = () => {
 
         const user = JSON.parse(localStorage.getItem("currentUser"));
 
-        // Log the offer object to verify structure
-        console.log("Offer:", offer);
+        console.log("Offer:", offer.productData);
 
         // Fallback data for missing fields
         const staticData = {
@@ -151,15 +164,15 @@ const productDetails = () => {
         // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_url: offer.image_url || staticData.image_url,
-            brand: offer.brand || staticData.brand,
-            productId: offer.productId || staticData.productId,
-            productName: offer.productName || staticData.productName,
-            productSku: offer.productSku || staticData.productSku,
-            price: offer.price || staticData.price,
-            discount: offer.discount || staticData.discount,
-            quantity: offer.quantity || staticData.quantity,
-            rating: offer.rating || staticData.rating,
+            image_url: offer.productData.productImages[0] || staticData.image_url,
+            brand: offer.productData.attribute.Brands || staticData.brand,
+            productId: offer.id || staticData.productId,
+            productName: offer.productData.productInfo.productName || staticData.productName,
+            productSku: offer.id || staticData.productSku,
+            price: offer.productData.priceInfo.Price || staticData.price,
+            discount: offer.productData.priceInfo.discount_Price || staticData.discount,
+            quantity: 1, // Always adding 1 item initially
+            rating: offer.productData.productInfo.rating || staticData.rating,
             description: offer.description || staticData.description,
             how_product_works: offer.how_product_works || staticData.how_product_works,
             other_details: offer.other_details || staticData.other_details,
@@ -171,32 +184,31 @@ const productDetails = () => {
         if (!user || !user.uid) {
             console.log("User not logged in. Saving to guest cart.");
 
-            // Get guest cart from Context (avoid localStorage usage)
-            let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+            // Get guest cart from Context
+            let guestCart = [...data]; // Use existing context state
 
-            // Check if the product already exists in the guest cart
+            // Check if product already exists
             const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
 
             if (existingIndex !== -1) {
-                // If product exists, update quantity
-                guestCart[existingIndex].quantity += 1;
-                dispatch({ type: "Update", payload: guestCart });
+                // If exists, update quantity
+                guestCart[existingIndex] = {
+                    ...guestCart[existingIndex],
+                    quantity: guestCart[existingIndex].quantity + 1
+                };
                 toast.success("Product quantity updated in your cart!");
             } else {
                 // Add new product to the cart
-                guestCart.push({ ...offerData, timestamp: new Date() });
-                dispatch({ type: "Add", payload: offerData });
-                localStorage.setItem("guestCart", JSON.stringify(guestCart));
+                guestCart.push({ ...offerData });
                 toast.success("Product added to your cart!");
             }
 
-            // Save updated cart to Context and localStorage (no duplicates)
-            localStorage.setItem("guestCart", JSON.stringify(guestCart));
+            // Dispatch updated cart state
+            dispatch({ type: "Update", payload: guestCart });
 
             setIsCartOpen(true); // Open the cart
             return;
         }
-
 
         // Handle logged-in users (Firestore integration)
         try {
@@ -211,11 +223,14 @@ const productDetails = () => {
 
             if (existingIndex !== -1) {
                 // If exists, update quantity
-                userCart[existingIndex].quantity += 1;
+                userCart[existingIndex] = {
+                    ...userCart[existingIndex],
+                    quantity: userCart[existingIndex].quantity + 1
+                };
                 toast.success("Product quantity updated in your cart!");
             } else {
                 // Add new product
-                userCart.push({ ...offerData, timestamp: new Date() });
+                userCart.push({ ...offerData });
                 toast.success("Product added to your cart!");
             }
 
@@ -238,76 +253,66 @@ const productDetails = () => {
     };
 
     useEffect(() => {
-        const fetchAndFilter = () => {
-            const brand = searchParams.get('brand');
-            console.log('Title from URL:', brand);
+        const fetchAndFilterProducts = async () => {
+            try {
+                // setLoading(true);
+                const productName = searchParams.get("brand"); // Get product name from URL
+                console.log("Product Name from URL:", productName);
 
-            if (brand) {
-                const filtered = bestOffer.filter((product) => {
-                    if (!product.productName) {
-                        console.warn('Missing brand data for product:', product);
-                        return false;
-                    }
-                    return product.productName.toLowerCase().includes(brand.toLowerCase());
-                });
+                const productsRef = collection(fireStore, "create_Product");
+                let q = productsRef; // Default: fetch all products
 
-                // If no specific products match the filter, display all products
-                if (filtered.length === 0) {
-                    console.warn('No matching products found. Displaying all products.');
-                    setFilteredProducts(bestOffer);
-                } else {
-                    setFilteredProducts(filtered);
+                if (productName) {
+                    q = query(productsRef, where("productData.productInfo.productName", "==", productName));
                 }
-            } else {
-                setFilteredProducts(bestOffer);
-            }
 
-            setProducts(bestOffer);
+                const querySnapshot = await getDocs(q);
+                const fetchedProducts = querySnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    ...doc.data(),
+                }));
+
+                if (fetchedProducts.length === 0) {
+                    console.warn("No matching products found.");
+                }
+
+                setFilteredProducts(fetchedProducts);
+                setProducts(fetchedProducts);
+                // setLoading(false);
+            } catch (error) {
+                console.error("Error fetching products from Firestore:", error);
+                // setLoading(false);
+            }
         };
 
-        fetchAndFilter();
+        fetchAndFilterProducts();
     }, [searchParams]);
 
+    // product from firebase
     useEffect(() => {
-        const fetchCart = async () => {
+        // Create a function to fetch data
+        const fetchProducts = async () => {
             try {
-                // Get user data from localStorage
-                const userData = localStorage.getItem("currentUser");
+                // Reference to the 'createProduct' collection
+                const productsRef = collection(fireStore, "create_Product");
+                const querySnapshot = await getDocs(productsRef);
 
-                if (!userData) {
-                    console.log("No user logged in. Fetching cart from localStorage.");
+                // Map through the documents and return the data
+                const products = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
 
-                    // Fetch cart from localStorage for guest users
-                    const guestCart = localStorage.getItem("guestCart");
-                    setCartItems(guestCart ? JSON.parse(guestCart) : []);
-                    return;
-                }
-
-                // Parse user data
-                const user = JSON.parse(userData);
-
-                // Validate user object
-                if (!user || !user.uid) {
-                    console.error("Invalid user data.");
-                    return;
-                }
-
-                // Get the user's cart data from Firestore
-                const userRef = doc(fireStore, "users", user.uid);
-                const userDoc = await getDoc(userRef);
-
-                if (userDoc.exists()) {
-                    const cartData = userDoc.data().cart || [];
-                    setCartItems(cartData); // Set cart items for logged-in users
-                } else {
-                    console.log("User document not found.");
-                }
+                console.log("Fetched Products: ", products);
+                localStorage.setItem('product', JSON.stringify(products));
+                setBestOffers(products);
             } catch (error) {
-                console.error("Error fetching cart data:", error);
+                console.error("Error fetching products: ", error);
             }
         };
 
-        fetchCart();
+        // Call the async function
+        fetchProducts();
     }, []);
 
 
@@ -324,18 +329,22 @@ const productDetails = () => {
 
             // Get guest cart from localStorage
             const guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-
-            // Update the quantity
             const updatedCart = guestCart.map(item =>
-                item.productId === productId ? { ...item, quantity: newQuantity } : item
+                item.id === productId
+                    ? {
+                        ...item, productData: {
+                            ...item.productData,
+                            productInfo: {
+                                ...item.productData.productInfo,
+                                quantity: newQuantity.toString()
+                            }
+                        }
+                    }
+                    : item
             );
 
-            // Save updated cart back to localStorage
             localStorage.setItem("guestCart", JSON.stringify(updatedCart));
-
-            // Update local state
             setCartItems(updatedCart);
-
             toast.success("Quantity updated!");
             return;
         }
@@ -346,21 +355,34 @@ const productDetails = () => {
 
         if (userId) {
             try {
-                const userRef = doc(fireStore, "users", userId);
+                const userRef = doc(fireStore, "create_Product", userId);
                 const userDoc = await getDoc(userRef);
 
                 if (userDoc.exists()) {
                     const userCart = userDoc.data().cart || [];
 
-                    // Update the quantity in Firestore
+                    // Update the quantity inside productData.productInfo.quantity
                     const updatedCart = userCart.map(item =>
-                        item.productId === productId ? { ...item, quantity: newQuantity } : item
+                        item.id === productId
+                            ? {
+                                ...item, productData: {
+                                    ...item.productData,
+                                    productInfo: {
+                                        ...item.productData.productInfo,
+                                        quantity: newQuantity.toString() // Store as a string
+                                    }
+                                }
+                            }
+                            : item
                     );
 
                     await updateDoc(userRef, { cart: updatedCart });
 
-                    // Update local state
-                    setCartItems(updatedCart);
+                    // Fetch updated cart from Firestore
+                    const refreshedDoc = await getDoc(userRef);
+                    const refreshedCart = refreshedDoc.data().cart || [];
+
+                    setCartItems(refreshedCart);
 
                     console.log(`Updated quantity of item with productId: ${productId} to ${newQuantity}`);
                     toast.success("Quantity updated!");
@@ -404,6 +426,7 @@ const productDetails = () => {
                                 }}
                                 data-type="vc_shortcodes-custom-css"
                             />
+
                             <div className="wpb-content-wrapper">
                                 <section className="vc_section vc_custom_1674485730944 vc_section-has-fill wd-rs-63ce9fdfb6cfd wd-section-stretch">
                                     <div className="vc_row wpb_row vc_row-fluid wd-rs-6351601d14a1e">
@@ -429,10 +452,9 @@ const productDetails = () => {
                                             </div>
                                         </div>
                                     </div>
+
                                     {filteredProducts.map((item, index) => (
                                         <div className="vc_row wpb_row vc_row-fluid vc_row-o-equal-height vc_row-flex wd-rs-63c961a47cbd5" key={index}>
-
-
                                             <div className="wpb_column vc_column_container vc_col-sm-6 vc_col-xs-12 woodmart-sticky-column wd_sticky_offset_150 wd-rs-63c80f01d23e4">
                                                 <div
                                                     className="vc_column-inner vc_custom_1674055430857"
@@ -487,14 +509,14 @@ const productDetails = () => {
                                                                                             href={item.image_url || "#"} // Link to the first image URL or fallback
                                                                                         >
                                                                                             <img
-                                                                                                alt={item.productName || "Product Image"} // Dynamically set alt text from productName
+                                                                                                alt={item.productData.productInfo.productName || "Product Image"} // Dynamically set alt text from productName
                                                                                                 className="wp-post-image imagify-no-webp wp-post-image"
                                                                                                 decoding="async"
                                                                                                 fetchPriority="high"
                                                                                                 height="800"
                                                                                                 sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                src={item.image_url || "https://via.placeholder.com/700x800?text=No+Image"} // Use first image URL or placeholder
-                                                                                                title={item.productName || "Product Image"} // Dynamically set title
+                                                                                                src={item.productData.productImages[0] || "https://via.placeholder.com/700x800?text=No+Image"} // Use first image URL or placeholder
+                                                                                                title={item.productData.productInfo.productName || "Product Image"} // Dynamically set title
                                                                                                 width="700"
                                                                                             />
                                                                                         </a>
@@ -526,7 +548,7 @@ const productDetails = () => {
                                                     <div className="wpb_wrapper">
                                                         <div className="wd-single-title wd-wpb wd-rs-6390a9d10a24e wd-enabled-width vc_custom_1670425100192 text-left">
                                                             <h1 className="product_title entry-title wd-entities-title">
-                                                                {item.productName}
+                                                                {item.productData.productInfo.productName}
                                                             </h1>
                                                         </div>
                                                         <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63c960dc91465">
@@ -553,7 +575,7 @@ const productDetails = () => {
                                                                             <div className="product_meta wd-layout-inline">
                                                                                 <span className="sku_wrapper">
                                                                                     <span className="meta-label">SKU:</span>
-                                                                                    <span className="sku">{item.productSku}</span>
+                                                                                    <span className="sku">{item.id}</span>
                                                                                 </span>
                                                                             </div>
                                                                         </div>
@@ -610,12 +632,12 @@ const productDetails = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            {item.price}
+                                                                                            {item.productData.priceInfo.Price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </del>
                                                                                 <span className="screen-reader-text">
-                                                                                    Original price was: {item.originalPrice}.
+                                                                                    Original price was: {item.productData.priceInfo.Price}.
                                                                                 </span>
                                                                                 <ins aria-hidden="true">
                                                                                     <span className="woocommerce-Price-amount amount">
@@ -623,12 +645,12 @@ const productDetails = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            {item.price}
+                                                                                            {item.productData.priceInfo.Price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </ins>
                                                                                 <span className="screen-reader-text">
-                                                                                    Current price is: $449.00.
+                                                                                    {item.productData.priceInfo.Price}
                                                                                 </span>
                                                                             </p>
                                                                         </div>
@@ -641,27 +663,27 @@ const productDetails = () => {
                                                         <div className="wd-single-add-cart wd-wpb wd-rs-63e21fb628f6d wd-enabled-width vc_custom_1675763666068 text-left wd-btn-design-full wd-design-default wd-swatch-layout-default wd-stock-status-off">
                                                             <form className="cart" >
                                                                 <div className="quantity">
-                                                                    <input type="button" defaultValue="-" className="minus btn" onClick={(e) => changeQuantity(item.productId, item.quantity - 1, e)} />
+                                                                    <input type="button" defaultValue="-" className="minus btn" onClick={(e) => changeQuantity(item.id, parseInt(item.productData.productInfo.quantity, 10) - 1, e)} />
                                                                     <label className="screen-reader-text" htmlFor="quantity_679722f13d1f7">
-                                                                        {item.productName}
+                                                                        {item.productData.productInfo.productName}
                                                                     </label>
                                                                     <input
                                                                         type="number"
                                                                         id="quantity_679722f13d1f7"
                                                                         className="input-text qty text"
 
-                                                                        value={item.quantity}
+                                                                        value={item.productData.productInfo.quantity}
 
                                                                         onChange={(e) =>
                                                                             changeQuantity(
 
-                                                                                item.productId,
+                                                                                item.id,
                                                                                 parseInt(e.target.value),
                                                                                 e
                                                                             )
                                                                         }
                                                                     />
-                                                                    <input type="button" defaultValue="+" className="plus btn" onClick={(e) => changeQuantity(item.productId, item.quantity + 1, e)} />
+                                                                    <input type="button" defaultValue="+" className="plus btn" onClick={(e) => changeQuantity(item.id, parseInt(item.productData.productInfo.quantity, 10) + 1, e)} />
                                                                 </div>
 
 
@@ -684,7 +706,7 @@ const productDetails = () => {
                                                                     name="wd-add-to-cart"
                                                                     onClick={(e) => {
                                                                         e.preventDefault(); // Prevent form submission
-                                                                        handleCheckout();
+                                                                        handleCheckout(e);
                                                                     }}
                                                                     type="button" // changed to "button" to prevent form submission
                                                                     value="2435"
@@ -794,329 +816,8 @@ const productDetails = () => {
                                                                 People watching this product now!
                                                             </span>
                                                         </div>
-                                                        <style
-                                                            dangerouslySetInnerHTML={{
-                                                                __html:
-                                                                    '.vc_custom_1666276610354{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: 0px !important;border-top-width: 1px !important;border-right-width: 1px !important;border-bottom-width: 1px !important;border-left-width: 1px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;border-left-color: rgba(0,0,0,0.11) !important;border-left-style: solid !important;border-right-color: rgba(0,0,0,0.11) !important;border-right-style: solid !important;border-top-color: rgba(0,0,0,0.11) !important;border-top-style: solid !important;border-bottom-color: rgba(0,0,0,0.11) !important;border-bottom-style: solid !important;border-radius: 10px !important;}.vc_custom_1666276493900{margin-right: 0px !important;margin-bottom: 20px !important;margin-left: 0px !important;border-top-width: 1px !important;border-right-width: 1px !important;border-bottom-width: 1px !important;border-left-width: 1px !important;padding-top: 20px !important;padding-right: 5px !important;padding-bottom: 20px !important;padding-left: 5px !important;border-left-color: rgba(0,0,0,0.11) !important;border-left-style: solid !important;border-right-color: rgba(0,0,0,0.11) !important;border-right-style: solid !important;border-top-color: rgba(0,0,0,0.11) !important;border-top-style: solid !important;border-bottom-color: rgba(0,0,0,0.11) !important;border-bottom-style: solid !important;border-radius: 10px !important;}.vc_custom_1666276412018{padding-top: 0px !important;}.vc_custom_1666276299558{margin-bottom: 20px !important;}.vc_custom_1666276211555{margin-bottom: 20px !important;}.vc_custom_1666279911914{padding-top: 0px !important;}.vc_custom_1666279917143{padding-top: 0px !important;}.vc_custom_1675240348630{margin-bottom: 10px !important;}.vc_custom_1666279994022{margin-bottom: 0px !important;}.vc_custom_1666275735231{margin-bottom: 0px !important;}.vc_custom_1666279964257{padding-top: 0px !important;}.vc_custom_1666279969234{padding-top: 0px !important;}.vc_custom_1675240359200{margin-bottom: 10px !important;}.vc_custom_1666275830183{margin-bottom: 0px !important;}.vc_custom_1666276843606{margin-bottom: 0px !important;}.vc_custom_1666276851509{margin-bottom: 0px !important;}.vc_custom_1666279923554{padding-top: 0px !important;}.vc_custom_1666279929111{padding-top: 0px !important;}.vc_custom_1675240366945{margin-bottom: 10px !important;}.vc_custom_1666276333505{margin-bottom: 0px !important;}.vc_custom_1666276338706{margin-bottom: 0px !important;}.vc_custom_1666275735231{margin-bottom: 0px !important;}.vc_custom_1666276412018{padding-top: 0px !important;}.vc_custom_1666276299558{margin-bottom: 20px !important;}.vc_custom_1666279829826{padding-top: 0px !important;}.vc_custom_1666279835418{padding-top: 0px !important;}.vc_custom_1675240375283{margin-bottom: 10px !important;}.vc_custom_1666276670303{margin-bottom: 0px !important;}.vc_custom_1666279850289{padding-top: 0px !important;}.vc_custom_1666279855663{padding-top: 0px !important;}.vc_custom_1675240382222{margin-bottom: 10px !important;}.vc_custom_1666276745123{margin-bottom: 0px !important;}.wd-rs-635169e7141f1 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da2392bba88 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da2392bba88.wd-list{--li-mb: 10px;}.wd-rs-63516a1bc3872 > .vc_column-inner > .wpb_wrapper{justify-content: space-between}.wd-rs-63da239f9d9f2 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da239f9d9f2.wd-list{--li-mb: 10px;}.wd-rs-635169f2e8756 > .vc_column-inner > .wpb_wrapper{justify-content: space-between}.wd-rs-63da23a9e6a2c .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23a9e6a2c.wd-list{--li-mb: 10px;}.wd-rs-635169952cd4f > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da23b25b2b7 .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23b25b2b7.wd-list{--li-mb: 10px;}.wd-rs-635169a96f9a0 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63da23b8b68cf .list-content{font-family: "Lexend Deca (wd)", Arial, Helvetica, sans-serif;font-size: 15px;font-weight: 500;}.wd-rs-63da23b8b68cf.wd-list{--li-mb: 10px;}@media (max-width: 767px) { .wd-rs-635169e7141f1 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-63516a1bc3872 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end}.wd-rs-635169f2e8756 > .vc_column-inner > .wpb_wrapper{justify-content: flex-end} }#wd-63da2392bba88 li{color:rgba(16,16,16,0.9);}#wd-63da239f9d9f2 li{color:rgba(16,16,16,0.9);}#wd-63da23a9e6a2c li{color:rgba(16,16,16,0.9);}#wd-63da23b25b2b7 li{color:rgba(16,16,16,0.9);}#wd-63da23b8b68cf li{color:rgba(16,16,16,0.9);}@media (max-width: 767px) {.website-wrapper .wd-rs-635169e02438d > .vc_column-inner{margin-bottom:10px !important;}.website-wrapper .wd-rs-63516a32a555f{margin-bottom:10px !important;}.website-wrapper .wd-rs-63516a16edbdb > .vc_column-inner{margin-bottom:10px !important;}.website-wrapper .wd-rs-635169ed5c1db > .vc_column-inner{margin-bottom:10px !important;}}',
-                                                            }}
-                                                            data-type="vc_shortcodes-custom-css"
-                                                        />
-                                                        <div className="wpb-content-wrapper">
-                                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1666276610354 vc_row-has-fill wd-rs-63515cfcb6953">
-                                                                <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63515c3613791">
-                                                                    <div className="vc_column-inner vc_custom_1666276412018">
-                                                                        <div className="wpb_wrapper">
-                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276299558 vc_row-o-content-middle vc_row-flex wd-rs-63515bc78fadd">
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169e02438d">
-                                                                                    <div className="vc_column-inner vc_custom_1666279911914">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <ul
-                                                                                                className=" wd-rs-63da2392bba88 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240348630"
-                                                                                                id="wd-63da2392bba88">
-                                                                                                <li>
-                                                                                                    <span className="wd-icon list-icon far fa-bell">
-                                                                                                        <img
-                                                                                                            decoding="async"
-                                                                                                            height="24"
-                                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/store.svg"
-                                                                                                            title="store"
-                                                                                                            width="24"
-                                                                                                        />
-                                                                                                    </span>
-                                                                                                    <span className="wd-list-content list-content">
-                                                                                                        Pick up from the Woodmart Store
-                                                                                                    </span>
-                                                                                                </li>
-                                                                                            </ul>
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63516a32a555f text-left vc_custom_1666279994022"
-                                                                                                id="wd-63516a32a555f">
-                                                                                                <p>To pick up today</p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169e7141f1">
-                                                                                    <div className="vc_column-inner vc_custom_1666279917143">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515990493f3 text-right wd-font-weight-600 color-title vc_custom_1666275735231"
-                                                                                                id="wd-63515990493f3">
-                                                                                                <p>Free</p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276211555 vc_row-o-content-middle vc_row-flex wd-rs-63515b6ea370d">
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-63516a16edbdb">
-                                                                                    <div className="vc_column-inner vc_custom_1666279964257">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <ul
-                                                                                                className=" wd-rs-63da239f9d9f2 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240359200"
-                                                                                                id="wd-63da239f9d9f2">
-                                                                                                <li>
-                                                                                                    <span className="wd-icon list-icon far fa-bell">
-                                                                                                        <img
-                                                                                                            className="entered lazyloaded"
-                                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/delivery-car.svg"
-                                                                                                            data-ll-status="loaded"
-                                                                                                            decoding="async"
-                                                                                                            height="24"
-                                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/delivery-car.svg"
-                                                                                                            title="delivery-car"
-                                                                                                            width="24"
-                                                                                                        />
-                                                                                                        <noscript>
-                                                                                                            <img
-                                                                                                                decoding="async"
-                                                                                                                height="24"
-                                                                                                                loading="lazy"
-                                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/delivery-car.svg"
-                                                                                                                title="delivery-car"
-                                                                                                                width="24"
-                                                                                                            />
-                                                                                                        </noscript>
-                                                                                                    </span>
-                                                                                                    <span className="wd-list-content list-content">
-                                                                                                        Courier delivery
-                                                                                                    </span>
-                                                                                                </li>
-                                                                                            </ul>
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-635159f05c6a7 text-left vc_custom_1666275830183"
-                                                                                                id="wd-635159f05c6a7">
-                                                                                                <p>
-                                                                                                    Our courier will deliver to the
-                                                                                                    specified address
-                                                                                                </p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-63516a1bc3872">
-                                                                                    <div className="vc_column-inner vc_custom_1666279969234">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515de1da1f5 text-right vc_custom_1666276843606"
-                                                                                                id="wd-63515de1da1f5">
-                                                                                                <p>2-3 Days</p>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515dec8375e text-right wd-font-weight-600 color-title vc_custom_1666276851509"
-                                                                                                id="wd-63515dec8375e">
-                                                                                                <p>Free</p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63515bf24aa07">
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169ed5c1db">
-                                                                                    <div className="vc_column-inner vc_custom_1666279923554">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <ul
-                                                                                                className=" wd-rs-63da23a9e6a2c wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240366945"
-                                                                                                id="wd-63da23a9e6a2c">
-                                                                                                <li>
-                                                                                                    <span className="wd-icon list-icon far fa-bell">
-                                                                                                        <img
-                                                                                                            className="entered lazyloaded"
-                                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/dhl-logo.svg"
-                                                                                                            data-ll-status="loaded"
-                                                                                                            decoding="async"
-                                                                                                            height="24"
-                                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/dhl-logo.svg"
-                                                                                                            title="dhl-logo"
-                                                                                                            width="24"
-                                                                                                        />
-                                                                                                        <noscript>
-                                                                                                            <img
-                                                                                                                decoding="async"
-                                                                                                                height="24"
-                                                                                                                loading="lazy"
-                                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/dhl-logo.svg"
-                                                                                                                title="dhl-logo"
-                                                                                                                width="24"
-                                                                                                            />
-                                                                                                        </noscript>
-                                                                                                    </span>
-                                                                                                    <span className="wd-list-content list-content">
-                                                                                                        DHL Courier delivery
-                                                                                                    </span>
-                                                                                                </li>
-                                                                                            </ul>
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515be7aebfa text-left vc_custom_1666276333505"
-                                                                                                id="wd-63515be7aebfa">
-                                                                                                <p>
-                                                                                                    DHL courier will deliver to the
-                                                                                                    specified address
-                                                                                                </p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169f2e8756">
-                                                                                    <div className="vc_column-inner vc_custom_1666279929111">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515becd4fe2 text-right vc_custom_1666276338706"
-                                                                                                id="wd-63515becd4fe2">
-                                                                                                <p>1-3 Days</p>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515990493f3 text-right wd-font-weight-600 color-title vc_custom_1666275735231"
-                                                                                                id="wd-63515990493f3">
-                                                                                                <p>Free</p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div className="vc_row wpb_row vc_row-fluid vc_custom_1666276493900 vc_row-has-fill wd-rs-63515c885dbd5">
-                                                                <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63515c3613791">
-                                                                    <div className="vc_column-inner vc_custom_1666276412018">
-                                                                        <div className="wpb_wrapper">
-                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666276299558 vc_row-o-content-middle vc_row-flex wd-rs-63515bc78fadd">
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-6351698bd6311">
-                                                                                    <div className="vc_column-inner vc_custom_1666279829826">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <ul
-                                                                                                className=" wd-rs-63da23b25b2b7 wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240375283"
-                                                                                                id="wd-63da23b25b2b7">
-                                                                                                <li>
-                                                                                                    <span className="wd-icon list-icon far fa-bell">
-                                                                                                        <img
-                                                                                                            className="entered lazyloaded"
-                                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/warranty.svg"
-                                                                                                            data-ll-status="loaded"
-                                                                                                            decoding="async"
-                                                                                                            height="24"
-                                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/warranty.svg"
-                                                                                                            title="warranty"
-                                                                                                            width="24"
-                                                                                                        />
-                                                                                                        <noscript>
-                                                                                                            <img
-                                                                                                                decoding="async"
-                                                                                                                height="24"
-                                                                                                                loading="lazy"
-                                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/warranty.svg"
-                                                                                                                title="warranty"
-                                                                                                                width="24"
-                                                                                                            />
-                                                                                                        </noscript>
-                                                                                                    </span>
-                                                                                                    <span className="wd-list-content list-content">
-                                                                                                        Warranty 1 year
-                                                                                                    </span>
-                                                                                                </li>
-                                                                                            </ul>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169952cd4f">
-                                                                                    <div className="vc_column-inner vc_custom_1666279835418">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515d383c991 text-right vc_custom_1666276670303"
-                                                                                                id="wd-63515d383c991">
-                                                                                                <p>
-                                                                                                    <span
-                                                                                                        style={{
-                                                                                                            color: "#1877f2",
-                                                                                                        }}>
-                                                                                                        <em>
-                                                                                                            <a
 
-                                                                                                                style={{
-                                                                                                                    color: "#1877f2",
-                                                                                                                }}>
-                                                                                                                More details
-                                                                                                            </a>
-                                                                                                        </em>
-                                                                                                    </span>
-                                                                                                </p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_row-o-content-middle vc_row-flex wd-rs-63515daa06ae4">
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-xs-7 wd-rs-635169a331673">
-                                                                                    <div className="vc_column-inner vc_custom_1666279850289">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <ul
-                                                                                                className=" wd-rs-63da23b8b68cf wd-list wd-wpb color-scheme-custom wd-fontsize-xs wd-type-icon wd-style-default text-left vc_custom_1675240382222"
-                                                                                                id="wd-63da23b8b68cf">
-                                                                                                <li>
-                                                                                                    <span className="wd-icon list-icon far fa-bell">
-                                                                                                        <img
-                                                                                                            className="entered lazyloaded"
-                                                                                                            data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/return.svg"
-                                                                                                            data-ll-status="loaded"
-                                                                                                            decoding="async"
-                                                                                                            height="24"
-                                                                                                            src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/return.svg"
-                                                                                                            title="return"
-                                                                                                            width="24"
-                                                                                                        />
-                                                                                                        <noscript>
-                                                                                                            <img
-                                                                                                                decoding="async"
-                                                                                                                height="24"
-                                                                                                                loading="lazy"
-                                                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/return.svg"
-                                                                                                                title="return"
-                                                                                                                width="24"
-                                                                                                            />
-                                                                                                        </noscript>
-                                                                                                    </span>
-                                                                                                    <span className="wd-list-content list-content">
-                                                                                                        Free 30-Day returns
-                                                                                                    </span>
-                                                                                                </li>
-                                                                                            </ul>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-5 vc_col-xs-5 wd-enabled-flex wd-rs-635169a96f9a0">
-                                                                                    <div className="vc_column-inner vc_custom_1666279855663">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child inline-element wd-rs-63515d804539e text-right color-primary vc_custom_1666276745123"
-                                                                                                id="wd-63515d804539e">
-                                                                                                <p>
-                                                                                                    <span
-                                                                                                        style={{
-                                                                                                            color: "#1877f2",
-                                                                                                        }}>
-                                                                                                        <em>
-                                                                                                            <a
 
-                                                                                                                style={{
-                                                                                                                    color: "#1877f2",
-                                                                                                                }}>
-                                                                                                                More details
-                                                                                                            </a>
-                                                                                                        </em>
-                                                                                                    </span>
-                                                                                                </p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
                                                         <div className="vc_row wpb_row vc_inner vc_row-fluid wd-rs-635161cda23c7">
                                                             <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-635158eae79ac">
                                                                 <div className="vc_column-inner vc_custom_1666275569983">
@@ -1204,7 +905,7 @@ const productDetails = () => {
                                                     id="wd-63516520354f3">
                                                     <div className="liner-continer">
                                                         <h4 className="woodmart-title-container title  wd-font-weight- wd-fontsize-l">
-                                                            Description
+                                                            About this item
                                                         </h4>
                                                     </div>
                                                 </div>
@@ -1222,469 +923,44 @@ const productDetails = () => {
                                                                             data-type="vc_shortcodes-custom-css"
                                                                         />
                                                                         <div className="wpb-content-wrapper">
-                                                                            {/* <div className="vc_row wpb_row vc_row-fluid vc_custom_1669210741355 wd-rs-637e226b50438">
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-637e20e92ddf2">
-                                                                                    <div className="vc_column-inner vc_custom_1669210349060">
+
+
+                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1670856699156 vc_row-has-fill wd-rs-63973ff6c9ef6">
+                                                                                <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-6213ac5daaf9d">
+                                                                                    <div className="vc_column-inner vc_custom_1645456482508">
                                                                                         <div className="wpb_wrapper">
-                                                                                            <div className="promo-banner-wrapper  wd-rs-6380b05382ab5 ">
-                                                                                                <div
-                                                                                                    className="promo-banner  banner- banner-hover-none color-scheme-dark banner-btn-size-default banner-btn-style-default  wd-underline-colored"
-                                                                                                    id="wd-6380b05382ab5">
-                                                                                                    <div className="main-wrapp-img">
-                                                                                                        <div className="banner-image wd-bg-position-center">
-                                                                                                            <picture
-                                                                                                                className="attachment-full size-full"
-                                                                                                                decoding="async">
-                                                                                                                <source
-                                                                                                                    data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-1-2.jpg.webp"
-                                                                                                                    srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-1-2.jpg.webp"
-                                                                                                                    type="image/webp"
-                                                                                                                />
-                                                                                                                <img
-                                                                                                                    alt=""
-                                                                                                                    className="entered lazyloaded"
-                                                                                                                    data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-1-2.jpg"
-                                                                                                                    data-ll-status="loaded"
-                                                                                                                    decoding="async"
-                                                                                                                    height="1174"
-                                                                                                                    src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-1-2.jpg"
-                                                                                                                    width="1560"
-                                                                                                                />
-                                                                                                            </picture>
-                                                                                                            <noscript>
-                                                                                                                <picture
-                                                                                                                    className="attachment-full size-full"
-                                                                                                                    decoding="async">
-                                                                                                                    <source
-                                                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-1-2.jpg.webp"
-                                                                                                                        type="image/webp"
-                                                                                                                    />
-                                                                                                                    <img
-                                                                                                                        alt=""
-                                                                                                                        decoding="async"
-                                                                                                                        height="1174"
-                                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-1-2.jpg"
-                                                                                                                        width="1560"
-                                                                                                                    />
-                                                                                                                </picture>
-                                                                                                            </noscript>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div className="wrapper-content-banner wd-fill  wd-items-top wd-justify-center">
-                                                                                                        <div className="content-banner  text-center">
-                                                                                                            <h4 className="banner-title wd-font-weight- wd-fontsize-l">
-                                                                                                                PlayStation 5
-                                                                                                            </h4>
-                                                                                                            <div className="banner-inner reset-last-child ">
-                                                                                                                <p>Play has no limits</p>
+
+                                                                                            <div
+                                                                                                id="wd-63caae15ba090"
+                                                                                                className="wd-accordion wd-wpb wd-rs-63caae15ba090 vc_custom_1674227228977 wd-style-default wd-border-off wd-titles-left wd-opener-pos-right wd-opener-style-arrow wd-inited"
+                                                                                                data-state="first"
+                                                                                            >
+                                                                                                {accordionData.map((item, index) => (
+                                                                                                    <div key={index} className="wd-accordion-item">
+                                                                                                        <div
+                                                                                                            className={`wd-accordion-title font-primary wd-fontsize-s wd-font-weight-600 ${openIndex === index ? "wd-active" : ""
+                                                                                                                }`}
+                                                                                                            onClick={() => toggleAccordion(index)}
+                                                                                                        >
+                                                                                                            <div className="wd-accordion-title-text">
+                                                                                                                <span>{item.title}</span>
                                                                                                             </div>
+                                                                                                            <span className="wd-accordion-opener" />
+                                                                                                        </div>
+                                                                                                        <div
+                                                                                                            className="wd-accordion-content wd-entry-content"
+                                                                                                            style={{ display: openIndex === index ? "block" : "none" }}
+                                                                                                        >
+                                                                                                            <p>{item.content}</p>
                                                                                                         </div>
                                                                                                     </div>
-                                                                                                </div>
+                                                                                                ))}
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
-                                                                            </div> */}
-                                                                            {/* <div className="vc_row wpb_row vc_row-fluid vc_custom_1669037021051 wd-rs-637b7bd950bb2">
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63514c870daab">
-                                                                                    <div className="vc_column-inner vc_custom_1666272395956">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <div
-                                                                                                className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-637b7b4e6c5eb wd-title-color-default wd-title-style-default text-left vc_custom_1669036882268 wd-underline-colored"
-                                                                                                id="wd-637b7b4e6c5eb">
-                                                                                                <div className="liner-continer">
-                                                                                                    <h4 className="woodmart-title-container title  wd-font-weight- wd-fontsize-m">
-                                                                                                        Awesome games
-                                                                                                    </h4>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child wd-rs-637b7b5726f86 text-left vc_custom_1669036893045"
-                                                                                                id="wd-637b7b5726f86">
-                                                                                                <p>
-                                                                                                    The Big Oxmox advised her not to do
-                                                                                                    so, because there were thousands of
-                                                                                                    bad Commas, wild Question Marks and
-                                                                                                    devious Semikoli, but the Little
-                                                                                                    Blind Text didn’t listen. She packed
-                                                                                                    her seven versalia, put her initial
-                                                                                                    into the belt and made herself on
-                                                                                                    the way. When she reached the first
-                                                                                                    hills of the Italic Mountains, she
-                                                                                                    had a last view back on the skyline
-                                                                                                    of her hometown Bookmarksgrove, the
-                                                                                                    headline of Alphabet Village and the
-                                                                                                    subline of her own road, the Line
-                                                                                                    Lane. Pityful a rethoric question
-                                                                                                    ran over her cheek, then.
-                                                                                                </p>
-                                                                                            </div>
-                                                                                            <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1669036907270 wd-rs-637b7b648ced8">
-                                                                                                <div className="wpb_column vc_column_container vc_col-sm-4 wd-rs-637b7b6c876f5">
-                                                                                                    <div className="vc_column-inner vc_custom_1669036912356">
-                                                                                                        <div className="wpb_wrapper">
-                                                                                                            <div className="wpb_video_widget wpb_content_element vc_clearfix vc_video-aspect-ratio-169 vc_video-el-width-100 vc_video-align-left wd-rs-63c022c034eb0">
-                                                                                                                <div className="wpb_wrapper">
-                                                                                                                    <div className="wpb_video_wrapper">
-                                                                                                                        <div
-                                                                                                                            className="wd-video-poster-wrapper"
-                                                                                                                            id="wd-rs-63c022c034eb0">
-                                                                                                                            <div
-                                                                                                                                className="wd-video-poster rocket-lazyload entered lazyloaded exited"
-                                                                                                                                data-bg="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-2-1.jpg"
-                                                                                                                                data-ll-status="loaded"
-                                                                                                                                style={{
-                                                                                                                                    backgroundImage:
-                                                                                                                                        'url("https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-2-1.jpg")',
-                                                                                                                                }}
-                                                                                                                            />
-                                                                                                                            <div className="button-play" />
-                                                                                                                        </div>
-                                                                                                                        <iframe
-                                                                                                                            allow="autoplay; fullscreen; picture-in-picture"
-                                                                                                                            frameBorder="0"
-                                                                                                                            height="281"
-                                                                                                                            loading="lazy"
-                                                                                                                            src="https://player.vimeo.com/video/181907337?dnt=1&app_id=122963"
-                                                                                                                            title="Hayley 90 seconds about fear. (Dir. Stian Smestad Music by Nils Frahm)"
-                                                                                                                            width="500"
-                                                                                                                        />
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div className="wpb_column vc_column_container vc_col-sm-4 wd-rs-637b7b72de2bd">
-                                                                                                    <div className="vc_column-inner vc_custom_1669036918822">
-                                                                                                        <div className="wpb_wrapper">
-                                                                                                            <div className="wpb_video_widget wpb_content_element vc_clearfix vc_video-aspect-ratio-169 vc_video-el-width-100 vc_video-align-left wd-rs-63c022c6af34b">
-                                                                                                                <div className="wpb_wrapper">
-                                                                                                                    <div className="wpb_video_wrapper">
-                                                                                                                        <div
-                                                                                                                            className="wd-video-poster-wrapper"
-                                                                                                                            id="wd-rs-63c022c6af34b">
-                                                                                                                            <div
-                                                                                                                                className="wd-video-poster rocket-lazyload entered lazyloaded exited"
-                                                                                                                                data-bg="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-3-1.jpg"
-                                                                                                                                data-ll-status="loaded"
-                                                                                                                                style={{
-                                                                                                                                    backgroundImage:
-                                                                                                                                        'url("https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-3-1.jpg")',
-                                                                                                                                }}
-                                                                                                                            />
-                                                                                                                            <div className="button-play" />
-                                                                                                                        </div>
-                                                                                                                        <iframe
-                                                                                                                            allow="autoplay; fullscreen; picture-in-picture"
-                                                                                                                            frameBorder="0"
-                                                                                                                            height="281"
-                                                                                                                            loading="lazy"
-                                                                                                                            src="https://player.vimeo.com/video/181907337?dnt=1&app_id=122963"
-                                                                                                                            title="Hayley 90 seconds about fear. (Dir. Stian Smestad Music by Nils Frahm)"
-                                                                                                                            width="500"
-                                                                                                                        />
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                                <div className="wpb_column vc_column_container vc_col-sm-4 wd-rs-637b7b782880d">
-                                                                                                    <div className="vc_column-inner vc_custom_1669036924405">
-                                                                                                        <div className="wpb_wrapper">
-                                                                                                            <div className="wpb_video_widget wpb_content_element vc_clearfix vc_video-aspect-ratio-169 vc_video-el-width-100 vc_video-align-left wd-rs-63c022cb70b9c">
-                                                                                                                <div className="wpb_wrapper">
-                                                                                                                    <div className="wpb_video_wrapper">
-                                                                                                                        <div
-                                                                                                                            className="wd-video-poster-wrapper"
-                                                                                                                            id="wd-rs-63c022cb70b9c">
-                                                                                                                            <div
-                                                                                                                                className="wd-video-poster rocket-lazyload entered lazyloaded exited"
-                                                                                                                                data-bg="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-4.jpg"
-                                                                                                                                data-ll-status="loaded"
-                                                                                                                                style={{
-                                                                                                                                    backgroundImage:
-                                                                                                                                        'url("https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-4.jpg")',
-                                                                                                                                }}
-                                                                                                                            />
-                                                                                                                            <div className="button-play" />
-                                                                                                                        </div>
-                                                                                                                        <iframe
-                                                                                                                            allow="autoplay; fullscreen; picture-in-picture"
-                                                                                                                            frameBorder="0"
-                                                                                                                            height="281"
-                                                                                                                            loading="lazy"
-                                                                                                                            src="https://player.vimeo.com/video/181907337?dnt=1&app_id=122963"
-                                                                                                                            title="Hayley 90 seconds about fear. (Dir. Stian Smestad Music by Nils Frahm)"
-                                                                                                                            width="500"
-                                                                                                                        />
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div> */}
-                                                                            {/* <div className="vc_row wpb_row vc_row-fluid wd-rs-64e4c9ae2f9c5">
-                                                                                <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-63514c8260958">
-                                                                                    <div className="vc_column-inner vc_custom_1666272391679">
-                                                                                        <div className="wpb_wrapper">
-                                                                                            <div
-                                                                                                className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-637b7be4f17e3 wd-title-color-default wd-title-style-default text-center vc_custom_1669037049105 wd-underline-colored"
-                                                                                                id="wd-637b7be4f17e3">
-                                                                                                <div className="liner-continer">
-                                                                                                    <h4 className="woodmart-title-container title  wd-font-weight- wd-fontsize-l">
-                                                                                                        A new level of sensations
-                                                                                                    </h4>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child wd-rs-637b7bfad3611 text-center wd-font-weight-500 wd-fontsize-custom font-primary "
-                                                                                                id="wd-637b7bfad3611">
-                                                                                                <p>DualSense Controller</p>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                className="wd-image wd-wpb wd-rs-637e22eac26a0 text-left "
-                                                                                                id="wd-637e22eac26a0">
-                                                                                                <img
-                                                                                                    alt=""
-                                                                                                    className="attachment-780x230 size-780x230 entered lazyloaded"
-                                                                                                    data-lazy-sizes="(max-width: 780px) 100vw, 780px"
-                                                                                                    data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-780x230.jpg"
-                                                                                                    data-lazy-srcset="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5.jpg 780w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-400x118.jpg 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-768x226.jpg 768w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-100x29.jpg 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-430x127.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-700x206.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-180x53.jpg 180w"
-                                                                                                    data-ll-status="loaded"
-                                                                                                    decoding="async"
-                                                                                                    height="230"
-                                                                                                    sizes="(max-width: 780px) 100vw, 780px"
-                                                                                                    src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-780x230.jpg"
-                                                                                                    srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5.jpg 780w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-400x118.jpg 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-768x226.jpg 768w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-100x29.jpg 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-430x127.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-700x206.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-180x53.jpg 180w"
-                                                                                                    width="780"
-                                                                                                />
-                                                                                                <noscript>
-                                                                                                    <img
-                                                                                                        alt=""
-                                                                                                        className="attachment-780x230 size-780x230"
-                                                                                                        decoding="async"
-                                                                                                        height="230"
-                                                                                                        sizes="(max-width: 780px) 100vw, 780px"
-                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-780x230.jpg"
-                                                                                                        srcSet="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5.jpg 780w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-400x118.jpg 400w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-768x226.jpg 768w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-100x29.jpg 100w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-430x127.jpg 430w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-700x206.jpg 700w, https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-5-180x53.jpg 180w"
-                                                                                                        width="780"
-                                                                                                    />
-                                                                                                </noscript>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                className="wd-text-block wd-wpb reset-last-child wd-rs-637b7c393dd08 text-center "
-                                                                                                id="wd-637b7c393dd08">
-                                                                                                <p>
-                                                                                                    The Big Oxmox advised her not to do
-                                                                                                    so, because there were thousands of
-                                                                                                    bad Commas, wild Question Marks and
-                                                                                                    devious Semikoli, but the Little
-                                                                                                    Blind Text didn’t listen. She packed
-                                                                                                    her seven versalia, put her initial
-                                                                                                    into the belt and made herself on
-                                                                                                    the way.
-                                                                                                </p>
-                                                                                            </div>
-                                                                                            <div
-                                                                                                className="wd-carousel-container info-box-carousel-wrapper wd-wpb  vc_custom_1692715452533 wd-rs-64e4c9b9be759 "
-                                                                                                id="carousel-894">
-                                                                                                <div className="wd-carousel-inner">
-                                                                                                    <div
-                                                                                                        className="wd-carousel wd-grid info-box-carousel wd-initialized wd-horizontal wd-watch-progress wd-backface-hidden"
-                                                                                                        data-scroll_per_page="yes"
-                                                                                                        style={{
-                                                                                                            "--wd-col-lg": "3",
-                                                                                                            "--wd-col-md": "3",
-                                                                                                            "--wd-col-sm": "1",
-                                                                                                            "--wd-gap-lg": "20px",
-                                                                                                            "--wd-gap-sm": "10px",
-                                                                                                        }}>
-                                                                                                        <div className="wd-carousel-wrap">
-                                                                                                            <div
-                                                                                                                className="info-box-wrapper wd-carousel-item wd-slide-visible wd-full-visible wd-active"
-                                                                                                                style={{
-                                                                                                                    width: "160px",
-                                                                                                                }}>
-                                                                                                                <div
-                                                                                                                    className=" wd-rs-64e4c9b474e9f wd-info-box wd-wpb text-center box-icon-align-top box-style- color-scheme- wd-bg-none vc_custom_1692715447772"
-                                                                                                                    id="wd-64e4c9b474e9f">
-                                                                                                                    <div className="box-icon-wrapper  box-with-icon box-icon-simple">
-                                                                                                                        <div className="info-box-icon">
-                                                                                                                            <div
-                                                                                                                                className="info-svg-wrapper"
-                                                                                                                                style={{
-                                                                                                                                    height: "64px",
-                                                                                                                                    width: "64px",
-                                                                                                                                }}>
-                                                                                                                                <img
-                                                                                                                                    className="entered lazyloaded"
-                                                                                                                                    data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-1.svg"
-                                                                                                                                    data-ll-status="loaded"
-                                                                                                                                    decoding="async"
-                                                                                                                                    height="64"
-                                                                                                                                    src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-1.svg"
-                                                                                                                                    title="playstation-5-icon-1"
-                                                                                                                                    width="64"
-                                                                                                                                />
-                                                                                                                                <noscript>
-                                                                                                                                    <img
-                                                                                                                                        decoding="async"
-                                                                                                                                        height="64"
-                                                                                                                                        loading="lazy"
-                                                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-1.svg"
-                                                                                                                                        title="playstation-5-icon-1"
-                                                                                                                                        width="64"
-                                                                                                                                    />
-                                                                                                                                </noscript>
-                                                                                                                            </div>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                    <div className="info-box-content">
-                                                                                                                        <h4 className="info-box-title title box-title-style-default wd-fontsize-m">
-                                                                                                                            Ergonomic design
-                                                                                                                        </h4>
-                                                                                                                        <div className="info-box-inner reset-last-child">
-                                                                                                                            <p>
-                                                                                                                                The gamepad fits
-                                                                                                                                comfortably in palms
-                                                                                                                                of any size dual
-                                                                                                                                sense controller
-                                                                                                                            </p>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                            <div
-                                                                                                                className="info-box-wrapper wd-carousel-item wd-slide-visible wd-full-visible wd-slide-next"
-                                                                                                                style={{
-                                                                                                                    width: "160px",
-                                                                                                                }}>
-                                                                                                                <div
-                                                                                                                    className=" wd-rs-64e4c9790f186 wd-info-box wd-wpb text-center box-icon-align-top box-style- color-scheme- wd-bg-none vc_custom_1692715387161"
-                                                                                                                    id="wd-64e4c9790f186">
-                                                                                                                    <div className="box-icon-wrapper  box-with-icon box-icon-simple">
-                                                                                                                        <div className="info-box-icon">
-                                                                                                                            <div
-                                                                                                                                className="info-svg-wrapper"
-                                                                                                                                style={{
-                                                                                                                                    height: "64px",
-                                                                                                                                    width: "64px",
-                                                                                                                                }}>
-                                                                                                                                <img
-                                                                                                                                    className="entered lazyloaded"
-                                                                                                                                    data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-2.svg"
-                                                                                                                                    data-ll-status="loaded"
-                                                                                                                                    decoding="async"
-                                                                                                                                    height="64"
-                                                                                                                                    src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-2.svg"
-                                                                                                                                    title="playstation-5-icon-2"
-                                                                                                                                    width="64"
-                                                                                                                                />
-                                                                                                                                <noscript>
-                                                                                                                                    <img
-                                                                                                                                        decoding="async"
-                                                                                                                                        height="64"
-                                                                                                                                        loading="lazy"
-                                                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-2.svg"
-                                                                                                                                        title="playstation-5-icon-2"
-                                                                                                                                        width="64"
-                                                                                                                                    />
-                                                                                                                                </noscript>
-                                                                                                                            </div>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                    <div className="info-box-content">
-                                                                                                                        <h4 className="info-box-title title box-title-style-default wd-fontsize-m">
-                                                                                                                            Tactile feedback
-                                                                                                                        </h4>
-                                                                                                                        <div className="info-box-inner reset-last-child">
-                                                                                                                            <p>
-                                                                                                                                Feel the physical
-                                                                                                                                reaction of the
-                                                                                                                                environment to your
-                                                                                                                                actions in the game
-                                                                                                                            </p>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                            <div
-                                                                                                                className="info-box-wrapper wd-carousel-item wd-slide-visible wd-full-visible"
-                                                                                                                style={{
-                                                                                                                    width: "160px",
-                                                                                                                }}>
-                                                                                                                <div
-                                                                                                                    className=" wd-rs-64e4c97c6fe0b wd-info-box wd-wpb text-center box-icon-align-top box-style- color-scheme- wd-bg-none vc_custom_1692715390585"
-                                                                                                                    id="wd-64e4c97c6fe0b">
-                                                                                                                    <div className="box-icon-wrapper  box-with-icon box-icon-simple">
-                                                                                                                        <div className="info-box-icon">
-                                                                                                                            <div
-                                                                                                                                className="info-svg-wrapper"
-                                                                                                                                style={{
-                                                                                                                                    height: "64px",
-                                                                                                                                    width: "64px",
-                                                                                                                                }}>
-                                                                                                                                <img
-                                                                                                                                    className="entered lazyloaded"
-                                                                                                                                    data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-3.svg"
-                                                                                                                                    data-ll-status="loaded"
-                                                                                                                                    decoding="async"
-                                                                                                                                    height="64"
-                                                                                                                                    src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-3.svg"
-                                                                                                                                    title="playstation-5-icon-3"
-                                                                                                                                    width="64"
-                                                                                                                                />
-                                                                                                                                <noscript>
-                                                                                                                                    <img
-                                                                                                                                        decoding="async"
-                                                                                                                                        height="64"
-                                                                                                                                        loading="lazy"
-                                                                                                                                        src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/11/playstation-5-icon-3.svg"
-                                                                                                                                        title="playstation-5-icon-3"
-                                                                                                                                        width="64"
-                                                                                                                                    />
-                                                                                                                                </noscript>
-                                                                                                                            </div>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                    <div className="info-box-content">
-                                                                                                                        <h4 className="info-box-title title box-title-style-default wd-fontsize-m">
-                                                                                                                            Adaptive triggers
-                                                                                                                        </h4>
-                                                                                                                        <div className="info-box-inner reset-last-child">
-                                                                                                                            <p>
-                                                                                                                                Experience different
-                                                                                                                                levels of tension when
-                                                                                                                                interacting in games
-                                                                                                                            </p>
-                                                                                                                        </div>
-                                                                                                                    </div>
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                    <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-icon-1">
-                                                                                                        <div className="wd-btn-arrow wd-prev wd-disabled wd-lock">
-                                                                                                            <div className="wd-arrow-inner" />
-                                                                                                        </div>
-                                                                                                        <div className="wd-btn-arrow wd-next wd-disabled wd-lock">
-                                                                                                            <div className="wd-arrow-inner" />
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </div>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div> */}
+                                                                            </div>
+
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2718,7 +1994,7 @@ const productDetails = () => {
                                                                                             </span>
                                                                                         </ins>
                                                                                         <span className="screen-reader-text">
-                                                                                            Current price is: $449.00.
+                                                                                            Current price is: $ {offer.price}
                                                                                         </span>
                                                                                     </span>
                                                                                 </div>
@@ -2788,9 +2064,9 @@ const productDetails = () => {
                                                                 "--wd-gap-sm": "10px",
                                                             }}>
                                                             <div className="wd-carousel-wrap">
-                                                                {bestOffer.slice(0, 5).map((product) => (
+                                                                {bestOffers.slice(0, 5).map((product) => (
                                                                     <div
-                                                                        key={product.productId}
+                                                                        key={product.id}
                                                                         className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
                                                                         style={{ width: '262.6px' }}
                                                                     >
@@ -2802,8 +2078,8 @@ const productDetails = () => {
                                                                                             decoding="async"
                                                                                             width={80}
                                                                                             height={80}
-                                                                                            src={product.image_url}
-                                                                                            alt={product.productName}
+                                                                                            src={product.productData.productImages[0]}
+                                                                                            alt={product.productData.productInfo.productName}
                                                                                         />
                                                                                     </a>
                                                                                 </div>
@@ -2819,7 +2095,7 @@ const productDetails = () => {
                                                                                     <span className="price">
                                                                                         <span className="woocommerce-Price-amount amount">
                                                                                             <bdi>
-                                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.price}
+                                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.productData.priceInfo.costPrice}
                                                                                             </bdi>
                                                                                         </span>
                                                                                         {product.discount > 0 && (

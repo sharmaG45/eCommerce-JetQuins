@@ -25,6 +25,7 @@ const HomePage = () => {
     const router = useRouter();
     const sliderRef = useRef(null);
 
+    const [products, setProducts] = useState([]);
     const { data, dispatch } = useContext(CartContext);
 
 
@@ -33,7 +34,6 @@ const HomePage = () => {
 
         // Get user data from localStorage
         const user = JSON.parse(localStorage.getItem("currentUser"));
-        // const user = userData ? JSON.parse(userData) : null;
 
         // Fallback data for missing fields
         const staticData = {
@@ -44,19 +44,35 @@ const HomePage = () => {
             productName: "Default Product",
             productSku: "DEFAULTSKU",
             price: 0.0,
-            discount: 0
+            discount: 0,
+            quantity: 1,
+            rating: 0,
+            description: "No description available.",
+            how_product_works: "Not available.",
+            other_details: {
+                compatibility: "Unknown",
+                free_trial: "Not available",
+                subscription_model: "Not specified"
+            },
+            faq: []
         };
 
         // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_url: offer.image_url || staticData.image_url,
-            brand: offer.brand || staticData.brand,
-            productId: offer.productId || staticData.productId,
-            productName: offer.productName || staticData.productName,
-            productSku: offer.productSku || staticData.productSku,
-            price: offer.price || staticData.price,
-            discount: offer.discount || staticData.discount
+            image_url: offer.productData.productImages[0] || staticData.image_url,
+            brand: offer.productData.attribute.Brands || staticData.brand,
+            productId: offer.id || staticData.productId,
+            productName: offer.productData.productInfo.productName || staticData.productName,
+            productSku: offer.id || staticData.productSku,
+            price: offer.productData.priceInfo.Price || staticData.price,
+            discount: offer.productData.priceInfo.discount_Price || staticData.discount,
+            quantity: 1, // Always adding 1 item initially
+            rating: offer.productData.productInfo.rating || staticData.rating,
+            description: offer.description || staticData.description,
+            how_product_works: offer.how_product_works || staticData.how_product_works,
+            other_details: offer.other_details || staticData.other_details,
+            faq: offer.faq || staticData.faq
         };
 
         console.log("Final Offer Data:", offerData);
@@ -80,7 +96,6 @@ const HomePage = () => {
             toast.success("Product added to your wishlist!");
             return;
         }
-
 
         try {
             const userId = user.uid;
@@ -121,99 +136,6 @@ const HomePage = () => {
         }
     };
 
-    // const handleAddToWishlist = async (e, offer) => {
-    //     e.preventDefault(); // Prevent default behavior
-
-    //     // Get user data from localStorage
-    //     const user = JSON.parse(localStorage.getItem("currentUser"));
-    //     // const user = userData ? JSON.parse(userData) : null;
-
-    //     // Fallback data for missing fields
-    //     const staticData = {
-    //         product_url: "/",
-    //         image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
-    //         brand: "Unknown Brand",
-    //         productId: "00000",
-    //         productName: "Default Product",
-    //         productSku: "DEFAULTSKU",
-    //         price: 0.0,
-    //         discount: 0
-    //     };
-
-    //     // Merge offer data with fallback values
-    //     const offerData = {
-    //         product_url: offer.product_url || staticData.product_url,
-    //         image_url: offer.image_url || staticData.image_url,
-    //         brand: offer.brand || staticData.brand,
-    //         productId: offer.productId || staticData.productId,
-    //         productName: offer.productName || staticData.productName,
-    //         productSku: offer.productSku || staticData.productSku,
-    //         price: offer.price || staticData.price,
-    //         discount: offer.discount || staticData.discount
-    //     };
-
-    //     console.log("Final Offer Data:", offerData);
-
-
-    //     if (!user || !user.uid) {
-    //         console.log("No user logged in. Saving to guest wishlist.");
-
-    //         const guestWishlist = JSON.parse(localStorage.getItem("guestWishlist")) || [];
-
-    //         // Check if product already exists
-    //         if (guestWishlist.some(item => item.productId === offerData.productId)) {
-    //             toast.success("Product is already in your wishlist!");
-    //             return;
-    //         }
-
-    //         // Add to guest wishlist
-    //         guestWishlist.push({ ...offerData, timestamp: new Date() });
-    //         localStorage.setItem("guestWishlist", JSON.stringify(guestWishlist));
-
-    //         toast.success("Product added to your wishlist!");
-    //         return;
-    //     }
-
-
-    //     try {
-    //         const userId = user.uid;
-    //         const userRef = doc(fireStore, "users", userId);
-
-    //         // Fetch only the wishlist from Firestore
-    //         const userDoc = await getDoc(userRef);
-    //         let userWishlist = userDoc.exists() ? userDoc.data().wishlist || [] : [];
-
-    //         // Check if product exists
-    //         if (userWishlist.some(item => item.productId === offerData.productId)) {
-    //             toast.success("Product is already in your wishlist!");
-    //             return;
-    //         }
-
-    //         // Add new product to wishlist
-    //         userWishlist.push({
-    //             product_url: offerData.product_url,
-    //             image_url: offerData.image_url,
-    //             brand: offerData.brand,
-    //             productId: offerData.productId,
-    //             productName: offerData.productName,
-    //             productSku: offerData.productSku,
-    //             price: offerData.price,
-    //             discount: offerData.discount,
-    //             timestamp: new Date()
-    //         });
-
-    //         // Update Firestore
-    //         await updateDoc(userRef, { wishlist: userWishlist });
-
-    //         console.log("Wishlist updated for user:", userId);
-    //         toast.success("Product added to your wishlist!");
-
-    //     } catch (error) {
-    //         console.error("Error adding product to wishlist:", error);
-    //         toast.error("Error adding product to wishlist.");
-    //     }
-    // };
-
     const handleCategoryClick = (category) => {
         console.log(category.title, "Category");
 
@@ -233,7 +155,6 @@ const HomePage = () => {
 
         const user = JSON.parse(localStorage.getItem("currentUser"));
 
-        // Log the offer object to verify structure
         console.log("Offer:", offer.productData);
 
         // Fallback data for missing fields
@@ -268,7 +189,7 @@ const HomePage = () => {
             productSku: offer.id || staticData.productSku,
             price: offer.productData.priceInfo.Price || staticData.price,
             discount: offer.productData.priceInfo.discount_Price || staticData.discount,
-            quantity: offer.productData.productInfo.quantity || staticData.quantity,
+            quantity: 1, // Always adding 1 item initially
             rating: offer.productData.productInfo.rating || staticData.rating,
             description: offer.description || staticData.description,
             how_product_works: offer.how_product_works || staticData.how_product_works,
@@ -281,32 +202,31 @@ const HomePage = () => {
         if (!user || !user.uid) {
             console.log("User not logged in. Saving to guest cart.");
 
-            // Get guest cart from Context (avoid localStorage usage)
-            let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+            // Get guest cart from Context
+            let guestCart = [...data]; // Use existing context state
 
-            // Check if the product already exists in the guest cart
+            // Check if product already exists
             const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
 
             if (existingIndex !== -1) {
-                // If product exists, update quantity
-                guestCart[existingIndex].quantity += 1;
-                dispatch({ type: "Update", payload: guestCart });
+                // If exists, update quantity
+                guestCart[existingIndex] = {
+                    ...guestCart[existingIndex],
+                    quantity: guestCart[existingIndex].quantity + 1
+                };
                 toast.success("Product quantity updated in your cart!");
             } else {
                 // Add new product to the cart
-                guestCart.push({ ...offerData, timestamp: new Date() });
-                dispatch({ type: "Add", payload: offerData });
-                localStorage.setItem("guestCart", JSON.stringify(guestCart));
+                guestCart.push({ ...offerData });
                 toast.success("Product added to your cart!");
             }
 
-            // Save updated cart to Context and localStorage (no duplicates)
-            localStorage.setItem("guestCart", JSON.stringify(guestCart));
+            // Dispatch updated cart state
+            dispatch({ type: "Update", payload: guestCart });
 
             setIsCartOpen(true); // Open the cart
             return;
         }
-
 
         // Handle logged-in users (Firestore integration)
         try {
@@ -321,11 +241,14 @@ const HomePage = () => {
 
             if (existingIndex !== -1) {
                 // If exists, update quantity
-                userCart[existingIndex].quantity += 1;
+                userCart[existingIndex] = {
+                    ...userCart[existingIndex],
+                    quantity: userCart[existingIndex].quantity + 1
+                };
                 toast.success("Product quantity updated in your cart!");
             } else {
                 // Add new product
-                userCart.push({ ...offerData, timestamp: new Date() });
+                userCart.push({ ...offerData });
                 toast.success("Product added to your cart!");
             }
 
@@ -342,127 +265,6 @@ const HomePage = () => {
             toast.error("Error adding product to cart.");
         }
     };
-
-
-
-
-    // const openCart = async (e, offer) => {
-    //     e.preventDefault(); // Prevent default behavior
-
-    //     const user = JSON.parse(localStorage.getItem("currentUser"));
-
-    //     // Log the offer object to verify structure
-    //     console.log("Offer:", offer);
-
-    //     // Fallback data for missing fields
-    //     const staticData = {
-    //         product_url: "/",
-    //         image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
-    //         brand: "Unknown Brand",
-    //         productId: "00000",
-    //         productName: "Default Product",
-    //         productSku: "DEFAULTSKU",
-    //         price: 0.0,
-    //         discount: 0,
-    //         quantity: 1,
-    //         rating: 0,
-    //         description: "No description available.",
-    //         how_product_works: "Not available.",
-    //         other_details: {
-    //             compatibility: "Unknown",
-    //             free_trial: "Not available",
-    //             subscription_model: "Not specified"
-    //         },
-    //         faq: []
-    //     };
-
-    //     // Merge offer data with fallback values
-    //     const offerData = {
-    //         product_url: offer.product_url || staticData.product_url,
-    //         image_url: offer.image_url || staticData.image_url,
-    //         brand: offer.brand || staticData.brand,
-    //         productId: offer.productId || staticData.productId,
-    //         productName: offer.productName || staticData.productName,
-    //         productSku: offer.productSku || staticData.productSku,
-    //         price: offer.price || staticData.price,
-    //         discount: offer.discount || staticData.discount,
-    //         quantity: offer.quantity || staticData.quantity,
-    //         rating: offer.rating || staticData.rating,
-    //         description: offer.description || staticData.description,
-    //         how_product_works: offer.how_product_works || staticData.how_product_works,
-    //         other_details: offer.other_details || staticData.other_details,
-    //         faq: offer.faq || staticData.faq
-    //     };
-
-    //     console.log("Final Offer Data:", offerData);
-
-    //     if (!user || !user.uid) {
-    //         console.log("User not logged in. Saving to guest cart.");
-
-    //         // Get guest cart from Context (avoid localStorage usage)
-    //         let guestCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-
-    //         // Check if the product already exists in the guest cart
-    //         const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
-
-    //         if (existingIndex !== -1) {
-    //             // If product exists, update quantity
-    //             guestCart[existingIndex].quantity += 1;
-    //             dispatch({ type: "Update", payload: guestCart });
-    //             toast.success("Product quantity updated in your cart!");
-    //         } else {
-    //             // Add new product to the cart
-    //             guestCart.push({ ...offerData, timestamp: new Date() });
-    //             dispatch({ type: "Add", payload: offerData });
-    //             localStorage.setItem("guestCart", JSON.stringify(guestCart));
-    //             toast.success("Product added to your cart!");
-    //         }
-
-    //         // Save updated cart to Context and localStorage (no duplicates)
-    //         localStorage.setItem("guestCart", JSON.stringify(guestCart));
-
-    //         setIsCartOpen(true); // Open the cart
-    //         return;
-    //     }
-
-
-    //     // Handle logged-in users (Firestore integration)
-    //     try {
-    //         const userRef = doc(fireStore, "users", user.uid);
-
-    //         // Fetch existing cart data from Firestore
-    //         const userDoc = await getDoc(userRef);
-    //         let userCart = userDoc.exists() ? userDoc.data().cart || [] : [];
-
-    //         // Check if product exists in Firestore cart
-    //         const existingIndex = userCart.findIndex(item => item.productId === offerData.productId);
-
-    //         if (existingIndex !== -1) {
-    //             // If exists, update quantity
-    //             userCart[existingIndex].quantity += 1;
-    //             toast.success("Product quantity updated in your cart!");
-    //         } else {
-    //             // Add new product
-    //             userCart.push({ ...offerData, timestamp: new Date() });
-    //             toast.success("Product added to your cart!");
-    //         }
-
-    //         // Update Firestore cart
-    //         await updateDoc(userRef, { cart: userCart });
-
-    //         // Dispatch updated cart state
-    //         dispatch({ type: "Update", payload: userCart });
-
-    //         console.log("Cart updated for user:", user.uid);
-    //         setIsCartOpen(true); // Open the cart
-    //     } catch (error) {
-    //         console.error("Error adding product to cart:", error);
-    //         toast.error("Error adding product to cart.");
-    //     }
-    // };
-
-
-
 
     const closeCart = () => {
         setIsCartOpen(false);
@@ -520,39 +322,6 @@ const HomePage = () => {
         arrows: false,
     };
 
-    // Product Slider
-    const settings = {
-        dots: true,
-        infinite: true,
-        speed: 700,
-        slidesToShow: 6,
-        slidesToScroll: 1,
-        autoplay: true,
-        autoplaySpeed: 20000,
-        adaptiveHeight: true,
-        arrows: false,
-        responsive: [
-            {
-                breakpoint: 980,
-                settings: {
-                    slidesToShow: 2,
-                    slidesToScroll: 1,
-                    arrows: false,
-                    dots: true,
-                },
-            },
-            {
-                breakpoint: 767,
-                settings: {
-                    slidesToShow: 1,
-                    slidesToScroll: 1,
-                    arrows: false,
-                    dots: true,
-                },
-            },
-        ],
-    };
-
     const goToNext = () => {
         if (sliderRef.current) {
             sliderRef.current.slickNext();
@@ -587,9 +356,9 @@ const HomePage = () => {
         setVisibleProducts3((prev) => prev + PRODUCTS_PER_PAGE3);
     };
 
-    const bestOffers = bestOffer.slice(0, visibleProducts);
-    const bestOffers2 = bestOffer.slice(0, visibleProducts2);
-    const bestOffers3 = bestOffer.slice(0, visibleProducts3);
+    const bestOffers = products.slice(0, visibleProducts);
+    const bestOffers2 = products.slice(0, visibleProducts2);
+    const bestOffers3 = products.slice(0, visibleProducts3);
 
     const handleReadMore = () => {
         setIsReadMore(!isReadMore);
@@ -599,25 +368,23 @@ const HomePage = () => {
         setIsMore(!isMore);
     }
 
-    const [products, setProducts] = useState([]);
-
     useEffect(() => {
         // Create a function to fetch data
         const fetchProducts = async () => {
             try {
                 // Reference to the 'createProduct' collection
-                const productsRef = collection(fireStore, "create_Product"); // Use `collection` instead of `doc` to reference a collection
-                const querySnapshot = await getDocs(productsRef); // Fetch documents from the collection
+                const productsRef = collection(fireStore, "create_Product");
+                const querySnapshot = await getDocs(productsRef);
 
                 // Map through the documents and return the data
                 const products = querySnapshot.docs.map(doc => ({
                     id: doc.id,
-                    ...doc.data() // Assuming you store product data as fields in Firestore
+                    ...doc.data()
                 }));
 
                 console.log("Fetched Products: ", products);
                 localStorage.setItem('product', JSON.stringify(products));
-                setProducts(products); // Set products state
+                setProducts(products);
             } catch (error) {
                 console.error("Error fetching products: ", error);
             }
@@ -880,7 +647,7 @@ const HomePage = () => {
                                                         </h4>
                                                     </div>
                                                 </div>
-                                                {visibleProducts < bestOffer.length && (
+                                                {visibleProducts < products.length && (
                                                     <div
                                                         id="wd-63e123a3abd83"
                                                         className=" wd-rs-63e123a3abd83 vc_custom_1675699148725 wd-button-wrapper text-center inline-element"
@@ -928,7 +695,7 @@ const HomePage = () => {
                                                             "--wd-gap-sm": "10px",
                                                         }}
                                                     >
-                                                        {products.map((offer, index) => (
+                                                        {bestOffers.map((offer, index) => (
                                                             <div
                                                                 className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product"
                                                                 data-loop={index}
@@ -1905,7 +1672,7 @@ const HomePage = () => {
                                                         </h4>
                                                     </div>
                                                 </div>
-                                                {visibleProducts2 < bestOffer.length && (
+                                                {visibleProducts2 < products.length && (
                                                     <div
                                                         id="wd-63e123a3abd83"
                                                         className=" wd-rs-63e123a3abd83 vc_custom_1675699148725 wd-button-wrapper text-center inline-element"
@@ -1956,59 +1723,42 @@ const HomePage = () => {
 
                                                         {bestOffers2.map((offer, index) => (
                                                             <div
-                                                                className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
+                                                                className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product"
                                                                 data-loop={index}
-                                                                data-id={offer.productId} // Assuming you have unique IDs for each product
-                                                                key={offer.productId} // Use a unique key for each product
+                                                                data-id={offer.id} // Assuming you have unique IDs for each product
+                                                                key={offer.id} // Use a unique key for each product
                                                                 style={{ cursor: "pointer" }}
                                                             >
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
-
-                                                                    <div className="product-element-top wd-quick-shop" >
-                                                                        <a className="product-image-link"  >
-                                                                            <div className="wd-product-grid-slider wd-fill" >
-                                                                                {/* {offer.image_url.map((url, imageIndex) => (
-                                                                                    <div
-                                                                                        className="wd-product-grid-slide"
-                                                                                        key={imageIndex}
-                                                                                        data-image-url={url}
-                                                                                        data-image-srcset={`${url} 700w, ${url.replace(".jpg", "-263x300.jpg")} 263w, ${url.replace(".jpg", "-88x100.jpg")} 88w, ${url.replace(".jpg", "-430x491.jpg")} 430w, ${url.replace(".jpg", "-180x206.jpg")} 180w`}
-                                                                                        data-image-id={imageIndex}
-
-                                                                                    />
-                                                                                ))} */}
-                                                                            </div>
+                                                                    <div className="product-element-top wd-quick-shop">
+                                                                        <a className="product-image-link" onClick={() => handleProductDetails(offer.productData.productInfo.productName)}>
+                                                                            <div className="wd-product-grid-slider wd-fill" />
                                                                             <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
                                                                                 <div className="wd-prev" />
                                                                                 <div className="wd-next" />
                                                                             </div>
-                                                                            <div className="wd-product-grid-slider-pagin">
-                                                                                {/* {offer.image_url.map((_, imageIndex) => (
-                                                                                    <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
-                                                                                ))} */}
-                                                                            </div>
+                                                                            <div className="wd-product-grid-slider-pagin" />
                                                                             <div className="product-labels labels-rounded-sm">
-                                                                                <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
+                                                                                <span className="onsale product-label">{offer.productData.priceInfo.discount_Price}%</span> {/* Assuming you have discount info */}
                                                                             </div>
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
                                                                                     type="image/webp"
-                                                                                    data-lazy-srcset={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
-                                                                                    srcSet={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                    data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                    srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
                                                                                 />
                                                                                 <img
                                                                                     decoding="async"
                                                                                     width={700}
                                                                                     height={800}
-                                                                                    src={offer.image_url}
-
-                                                                                    data-lazy-srcset={`${offer.image_url} 700w, ${offer.image_url} 263w`}
+                                                                                    src={offer.productData.productImages[0]}
+                                                                                    data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
-                                                                                    srcSet={`${offer.image_url} 700w, ${offer.image_url} 263w`}
+                                                                                    srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
                                                                                 />
                                                                             </picture>
                                                                         </a>
@@ -2016,7 +1766,7 @@ const HomePage = () => {
                                                                             <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
                                                                                 <a
                                                                                     href="#"
-                                                                                    data-id={offer.productId}
+                                                                                    data-id={offer.id}
                                                                                     rel="nofollow"
                                                                                     data-added-text="Compare products"
                                                                                 >
@@ -2024,12 +1774,7 @@ const HomePage = () => {
                                                                                 </a>
                                                                             </div>
                                                                             <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
-                                                                                <a
-
-                                                                                    className="open-quick-view quick-view-button"
-                                                                                    rel="nofollow"
-                                                                                    data-id={offer.productId}
-                                                                                >
+                                                                                <a className="open-quick-view quick-view-button" rel="nofollow" data-id={offer.id}>
                                                                                     Quick view
                                                                                 </a>
                                                                             </div>
@@ -2037,8 +1782,8 @@ const HomePage = () => {
                                                                                 <a
                                                                                     onClick={(e) => handleAddToWishlist(e, offer)}
                                                                                     href="#"
-                                                                                    data-key={offer.productId}
-                                                                                    data-product-id={offer.productId}
+                                                                                    data-key={offer.id}
+                                                                                    data-product-id={offer.id}
                                                                                     rel="nofollow"
                                                                                     data-added-text="Browse Wishlist"
                                                                                 >
@@ -2048,16 +1793,15 @@ const HomePage = () => {
                                                                         </div>
                                                                     </div>
 
-
                                                                     <div className="product-element-bottom">
                                                                         <h3 className="wd-entities-title">
                                                                             <a href={offer.product_url}>
-                                                                                {offer.productName}
+                                                                                {offer.productData.productInfo.productName}
                                                                             </a>
                                                                         </h3>
                                                                         <div className="wd-product-cats">
-                                                                            <a href={offer.category_url} rel="tag">
-                                                                                {offer.category}
+                                                                            <a href={offer.productData.attribute.category_url} rel="tag">
+                                                                                {offer.productData.attribute.category}
                                                                             </a>
                                                                         </div>
                                                                         <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
@@ -2076,12 +1820,12 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            {offer.price}
+                                                                                            {offer.productData.priceInfo.costPrice}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </del>
                                                                                 <span className="screen-reader-text">
-                                                                                    Original price was:  {offer.originalPrice}.
+                                                                                    Original price was: {offer.productData.priceInfo.costPrice}.
                                                                                 </span>
                                                                                 <ins aria-hidden="true">
                                                                                     <span className="woocommerce-Price-amount amount">
@@ -2089,12 +1833,12 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            {offer.price}
+                                                                                            {offer.productData.priceInfo.Price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </ins>
                                                                                 <span className="screen-reader-text">
-                                                                                    Current price is: $449.00.
+                                                                                    Current price is: $ {offer.productData.priceInfo.Price}.
                                                                                 </span>
                                                                             </span>
                                                                         </div>
@@ -2104,27 +1848,24 @@ const HomePage = () => {
                                                                                 aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2435"
                                                                                 data-quantity={1}
                                                                                 className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                data-product_id={2435}
-                                                                                data-product_sku={608069}
-                                                                                aria-label="Add to cart: Oculus Quest 2"
+                                                                                data-product_id={offer.id}
+                                                                                data-product_sku={offer.productCode}
+                                                                                aria-label={`Add to cart: ${offer.productName}`}
                                                                                 rel="nofollow"
                                                                                 onClick={(e) => openCart(e, offer)}
                                                                             >
                                                                                 <span>Add to cart</span>
                                                                             </a>
-                                                                            <span
-                                                                                id="woocommerce_loop_add_to_cart_link_describedby_2435"
-                                                                                className="screen-reader-text"
-                                                                            ></span>
+                                                                            <span id="woocommerce_loop_add_to_cart_link_describedby_2435" className="screen-reader-text"></span>
                                                                         </div>
                                                                         <div className="wd-product-detail wd-product-sku">
                                                                             <span className="wd-label">SKU: </span>
-                                                                            <span> <span>{offer.productSku}</span> </span>
+                                                                            <span>{offer.id}</span>
                                                                         </div>
-                                                                        {/* Add new data */}
                                                                     </div>
                                                                 </div>
-                                                            </div>))}
+                                                            </div>
+                                                        ))}
 
                                                     </div>
                                                 </div>
@@ -2261,9 +2002,9 @@ const HomePage = () => {
                                                                   
                                                                 </Slider> */}
 
-                                                                {bestOffer.slice(0, 5).map((product) => (
+                                                                {bestOffers.slice(0, 5).map((product) => (
                                                                     <div
-                                                                        key={product.productId}
+                                                                        key={product.id}
                                                                         className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
                                                                         style={{ width: '262.6px' }}
                                                                     >
@@ -2275,14 +2016,14 @@ const HomePage = () => {
                                                                                             decoding="async"
                                                                                             width={80}
                                                                                             height={80}
-                                                                                            src={product.image_url}
-                                                                                            alt={product.productName}
+                                                                                            src={`${product.productData.productImages[0]}`}
+                                                                                            alt={product.productData.productInfo.productName}
                                                                                         />
                                                                                     </a>
                                                                                 </div>
                                                                                 <div className="product-element-bottom">
                                                                                     <h3 className="wd-entities-title">
-                                                                                        <a href={product.product_url}>{product.productName}</a>
+                                                                                        <a href={product.product_url}>${product.productData.priceInfo.costPrice}</a>
                                                                                     </h3>
                                                                                     <div className="star-rating" role="img" aria-label={`Rated ${product.rating} out of 5`}>
                                                                                         <span style={{ width: `${(product.rating / 5) * 100}%` }}>
@@ -2292,7 +2033,7 @@ const HomePage = () => {
                                                                                     <span className="price">
                                                                                         <span className="woocommerce-Price-amount amount">
                                                                                             <bdi>
-                                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.price}
+                                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.productData.priceInfo.costPrice}
                                                                                             </bdi>
                                                                                         </span>
                                                                                         {product.discount > 0 && (
@@ -2341,7 +2082,7 @@ const HomePage = () => {
                                                         </h4>
                                                     </div>
                                                 </div>
-                                                {visibleProducts3 < bestOffer.length && (
+                                                {visibleProducts3 < products.length && (
                                                     <div
                                                         id="wd-63e123a3abd83"
                                                         className=" wd-rs-63e123a3abd83 vc_custom_1675699148725 wd-button-wrapper text-center inline-element"
@@ -2390,59 +2131,42 @@ const HomePage = () => {
                                                     >
                                                         {bestOffers3.map((offer, index) => (
                                                             <div
-                                                                className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-2435 status-publish instock product_cat-vr-headsets has-post-thumbnail sale shipping-taxable purchasable product-type-simple hover-ready"
+                                                                className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product"
                                                                 data-loop={index}
-                                                                data-id={offer.productId} // Assuming you have unique IDs for each product
-                                                                key={offer.productId} // Use a unique key for each product
+                                                                data-id={offer.id} // Assuming you have unique IDs for each product
+                                                                key={offer.id} // Use a unique key for each product
                                                                 style={{ cursor: "pointer" }}
                                                             >
                                                                 <div className="product-wrapper">
                                                                     <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
-
-                                                                    <div className="product-element-top wd-quick-shop" >
-                                                                        <a className="product-image-link" onClick={() => handleProductDetails(offer.productName)}>
-                                                                            <div className="wd-product-grid-slider wd-fill" >
-                                                                                {/* {offer.image_url.map((url, imageIndex) => (
-                                                                                    <div
-                                                                                        className="wd-product-grid-slide"
-                                                                                        key={imageIndex}
-                                                                                        data-image-url={url}
-                                                                                        data-image-srcset={`${url} 700w, ${url.replace(".jpg", "-263x300.jpg")} 263w, ${url.replace(".jpg", "-88x100.jpg")} 88w, ${url.replace(".jpg", "-430x491.jpg")} 430w, ${url.replace(".jpg", "-180x206.jpg")} 180w`}
-                                                                                        data-image-id={imageIndex}
-
-                                                                                    />
-                                                                                ))} */}
-                                                                            </div>
+                                                                    <div className="product-element-top wd-quick-shop">
+                                                                        <a className="product-image-link" onClick={() => handleProductDetails(offer.productData.productInfo.productName)}>
+                                                                            <div className="wd-product-grid-slider wd-fill" />
                                                                             <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
                                                                                 <div className="wd-prev" />
                                                                                 <div className="wd-next" />
                                                                             </div>
-                                                                            <div className="wd-product-grid-slider-pagin">
-                                                                                {/* {offer.image_url.map((_, imageIndex) => (
-                                                                                    <div key={imageIndex} data-image-id={imageIndex} className="wd-product-grid-slider-dot" />
-                                                                                ))} */}
-                                                                            </div>
+                                                                            <div className="wd-product-grid-slider-pagin" />
                                                                             <div className="product-labels labels-rounded-sm">
-                                                                                <span className="onsale product-label">{offer.discount}%</span> {/* Assuming you have discount info */}
+                                                                                <span className="onsale product-label">{offer.productData.priceInfo.discount_Price}%</span> {/* Assuming you have discount info */}
                                                                             </div>
                                                                             <picture decoding="async" className="attachment-large size-large">
                                                                                 <source
                                                                                     type="image/webp"
-                                                                                    data-lazy-srcset={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
-                                                                                    srcSet={`${offer.image_url}.webp 700w, ${offer.image_url}.webp 263w`}
+                                                                                    data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                    srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
                                                                                 />
                                                                                 <img
                                                                                     decoding="async"
                                                                                     width={700}
                                                                                     height={800}
-                                                                                    src={offer.image_url}
-
-                                                                                    data-lazy-srcset={`${offer.image_url} 700w, ${offer.image_url} 263w`}
+                                                                                    src={offer.productData.productImages[0]}
+                                                                                    data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
                                                                                     data-lazy-sizes="(max-width: 700px) 100vw, 700px"
                                                                                     className="entered lazyloaded"
                                                                                     sizes="(max-width: 700px) 100vw, 700px"
-                                                                                    srcSet={`${offer.image_url} 700w, ${offer.image_url} 263w`}
+                                                                                    srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
                                                                                 />
                                                                             </picture>
                                                                         </a>
@@ -2450,7 +2174,7 @@ const HomePage = () => {
                                                                             <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
                                                                                 <a
                                                                                     href="#"
-                                                                                    data-id={offer.productId}
+                                                                                    data-id={offer.id}
                                                                                     rel="nofollow"
                                                                                     data-added-text="Compare products"
                                                                                 >
@@ -2458,12 +2182,7 @@ const HomePage = () => {
                                                                                 </a>
                                                                             </div>
                                                                             <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
-                                                                                <a
-
-                                                                                    className="open-quick-view quick-view-button"
-                                                                                    rel="nofollow"
-                                                                                    data-id={offer.productId}
-                                                                                >
+                                                                                <a className="open-quick-view quick-view-button" rel="nofollow" data-id={offer.id}>
                                                                                     Quick view
                                                                                 </a>
                                                                             </div>
@@ -2471,8 +2190,8 @@ const HomePage = () => {
                                                                                 <a
                                                                                     onClick={(e) => handleAddToWishlist(e, offer)}
                                                                                     href="#"
-                                                                                    data-key={offer.productId}
-                                                                                    data-product-id={offer.productId}
+                                                                                    data-key={offer.id}
+                                                                                    data-product-id={offer.id}
                                                                                     rel="nofollow"
                                                                                     data-added-text="Browse Wishlist"
                                                                                 >
@@ -2482,16 +2201,15 @@ const HomePage = () => {
                                                                         </div>
                                                                     </div>
 
-
                                                                     <div className="product-element-bottom">
                                                                         <h3 className="wd-entities-title">
                                                                             <a href={offer.product_url}>
-                                                                                {offer.productName}
+                                                                                {offer.productData.productInfo.productName}
                                                                             </a>
                                                                         </h3>
                                                                         <div className="wd-product-cats">
-                                                                            <a href={offer.category_url} rel="tag">
-                                                                                {offer.category}
+                                                                            <a href={offer.productData.attribute.category_url} rel="tag">
+                                                                                {offer.productData.attribute.category}
                                                                             </a>
                                                                         </div>
                                                                         <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
@@ -2510,12 +2228,12 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            {offer.price}
+                                                                                            {offer.productData.priceInfo.costPrice}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </del>
                                                                                 <span className="screen-reader-text">
-                                                                                    Original price was:  {offer.originalPrice}.
+                                                                                    Original price was: {offer.productData.priceInfo.costPrice}.
                                                                                 </span>
                                                                                 <ins aria-hidden="true">
                                                                                     <span className="woocommerce-Price-amount amount">
@@ -2523,12 +2241,12 @@ const HomePage = () => {
                                                                                             <span className="woocommerce-Price-currencySymbol">
                                                                                                 $
                                                                                             </span>
-                                                                                            {offer.price}
+                                                                                            {offer.productData.priceInfo.Price}
                                                                                         </bdi>
                                                                                     </span>
                                                                                 </ins>
                                                                                 <span className="screen-reader-text">
-                                                                                    Current price is: $449.00.
+                                                                                    Current price is: $ {offer.productData.priceInfo.Price}.
                                                                                 </span>
                                                                             </span>
                                                                         </div>
@@ -2538,27 +2256,24 @@ const HomePage = () => {
                                                                                 aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2435"
                                                                                 data-quantity={1}
                                                                                 className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                data-product_id={2435}
-                                                                                data-product_sku={608069}
-                                                                                aria-label="Add to cart: Oculus Quest 2"
+                                                                                data-product_id={offer.id}
+                                                                                data-product_sku={offer.productCode}
+                                                                                aria-label={`Add to cart: ${offer.productName}`}
                                                                                 rel="nofollow"
                                                                                 onClick={(e) => openCart(e, offer)}
                                                                             >
                                                                                 <span>Add to cart</span>
                                                                             </a>
-                                                                            <span
-                                                                                id="woocommerce_loop_add_to_cart_link_describedby_2435"
-                                                                                className="screen-reader-text"
-                                                                            ></span>
+                                                                            <span id="woocommerce_loop_add_to_cart_link_describedby_2435" className="screen-reader-text"></span>
                                                                         </div>
                                                                         <div className="wd-product-detail wd-product-sku">
                                                                             <span className="wd-label">SKU: </span>
-                                                                            <span> <span>{offer.productSku}</span> </span>
+                                                                            <span>{offer.id}</span>
                                                                         </div>
-                                                                        {/* Add new data */}
                                                                     </div>
                                                                 </div>
-                                                            </div>))}
+                                                            </div>
+                                                        ))}
 
                                                     </div>
                                                 </div>
@@ -2644,7 +2359,6 @@ const HomePage = () => {
             {/* Cart Modal */}
 
             <Cartwidget isCartOpen={isCartOpen} closeCart={closeCart} setIsCartOpen={setIsCartOpen} />
-
             <div className={`wd-close-side wd-fill ${isCartOpen ? 'wd-close-side-opened' : ''}`} />
 
         </>

@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from 'next/navigation';
-import { getFirestore, doc, getDoc, updateDoc } from 'firebase/firestore';
-import { auth, fireStore } from "@/app/_components/firebase/config";
+import { useEffect, useState, useContext } from "react";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { fireStore } from "@/app/_components/firebase/config";
 import Cartwidget from "@/app/_components/Cart-widget/page";
 import { toast } from "react-toastify";
+import { CartContext } from "../../_components/CartContext/page";
 
 const wishlist = () => {
 
     const [wishlist, setWishlist] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const router = useRouter();
+    const { data, dispatch } = useContext(CartContext);
 
     // Make sure user is set properly
 
@@ -55,7 +55,10 @@ const wishlist = () => {
         }
     }, []);
 
-    // console.log(wishlist, "wishlist All Data");
+
+    useEffect(() => {
+        console.log(" Updated wishlist state:", wishlist);
+    }, [wishlist]);
 
     const handleRemoveFromWishlist = async (productId) => {
         try {
@@ -74,7 +77,7 @@ const wishlist = () => {
                 localStorage.setItem("guestWishlist", JSON.stringify(updatedWishlist));
                 setWishlist(updatedWishlist);
 
-                toast.success("Product removed from wishlist!")
+                toast.success("Removed from wishlist")
                 return;
             }
 
@@ -98,14 +101,130 @@ const wishlist = () => {
                     // Update local state
                     setWishlist(updatedWishlist);
 
-                    toast.success("Product removed from wishlist!");
+                    toast.success("Removed from wishlist");
                 } else {
                     console.log("User document not found.");
                 }
             }
         } catch (error) {
             console.error("Error removing product from wishlist:", error);
-            toast.success("Error removing product from wishlist.");
+            toast.success("Error removing product.");
+        }
+    };
+
+    const openCart = async (e, offer) => {
+        e.preventDefault(); // Prevent default behavior
+
+        const user = JSON.parse(localStorage.getItem("currentUser"));
+
+        console.log("Offer:", offer);
+
+        // Fallback data for missing fields
+        const staticData = {
+            product_url: "/",
+            image_url: "https://via.placeholder.com/2000x2000?text=No+Image",
+            brand: "Unknown Brand",
+            productId: "00000",
+            productName: "Default Product",
+            productSku: "DEFAULTSKU",
+            price: 0.0,
+            discount: 0,
+            quantity: 1,
+            rating: 0,
+            description: "No description available.",
+            how_product_works: "Not available.",
+            other_details: {
+                compatibility: "Unknown",
+                free_trial: "Not available",
+                subscription_model: "Not specified"
+            },
+            faq: []
+        };
+
+        // Merge offer data with fallback values
+        const offerData = {
+            product_url: offer.product_url || staticData.product_url,
+            image_url: offer.image_url || staticData.image_url,
+            brand: offer.brand || staticData.brand,
+            productId: offer.productId || staticData.productId,
+            productName: offer.productName || staticData.productName,
+            productSku: offer.productSku || staticData.productSku,
+            price: parseFloat(offer.price) || staticData.price,
+            discount: parseFloat(offer.discount) || staticData.discount,
+            quantity: 1, // Always adding 1 item initially
+            rating: offer.rating || staticData.rating,
+            description: offer.description || staticData.description,
+            how_product_works: offer.how_product_works || staticData.how_product_works,
+            other_details: offer.other_details || staticData.other_details,
+            faq: offer.faq || staticData.faq
+        };
+
+        console.log("Final Offer Data:", offerData);
+
+        if (!user || !user.uid) {
+            console.log("User not logged in. Saving to guest cart.");
+
+            // Get guest cart from Context
+            let guestCart = [...data]; // Use existing context state
+
+            // Check if product already exists
+            const existingIndex = guestCart.findIndex(item => item.productId === offerData.productId);
+
+            if (existingIndex !== -1) {
+                // If exists, update quantity
+                guestCart[existingIndex] = {
+                    ...guestCart[existingIndex],
+                    quantity: guestCart[existingIndex].quantity + 1
+                };
+                toast.success("Product quantity updated in your cart!");
+            } else {
+                // Add new product to the cart
+                guestCart.push({ ...offerData });
+                toast.success("Product added to your cart!");
+            }
+
+            // Dispatch updated cart state
+            dispatch({ type: "Update", payload: guestCart });
+
+            setIsCartOpen(true); // Open the cart
+            return;
+        }
+
+        // Handle logged-in users (Firestore integration)
+        try {
+            const userRef = doc(fireStore, "users", user.uid);
+
+            // Fetch existing cart data from Firestore
+            const userDoc = await getDoc(userRef);
+            let userCart = userDoc.exists() ? userDoc.data().cart || [] : [];
+
+            // Check if product exists in Firestore cart
+            const existingIndex = userCart.findIndex(item => item.productId === offerData.productId);
+
+            if (existingIndex !== -1) {
+                // If exists, update quantity
+                userCart[existingIndex] = {
+                    ...userCart[existingIndex],
+                    quantity: userCart[existingIndex].quantity + 1
+                };
+                toast.success("Product quantity updated in your cart!");
+            } else {
+                // Add new product
+                userCart.push({ ...offerData });
+                toast.success("Product added to your cart!");
+            }
+
+            // Update Firestore cart
+            await updateDoc(userRef, { cart: userCart });
+
+            // Dispatch updated cart state
+            dispatch({ type: "Update", payload: userCart });
+
+            console.log("Cart updated for user:", user.uid);
+            setIsCartOpen(true); // Open the cart
+        } catch (error) {
+            console.error("Error adding product to cart:", error);
+            toast.error("Error adding product to cart.");
         }
     };
 
@@ -172,20 +291,16 @@ const wishlist = () => {
                                                     <div className="product-wrapper">
                                                         <div className="content-product-imagin" style={{ marginBottom: '-112px' }} />
                                                         <div className="product-element-top wd-quick-shop">
-                                                            <a href="/" className="product-image-link">
+                                                            <a href={`/home/productDetails?brand=${offer.productName}`} className="product-image-link">
                                                                 <picture decoding="async" className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail">
-                                                                    <source
-                                                                        type="image/webp"
-                                                                        srcSet={`${offer.image_url}?maxHeight=150&maxWidth=225 225w`}
-                                                                        sizes="(max-width: 430px) 100vw, 430px"
-                                                                    />
+
                                                                     <img
                                                                         decoding="async"
                                                                         width={430}
                                                                         height={491}
                                                                         src={offer.image_url}
                                                                         alt={offer.productName}
-                                                                        srcSet={`${offer.image_url}?maxHeight=150&maxWidth=225 225w`}
+                                                                        srcSet={offer.image_url}
                                                                         sizes="(max-width: 430px) 100vw, 430px"
                                                                     />
                                                                 </picture>
@@ -244,11 +359,12 @@ const wishlist = () => {
 
                                                             <div className="wd-add-btn wd-add-btn-replace">
                                                                 <a
-                                                                    href="/home/productDetails"
+                                                                    href="#"
                                                                     className="button product_type_variable add_to_cart_button add-to-cart-loop"
                                                                     data-product_id={offer.productId}
                                                                     aria-label={`Select options for ${offer.productName}`}
                                                                     rel="nofollow"
+                                                                    onClick={(e) => openCart(e, offer)}
                                                                 >
                                                                     <span>Buy Now</span>
                                                                 </a>

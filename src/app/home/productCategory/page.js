@@ -1,6 +1,8 @@
 'use client';
 
 import bestOffer from "../../assets/scraped_products.json";
+import { fireStore } from "@/app/_components/firebase/config";
+import { getDocs, collection } from "firebase/firestore";
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -12,18 +14,27 @@ const smartPhone = () => {
     const searchParams = useSearchParams();// You can get the search params from the URL
 
     useEffect(() => {
-        const fetchAndFilter = () => {
+        const fetchAndFilter = async () => {
             const title = searchParams.get('title');
             console.log('Title from URL:', title);
 
+            const productsRef = collection(fireStore, "create_Product");
+            const querySnapshot = await getDocs(productsRef);
+
+            // Map through the documents and return the data
+            const products = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
             if (title) {
-                const filtered = bestOffer.filter((product) =>
-                    product.productName.toLowerCase().includes(title.toLowerCase())
+                const filtered = products.filter((product) =>
+                    product.productData.productInfo.productName.toLowerCase().includes(title.toLowerCase())
                 );
 
-                setFilteredProducts(filtered.length > 0 ? filtered : bestOffer);  // Display all products if none match
+                setFilteredProducts(filtered.length > 0 ? filtered : products);  // Display all products if none match
             } else {
-                setFilteredProducts(bestOffer);  // Display all products if no query param
+                setFilteredProducts(products);  // Display all products if no query param
             }
         };
 
@@ -35,7 +46,7 @@ const smartPhone = () => {
 
     const handleProductClick = (product) => {
         console.log("Product clicked:", product);
-        router.push(`/home/productDetails?brand=${product.productName}`)
+        router.push(`/home/productDetails?brand=${product.productData.productInfo.productName}`)
     }
 
     return (
@@ -123,7 +134,7 @@ const smartPhone = () => {
                                                     {filteredProducts.map((product, index) => (
                                                         <div
                                                             className="wd-product wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product type-product post-1975 status-publish instock product_cat-apple-iphone has-post-thumbnail shipping-taxable purchasable product-type-variable hover-ready"
-                                                            data-id={product.productId || "0"}
+                                                            data-id={product.id || "0"}
                                                             data-loop={index + 1}
                                                             key={index}>
                                                             <div className="product-wrapper">
@@ -140,8 +151,8 @@ const smartPhone = () => {
                                                                         onClick={() => handleProductClick(product)}
                                                                         style={{ cursor: "pointer" }}>
                                                                         <img
-                                                                            src={product.image_url || "https://via.placeholder.com/150"}
-                                                                            alt={product.productName || "Product Image"}
+                                                                            src={product.productData.productImages[0]}
+                                                                            alt={product.productData.productInfo.productName || "Product Image"}
                                                                             width="150"
                                                                             height="150"
                                                                         />
@@ -150,7 +161,7 @@ const smartPhone = () => {
                                                                 <div className="product-element-bottom">
                                                                     <h3 className="wd-entities-title">
                                                                         <a href={product.product_url || "#"}>
-                                                                            {product.productName}
+                                                                            {product.productData.productInfo.productName}
                                                                         </a>
                                                                     </h3>
                                                                     <div className="wd-product-cats">
@@ -179,7 +190,7 @@ const smartPhone = () => {
                                                                                     <span className="woocommerce-Price-currencySymbol">
                                                                                         $
                                                                                     </span>
-                                                                                    {product.price}
+                                                                                    {product.productData.priceInfo.costPrice}
                                                                                 </bdi>
                                                                             </span>
                                                                         </span>
@@ -187,10 +198,10 @@ const smartPhone = () => {
                                                                     <div className="wd-add-btn wd-add-btn-replace">
                                                                         <a
                                                                             aria-describedby={`woocommerce_loop_add_to_cart_link_describedby_${product.productId}`}
-                                                                            aria-label={`Buy now for “${product.productName}”`}
+                                                                            aria-label={`Buy now for “${product.productData.productInfo.productName}”`}
                                                                             className="button product_type_variable add_to_cart_button add-to-cart-loop"
-                                                                            data-product_id={product.productId}
-                                                                            data-product_sku={product.productSku}
+                                                                            data-product_id={product.id}
+                                                                            data-product_sku={product.id}
                                                                             data-quantity="1"
                                                                             onClick={() => { handleProductClick(product) }}
                                                                             rel="nofollow">
@@ -198,13 +209,13 @@ const smartPhone = () => {
                                                                         </a>
                                                                         <span
                                                                             className="screen-reader-text"
-                                                                            id={`woocommerce_loop_add_to_cart_link_describedby_${product.productId}`}>
+                                                                            id={`woocommerce_loop_add_to_cart_link_describedby_${product.id}`}>
                                                                             This product has multiple variants. The options may be chosen on the product page
                                                                         </span>
                                                                     </div>
                                                                     <div className="wd-product-detail wd-product-sku">
                                                                         <span className="wd-label">SKU:</span>
-                                                                        <span>{product.productSku || "N/A"}</span>
+                                                                        <span>{product.id || "N/A"}</span>
                                                                     </div>
 
                                                                 </div>

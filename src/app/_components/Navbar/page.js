@@ -3,7 +3,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import SignIn from '../SignIn/page';
-import { doc, getDoc, arrayRemove, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { fireStore, auth } from '../../_components/firebase/config';
 import bestOffer from '@/app/assets/scraped_products.json';
 import { signOut } from "firebase/auth";
@@ -210,6 +210,7 @@ const Navbar = () => {
                         const cartItems = userData.cart || [];
                         setCartCount(cartItems.length);
                         setCartTotal(cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0));
+                        dispatch({ type: "Update", payload: cartItems });
                     }
                 } else {
                     // 🔹 User is NOT logged in - Fetch from localStorage
@@ -220,9 +221,11 @@ const Navbar = () => {
                     setWishlistCount(localWishlist.length);
 
                     // Get cart from localStorage
-                    const localCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-                    setCartCount(localCart.length);
-                    setCartTotal(localCart.reduce((acc, item) => acc + item.price * item.quantity, 0));
+                    // const localCart = JSON.parse(localStorage.getItem("guestCart")) || [];
+                    // setCartCount(localCart.length);
+                    // setCartTotal(localCart.reduce((acc, item) => acc + item.price * item.quantity, 0));
+                    setCartCount(data.length);
+                    setCartTotal(data.reduce((acc, item) => acc + item.price * item.quantity, 0));
                 }
             } catch (error) {
                 console.error("Error fetching user data:", error);
@@ -230,28 +233,73 @@ const Navbar = () => {
         };
 
         fetchUserData();
-    }, []);
+    }, [data]);
 
 
     // console.log(cartItems, "cart Details");
-
+    const [bestOffer, setBestOffer] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [filteredProducts, setFilteredProducts] = useState([]);
     // const router = useRouter();
 
     useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const productsRef = collection(fireStore, "create_Product");
+                const querySnapshot = await getDocs(productsRef);
+
+                const products = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                console.log("Firestore products:", products);
+                setBestOffer(products); // Store products in state
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        };
+
+        fetchProducts();
+    }, []); // Runs only once
+
+    // Filter products whenever `searchQuery` changes
+    useEffect(() => {
         if (searchQuery.trim()) {
             const filtered = bestOffer.filter((product) =>
-                product.productName.toLowerCase().includes(searchQuery.toLowerCase())
+                product.productData.productInfo.productName
+                    ?.toLowerCase()
+                    .includes(searchQuery.toLowerCase())
             );
             setFilteredProducts(filtered);
-            setShowSuggestions(filtered.length > 0); // Show suggestions if query is non-empty
+            setShowSuggestions(filtered.length > 0);
         } else {
-            setFilteredProducts([]); // Clear suggestions when query is empty
-            setShowSuggestions(false); // Hide suggestions if query is empty
+            setFilteredProducts([]);
+            setShowSuggestions(false);
         }
-    }, [searchQuery, bestOffer]); // This effect runs whenever searchQuery or bestOffer changes
+    }, [searchQuery, bestOffer]);
+
+    // useEffect(() => {
+    //     // const productsRef = collection(fireStore, "create_Product");
+    //     // const querySnapshot = await getDocs(productsRef);
+
+    //     // Map through the documents and return the data
+    //     // const products = querySnapshot.docs.map(doc => ({
+    //     //     id: doc.id,
+    //     //     ...doc.data()
+    //     // }));
+    //     if (searchQuery.trim()) {
+    //         const filtered = bestOffer.filter((product) =>
+    //             product.productName.toLowerCase().includes(searchQuery.toLowerCase())
+    //         );
+    //         setFilteredProducts(filtered);
+    //         setShowSuggestions(filtered.length > 0); // Show suggestions if query is non-empty
+    //     } else {
+    //         setFilteredProducts([]); // Clear suggestions when query is empty
+    //         setShowSuggestions(false); // Hide suggestions if query is empty
+    //     }
+    // }, [searchQuery, bestOffer]); // This effect runs whenever searchQuery or bestOffer changes
 
     console.log(filteredProducts, "Filtered Data");
     console.log(showSuggestions, "open ho rha hai ya nahi");
@@ -339,25 +387,25 @@ const Navbar = () => {
                                                 <div className="wd-scroll-content">
                                                     <div className="autocomplete-suggestions">
                                                         {filteredProducts.map((product, index) => (
-                                                            <div className="autocomplete-suggestion" key={index} onClick={(e) => handleProductDetails(product.productName, e)} // Add the click handler
+                                                            <div className="autocomplete-suggestion" key={index} onClick={(e) => handleProductDetails(product.productData.productInfo.productName, e)} // Add the click handler
                                                                 style={{ cursor: "pointer" }}>
                                                                 <div className="suggestion-thumb">
                                                                     <img
                                                                         width={430}
                                                                         height={491}
-                                                                        src={product.image_url} // Placeholder if product image is missing
+                                                                        src={product.productData.productImages[0]}
                                                                         className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                                        alt={product.productName}
+                                                                        alt={product.productData.productInfo.productName}
                                                                         decoding="async"
                                                                         loading="lazy"
                                                                     />
                                                                 </div>
                                                                 <div className="suggestion-content wd-set-mb reset-last-child">
-                                                                    <h4 className="wd-entities-title">{product.productName}</h4>
+                                                                    <h4 className="wd-entities-title">{product.productData.productInfo.productName}</h4>
                                                                     <p className="price">
                                                                         <span className="woocommerce-Price-amount amount">
                                                                             <bdi>
-                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.price}
+                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.productData.priceInfo.costPrice}
                                                                             </bdi>
                                                                         </span>
                                                                     </p>

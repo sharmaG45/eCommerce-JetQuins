@@ -430,7 +430,7 @@ const cart = () => {
                                                 <link
                                                     rel="stylesheet"
                                                     id="wd-woo-page-empty-page-css"
-                                                    href="https://woodmart.xtemos.com/mega-electronics/wp-content/themes/woodmart/css/parts/woo-page-empty-page.min.css?ver=8.0.6"
+                                                    href="/home/productCategory"
                                                     type="text/css"
                                                     media="all"
                                                 />{" "}
@@ -446,7 +446,7 @@ const cart = () => {
                                                 <p className="return-to-shop">
                                                     <a
                                                         className="button wc-backward"
-                                                        href="https://woodmart.xtemos.com/mega-electronics/shop/"
+                                                        href="/home/productCategory"
                                                     >
                                                         Return to shop{" "}
                                                     </a>

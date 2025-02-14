@@ -1,5 +1,6 @@
 import "./globals.css";
 import Script from "next/script";
+import LoadingSpinner from "./loading/page";
 import Navbar from "./_components/Navbar/page";
 import Footer from "./_components/Footer/page";
 import Sidebar from "./_components/Sidebar/page";
@@ -376,7 +377,7 @@ export default function RootLayout({ children }) {
       <body
         className="home page-template-default page page-id-15 theme-woodmart woocommerce-js wrapper-custom  categories-accordion-on woodmart-ajax-shop-on sticky-toolbar-on hide-larger-price wd-sticky-nav-enabled wpb-js-composer js-comp-ver-7.8 vc_responsiv"
       >
-        <Suspense fallback={<p>Loading...</p>}>
+        <Suspense fallback={<LoadingSpinner />}>
           <CartContextProvider>
             <Sidebar />
             <div className="wd-page-wrapper website-wrapper">

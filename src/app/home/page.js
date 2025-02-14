@@ -1,7 +1,5 @@
 'use client'
 
-import Script from "next/script";
-import bestOffer from "../../app/assets/scraped_products.json";
 import categories from "../../app/assets/product_categories.json";
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';

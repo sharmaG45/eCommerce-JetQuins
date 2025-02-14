@@ -1,6 +1,5 @@
 'use client';
 
-// import bestOffer from "../../assets/scraped_products.json";
 import { useEffect, useState, useContext } from "react";
 import { getDocs, doc, getDoc, updateDoc, collection } from "firebase/firestore";
 import { auth, fireStore } from "@/app/_components/firebase/config";
@@ -9,10 +8,8 @@ import { toast } from "react-toastify";
 import Cartwidget from "@/app/_components/Cart-widget/page";
 import { CartContext } from "../../_components/CartContext/page";
 
-// Hello
 
 const cart = () => {
-
 
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isAdded, setIsAdded] = useState(false);

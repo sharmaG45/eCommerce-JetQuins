@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useContext } from "react";
-import bestOffer from "../../assets/scraped_products.json";
 import { useRouter, useSearchParams } from "next/navigation";
 import { auth, fireStore } from "../../_components/firebase/config";
 import { doc, getDoc, updateDoc, collection, getDocs, query, where } from "firebase/firestore";
@@ -38,8 +37,7 @@ const productDetails = () => {
         e.preventDefault(); // Prevent default behavior
 
         // Get user data from localStorage
-        const userData = localStorage.getItem("currentUser");
-        const user = userData ? JSON.parse(userData) : null;
+        const user = JSON.parse(localStorage.getItem("currentUser"));
 
         // Fallback data for missing fields
         const staticData = {
@@ -50,19 +48,35 @@ const productDetails = () => {
             productName: "Default Product",
             productSku: "DEFAULTSKU",
             price: 0.0,
-            discount: 0
+            discount: 0,
+            quantity: 1,
+            rating: 0,
+            description: "No description available.",
+            how_product_works: "Not available.",
+            other_details: {
+                compatibility: "Unknown",
+                free_trial: "Not available",
+                subscription_model: "Not specified"
+            },
+            faq: []
         };
 
         // Merge offer data with fallback values
         const offerData = {
             product_url: offer.product_url || staticData.product_url,
-            image_url: offer.image_url || staticData.image_url,
-            brand: offer.brand || staticData.brand,
-            productId: offer.productId || staticData.productId,
-            productName: offer.productName || staticData.productName,
-            productSku: offer.productSku || staticData.productSku,
-            price: offer.price || staticData.price,
-            discount: offer.discount || staticData.discount
+            image_url: offer.productData.productImages[0] || staticData.image_url,
+            brand: offer.productData.attribute.Brands || staticData.brand,
+            productId: offer.id || staticData.productId,
+            productName: offer.productData.productInfo.productName || staticData.productName,
+            productSku: offer.id || staticData.productSku,
+            price: offer.productData.priceInfo.Price || staticData.price,
+            discount: offer.productData.priceInfo.discount_Price || staticData.discount,
+            quantity: 1, // Always adding 1 item initially
+            rating: offer.productData.productInfo.rating || staticData.rating,
+            description: offer.description || staticData.description,
+            how_product_works: offer.how_product_works || staticData.how_product_works,
+            other_details: offer.other_details || staticData.other_details,
+            faq: offer.faq || staticData.faq
         };
 
         console.log("Final Offer Data:", offerData);
@@ -86,7 +100,6 @@ const productDetails = () => {
             toast.success("Product added to your wishlist!");
             return;
         }
-
 
         try {
             const userId = user.uid;

@@ -1,6 +1,5 @@
 'use client';
 
-import bestOffer from "../../assets/scraped_products.json";
 import { fireStore } from "@/app/_components/firebase/config";
 import { getDocs, collection } from "firebase/firestore";
 import React, { useState, useEffect } from 'react';

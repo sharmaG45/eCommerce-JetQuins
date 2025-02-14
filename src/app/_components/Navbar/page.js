@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import SignIn from '../SignIn/page';
 import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
 import { fireStore, auth } from '../../_components/firebase/config';
-import bestOffer from '@/app/assets/scraped_products.json';
 import { signOut } from "firebase/auth";
 import { toast } from 'react-toastify';
 import Cartwidget from '../Cart-widget/page';
@@ -91,15 +90,18 @@ const Navbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [isShopOpen, setShopOpen] = useState(false);
-    const [cartItems, setCartItems] = useState([]);
     const [activeSection, setActiveSection] = useState(menuItems[0]?.id);
     const [isUserLoggedIn, setIsUserLoggedIn] = useState(false);
     const [user, setUser] = useState(null);
 
-    const { data, dispatch } = useContext(CartContext);
     const [wishlistCount, setWishlistCount] = useState(0);
     const [cartCount, setCartCount] = useState(0);
     const [cartTotal, setCartTotal] = useState(0.0);
+    const [bestOffer, setBestOffer] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const { data, dispatch } = useContext(CartContext);
     const router = useRouter();
 
     // console.log(cartItems, "Carts Items");
@@ -220,10 +222,6 @@ const Navbar = () => {
                     const localWishlist = JSON.parse(localStorage.getItem("guestWishlist")) || [];
                     setWishlistCount(localWishlist.length);
 
-                    // Get cart from localStorage
-                    // const localCart = JSON.parse(localStorage.getItem("guestCart")) || [];
-                    // setCartCount(localCart.length);
-                    // setCartTotal(localCart.reduce((acc, item) => acc + item.price * item.quantity, 0));
                     setCartCount(data.length);
                     setCartTotal(data.reduce((acc, item) => acc + item.price * item.quantity, 0));
                 }
@@ -234,14 +232,6 @@ const Navbar = () => {
 
         fetchUserData();
     }, [data]);
-
-
-    // console.log(cartItems, "cart Details");
-    const [bestOffer, setBestOffer] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [showSuggestions, setShowSuggestions] = useState(false);
-    const [filteredProducts, setFilteredProducts] = useState([]);
-    // const router = useRouter();
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -279,30 +269,6 @@ const Navbar = () => {
             setShowSuggestions(false);
         }
     }, [searchQuery, bestOffer]);
-
-    // useEffect(() => {
-    //     // const productsRef = collection(fireStore, "create_Product");
-    //     // const querySnapshot = await getDocs(productsRef);
-
-    //     // Map through the documents and return the data
-    //     // const products = querySnapshot.docs.map(doc => ({
-    //     //     id: doc.id,
-    //     //     ...doc.data()
-    //     // }));
-    //     if (searchQuery.trim()) {
-    //         const filtered = bestOffer.filter((product) =>
-    //             product.productName.toLowerCase().includes(searchQuery.toLowerCase())
-    //         );
-    //         setFilteredProducts(filtered);
-    //         setShowSuggestions(filtered.length > 0); // Show suggestions if query is non-empty
-    //     } else {
-    //         setFilteredProducts([]); // Clear suggestions when query is empty
-    //         setShowSuggestions(false); // Hide suggestions if query is empty
-    //     }
-    // }, [searchQuery, bestOffer]); // This effect runs whenever searchQuery or bestOffer changes
-
-    console.log(filteredProducts, "Filtered Data");
-    console.log(showSuggestions, "open ho rha hai ya nahi");
 
     const handleProductClick = (productUrl) => {
         router.push(`${productUrl}`)
@@ -398,7 +364,10 @@ const Navbar = () => {
                                                                         alt={product.productData.productInfo.productName}
                                                                         decoding="async"
                                                                         loading="lazy"
+                                                                        srcSet={product.productData.productImages[0]}
+                                                                        sizes="auto, (max-width: 430px) 100vw, 430px"
                                                                     />
+
                                                                 </div>
                                                                 <div className="suggestion-content wd-set-mb reset-last-child">
                                                                     <h4 className="wd-entities-title">{product.productData.productInfo.productName}</h4>
@@ -460,43 +429,7 @@ const Navbar = () => {
                                         </div>
                                     </div>
                                 </div>
-                                {/* <div className="whb-space-element " style={{ width: 20 }} />
-                                <div className="info-box-wrapper  whb-qb4njeyuiye2my4ln8v6">
-                                    <div
-                                        id="wd-6780f8eb9178a"
-                                        className=" wd-info-box text-left box-icon-align-left box-style-base color-scheme- wd-bg-none wd-items-middle "
-                                    >
-                                        <div className="box-icon-wrapper  box-with-icon box-icon-simple">
-                                            <div className="info-box-icon">
-                                                <div
-                                                    className="info-svg-wrapper"
-                                                    style={{ width: 35, height: 35 }}
-                                                >
-                                                    <img
-                                                        src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/02/worldwide.svg"
-                                                        title="worldwide"
-                                                        width={35}
-                                                        height={35}
-                                                        data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2023/02/worldwide.svg"
-                                                        data-ll-status="loaded"
-                                                        className="entered lazyloaded"
-                                                    />
 
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="info-box-content">
-                                            <div className="info-box-inner reset-last-child">
-                                                <h6 style={{ marginBottom: 0, fontSize: 14 }}>Worldwide</h6>
-                                                <p>
-                                                    <span style={{ color: "#1c61e7", fontSize: 14 }}>
-                                                        Free Shipping
-                                                    </span>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div> */}
                             </div>
                             <div className="whb-column whb-mobile-left whb-hidden-lg">
                                 <div className="wd-tools-element wd-header-mobile-nav wd-style-icon wd-design-1 whb-2pcq59rrgv7khz6hxoix" onClick={openMobileMenu} >
@@ -892,25 +825,25 @@ const Navbar = () => {
                                                 <div className="wd-scroll-content">
                                                     <div className="autocomplete-suggestions">
                                                         {filteredProducts.map((product, index) => (
-                                                            <div className="autocomplete-suggestion" key={index} onClick={(e) => handleProductDetails(product.productName, e)} // Add the click handler
+                                                            <div className="autocomplete-suggestion" key={index} onClick={(e) => handleProductDetails(product.productData.productInfo.productName, e)} // Add the click handler
                                                                 style={{ cursor: "pointer" }}>
                                                                 <div className="suggestion-thumb">
                                                                     <img
                                                                         width={430}
                                                                         height={491}
-                                                                        src={product.image_url}
+                                                                        src={product.productData.productImages[0]}
                                                                         className="attachment-woocommerce_thumbnail size-woocommerce_thumbnail"
-                                                                        alt={product.productName}
+                                                                        alt={product.productData.productInfo.productName}
                                                                         decoding="async"
                                                                         loading="lazy"
                                                                     />
                                                                 </div>
                                                                 <div className="suggestion-content wd-set-mb reset-last-child">
-                                                                    <h4 className="wd-entities-title">{product.productName}</h4>
+                                                                    <h4 className="wd-entities-title">{product.productData.productInfo.productName}</h4>
                                                                     <p className="price">
                                                                         <span className="woocommerce-Price-amount amount">
                                                                             <bdi>
-                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.price}
+                                                                                <span className="woocommerce-Price-currencySymbol">$</span>{product.productData.priceInfo.costPrice}
                                                                             </bdi>
                                                                         </span>
                                                                     </p>

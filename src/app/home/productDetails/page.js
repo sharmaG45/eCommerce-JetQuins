@@ -422,6 +422,11 @@ const productDetails = () => {
         // add new code
     };
 
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const toggleExpanded = () => {
+        setIsExpanded(!isExpanded);
+    };
     return (
         <>
             <div className="wd-page-content main-page-wrapper">
@@ -452,7 +457,7 @@ const productDetails = () => {
 
                                                             <a
                                                                 className="wd-product-nav-btn wd-btn-back wd-tooltip"
-                                                                href="/home/productCategoary">
+                                                                href="/home/productCategory">
                                                                 <span>Back to products</span>
                                                             </a>
 
@@ -596,7 +601,7 @@ const productDetails = () => {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666278566087 vc_row-has-fill wd-rs-635164a092f94">
+                                                        {/* <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1666278566087 vc_row-has-fill wd-rs-635164a092f94">
                                                             <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-6351551373f96">
                                                                 <div className="vc_column-inner vc_custom_1666274584416">
                                                                     <div className="wpb_wrapper">
@@ -632,7 +637,7 @@ const productDetails = () => {
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        </div> */}
                                                         <div className="vc_row wpb_row vc_inner vc_row-fluid">
                                                             <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-63c961da69c5c">
                                                                 <div className="vc_column-inner vc_custom_1674142174161">
@@ -830,6 +835,131 @@ const productDetails = () => {
                                                             </span>
                                                         </div>
 
+                                                        <div className="pt3 pb4">
+                                                            <section>
+                                                                <h2 className="b mv0 f5 pb2">
+                                                                    About this item
+                                                                </h2>
+                                                                <span
+                                                                    className="f6 mid-gray w_V_DM"
+                                                                    id="product-description-atf"
+                                                                    style={{
+                                                                        WebkitLineClamp: isExpanded ? 'unset' : 8,
+                                                                        overflow: 'hidden',
+                                                                        display: '-webkit-box',
+                                                                        WebkitBoxOrient: 'vertical',
+                                                                        paddingBottom: '0.1em',
+                                                                        marginBottom: '-0.1em'
+                                                                    }}
+                                                                >
+                                                                    <div className="expand-collapse-content dangerous-html w_YUC7">
+                                                                        <ul>
+                                                                            {" "}
+                                                                            <li>
+                                                                                ONGOING PROTECTION Download instantly &amp; install protection for
+                                                                                up to 3 PCs, Macs, iOS or Android devices in minutes!
+                                                                            </li>{" "}
+                                                                            <li>
+                                                                                REAL-TIME THREAT PROTECTION Advanced security protects against
+                                                                                existing and emerging malware threats, including ransomware and
+                                                                                viruses, and it won’t slow down your device performance.
+                                                                            </li>{" "}
+                                                                            <li>
+                                                                                SECURE VPN Browse anonymously and securely with a no-log VPN while
+                                                                                using public Wi-Fi.I6
+                                                                            </li>{" "}
+                                                                            <li>
+                                                                                DARK WEB MONITORING will notify you if your personal information is
+                                                                                found on the dark web**
+                                                                            </li>{" "}
+                                                                            <li>
+                                                                                25GB PC CLOUD BACKUP Automatically store and help protect important
+                                                                                files***
+                                                                            </li>{" "}
+                                                                            <li>
+                                                                                PRE-PAID SUBSCRIPTION A payment method must be stored in your Norton
+                                                                                account to activate* You won’t be charged until the prepaid term
+                                                                                ends. For new Norton subscriptions only at an introductory price
+                                                                            </li>{" "}
+                                                                            <li>
+                                                                                AUTO-RENEWAL Never have a service disruption since this subscription
+                                                                                auto-renews annually If you do not wish to renew, you can cancel in
+                                                                                your Norton account anytime
+                                                                            </li>{" "}
+                                                                            <li>
+                                                                                **Delivery Method** After placing your order you will first receive
+                                                                                a confirmation email from{" "}
+                                                                                <a href="https://walmart.com/">Walmart.com</a> of successful order
+                                                                                placement. You will then receive a second email (normally within the
+                                                                                hour after placing your order) from{" "}
+                                                                                <a href="mailto:fulfillment@goconveyo.com">
+                                                                                    fulfillment@goconveyo.com
+                                                                                </a>{" "}
+                                                                                that will include an activation code/product key and link to
+                                                                                Norton’s Getting Started page. To ensure you receive this email,
+                                                                                please add{" "}
+                                                                                <a href="mailto:fulfillment@goconveyo.com">
+                                                                                    fulfillment@goconveyo.com
+                                                                                </a>{" "}
+                                                                                to your safe senders list.
+                                                                            </li>{" "}
+                                                                            <li>
+                                                                                Legal Disclaimers: *PAYMENT METHOD REQUIRED FOR 1 YEAR PRE-PAID
+                                                                                SUBSCRIPTION: You are purchasing a recurring subscription which will
+                                                                                automatically renew after the first year. To activate, you must
+                                                                                enroll online and provide your billing information. The price paid
+                                                                                today is valid for the first year of your subscription, and will
+                                                                                automatically renew and charge your stored payment method the
+                                                                                applicable renewal price found at{" "}
+                                                                                <a href="https://norton.com/pricing">Norton.com/pricing</a>. The
+                                                                                price is subject to change, but we will always send you a
+                                                                                notification email in advance. You may cancel the automatic renewal
+                                                                                by logging into your account, or contacting us at: 844-488-4540.
+                                                                                Your coverage may include product, service and/or protection updates
+                                                                                and features that may be added, modified or removed, subject to the
+                                                                                applicable LIcense and Services Agreement found on{" "}
+                                                                                <a href="https://nortonlifelock.com/legal">
+                                                                                    NortonLifeLock.com/legal
+                                                                                </a>
+                                                                                . Data collection, storage and use for subscription management and
+                                                                                renewal purposes subject to our Global Privacy Statement at{" "}
+                                                                                <a href="https://nortonlifelock.com/privacy.**Dark">
+                                                                                    Nortonlifelock.com/privacy.**Dark
+                                                                                </a>{" "}
+                                                                                Web Monitoring in Norton 360 plans defaults to monitor your email
+                                                                                address only. Please log in to your Norton account to review if you
+                                                                                can add additional information for monitoring purposes.***Requires
+                                                                                your device to have an Internet/data plan and be turned on. No one
+                                                                                can prevent all cybercrime or all identity theft. Not all features
+                                                                                are available on all platforms.
+                                                                                &nbsp;
+                                                                            </li>
+                                                                        </ul>
+                                                                    </div>
+                                                                </span>
+                                                                <button
+                                                                    className="w_hhLG w_DZvO w_0_LY dark-gray f6 ph0 pt3"
+                                                                    type="button"
+                                                                    aria-label={isExpanded ? "View less, item details" : "View more, item details"}
+                                                                    aria-expanded={isExpanded}
+                                                                    onClick={toggleExpanded}
+                                                                >
+                                                                    {isExpanded ? 'View less' : 'View more'}
+                                                                </button>
+                                                                <i
+                                                                    className="ld ld-ChevronDown pt3"
+                                                                    style={{
+                                                                        fontSize: "1rem",
+                                                                        verticalAlign: "-0.175em",
+                                                                        width: "1rem",
+                                                                        height: "1rem",
+                                                                        boxSizing: "content-box"
+                                                                    }}
+                                                                />
+                                                            </section>
+                                                        </div>
+
+
 
                                                         <div className="vc_row wpb_row vc_inner vc_row-fluid wd-rs-635161cda23c7">
                                                             <div className="wpb_column vc_column_container vc_col-sm-12 wd-enabled-flex wd-rs-635158eae79ac">
@@ -913,7 +1043,7 @@ const productDetails = () => {
                                     <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-has-fill wd-rs-63b81ecbada64">
                                         <div className="vc_column-inner vc_custom_1673010898310">
                                             <div className="wpb_wrapper">
-                                                <div
+                                                {/* <div
                                                     className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63516520354f3 wd-title-color-primary wd-title-style-default text-left  wd-underline-colored"
                                                     id="wd-63516520354f3">
                                                     <div className="liner-continer">
@@ -980,7 +1110,74 @@ const productDetails = () => {
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div> */}
+
+                                                <div className="syndigo-featureset-layout syndigo-feature-stacked">
+                                                    <div
+                                                        style={{
+                                                            blockSize: "100%",
+                                                            display: "grid",
+                                                            margin: "auto",
+                                                            gridTemplateColumns: "1fr"
+                                                        }}
+                                                        className="syndigo-featureset-feature"
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                display: "flex",
+                                                                justifyContent: "center",
+                                                                alignItems: "center",
+                                                                margin: "auto",
+                                                                maxInlineSize: 1065
+                                                            }}
+                                                        >
+                                                            <picture>
+                                                                <source
+                                                                    srcSet="/assets/Images/norton_details.webp 240w,
+/assets/Images/norton_details.webp 480w,
+/assets/Images/norton_details.webp 960w,
+/assets/Images/norton_details.webp 1920w"
+                                                                    type="image/webp"
+                                                                />
+                                                                <source
+                                                                    srcSet="/assets/Images/norton_details.webp 240w,
+/assets/Images/norton_details.webp 480w,
+/assets/Images/norton_details.webp 960w,
+/assets/Images/norton_details.webp 1920w"
+                                                                    type="image/jpg"
+                                                                />
+                                                                <img
+                                                                    alt=""
+                                                                    loading="lazy"
+                                                                    srcSet="/assets/Images/norton_details.webp 240w,
+/assets/Images/norton_details.webp 480w,
+/assets/Images/norton_details.webp 960w,
+/assets/Images/norton_details.webp 1920w"
+                                                                    src="/assets/Images/norton_details.webp"
+                                                                    title=""
+                                                                    style={{
+                                                                        blockSize: "auto",
+                                                                        inlineSize: 1065,
+                                                                        maxInlineSize: "min(100%, 1065px)"
+                                                                    }}
+                                                                />
+                                                            </picture>
+                                                        </div>
+                                                        <div
+                                                            className="syndigo-featureset-feature-description-text"
+                                                            style={{ color: "var(--syndiCommonBodyTextColor)", margin: "auto 0px" }}
+                                                        >
+                                                            <div className="syndigo-featureset-feature-nooverlay-inner">
+                                                                <h3
+                                                                    className="syndigo-featureset-feature-caption"
+                                                                    style={{ display: "none" }}
+                                                                />
+                                                                <div className="syndigo-featureset-feature-description" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
+
                                             </div>
                                         </div>
                                     </div>

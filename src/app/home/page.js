@@ -437,11 +437,11 @@ const HomePage = () => {
                                                                 fontWeight: "bold",
                                                                 width: "100%"
                                                             }} className={styles.content}>
-                                                                <h4 className={styles.title}>Apple Shopping Event</h4>
+                                                                <h4 className={styles.title}>Norton Antivirus Shopping</h4>
                                                                 <p className={styles.description}>
                                                                     Shop great deals on MacBook, iPad, iPhone and more.
                                                                 </p>
-                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer">
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={()=>handleCategoryClick(Norton)}>
                                                                     Shop Now
                                                                 </a>
                                                             </div>
@@ -471,11 +471,11 @@ const HomePage = () => {
                                                                 fontWeight: "bold",
                                                                 width: "100%"
                                                             }} className={styles.content}>
-                                                                <h4 className={styles.title}>Apple Shopping Event</h4>
+                                                                <h4 className={styles.title}>Webroot Antivirus Shopping</h4>
                                                                 <p className={styles.description}>
                                                                     Shop great deals on MacBook, iPad, iPhone and more.
                                                                 </p>
-                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer">
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={()=>handleCategoryClick(webroot)}>
                                                                     Shop Now
                                                                 </a>
                                                             </div>
@@ -505,11 +505,11 @@ const HomePage = () => {
                                                                 fontWeight: "bold",
                                                                 width: "100%"
                                                             }} className={styles.content}>
-                                                                <h4 className={styles.title}>Apple Shopping Event</h4>
+                                                                <h4 className={styles.title}>Bitdefender Antivirus Shopping</h4>
                                                                 <p className={styles.description}>
                                                                     Shop great deals on MacBook, iPad, iPhone and more.
                                                                 </p>
-                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer">
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={()=>handleCategoryClick(Bitdefender)}>
                                                                     Shop Now
                                                                 </a>
                                                             </div>
@@ -1623,10 +1623,10 @@ const HomePage = () => {
                                                                     decoding="async"
                                                                     width={600}
                                                                     height={720}
-                                                                    src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/nothing-phone-1-600x720.jpg"
+                                                                    src="https://i5.walmartimages.com/seo/Bitdefender-Total-Security-5-Device-1-Yr-Digital_1a407fd8-9970-4ffb-bf56-d2f8b8963db3.ada7a9d6fd2f67ec79882d3318055244.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"
                                                                     className="attachment-600x720 size-600x720 entered lazyloaded"
                                                                     alt=""
-                                                                    data-lazy-src="https://woodmart.xtemos.com/mega-electronics/wp-content/uploads/sites/9/2022/10/nothing-phone-1-600x720.jpg"
+                                                                    data-lazy-src="https://i5.walmartimages.com/seo/Bitdefender-Total-Security-5-Device-1-Yr-Digital_1a407fd8-9970-4ffb-bf56-d2f8b8963db3.ada7a9d6fd2f67ec79882d3318055244.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF"
                                                                     data-ll-status="loaded"
                                                                 />
 
@@ -1634,20 +1634,20 @@ const HomePage = () => {
                                                         </div>
                                                         <div className="wrapper-content-banner wd-fill  wd-items-top wd-justify-center">
                                                             <div className="content-banner  text-center">
-                                                                <div className="banner-subtitle subtitle-color-default subtitle-style-default wd-fontsize-xs wd-font-weight-700 font-alt">
+                                                                {/* <div className="banner-subtitle subtitle-color-default subtitle-style-default wd-fontsize-xs wd-font-weight-700 font-alt" style={{color:'black'}}>
                                                                     AT A GOOD PRICE
                                                                 </div>
-                                                                <h4 className="banner-title wd-font-weight- wd-fontsize-l">
-                                                                    Nothing Phone 1
-                                                                </h4>
+                                                                <h4 className="banner-title wd-font-weight- wd-fontsize-l" style={{color:'black'}}>
+                                                                   Webroot Antivirus
+                                                                </h4> */}
                                                                 <div className="banner-btn-wrapper">
                                                                     <div
                                                                         id="wd-678497ab4ec69"
                                                                         className="  wd-button-wrapper text-center"
                                                                     >
-                                                                        <a className="btn btn-color-primary btn-style-default btn-shape-semi-round btn-size-default">
+                                                                        {/* <a className="btn btn-color-primary btn-style-default btn-shape-semi-round btn-size-default">
                                                                             Buy Now
-                                                                        </a>
+                                                                        </a> */}
                                                                     </div>
                                                                 </div>
                                                             </div>

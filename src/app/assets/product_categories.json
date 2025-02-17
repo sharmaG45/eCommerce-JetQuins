@@ -17,14 +17,14 @@
     "id": 4,
     "title": "McAfee",
     "image": "https://i5.walmartimages.com/seo/McAfee-Total-Protection-1-Year-3-Device-Windows-Mac-OS-Android-iOS_70e71e2b-8db1-4a9a-85e2-ce28fe7618cf.5c2db64fe8db3d923858f3818e74baf3.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
-    "productsCount": 1,
+    "productsCount": 12,
     "link": "https://example.com/mcafee-antivirus"
   },
   {
     "id": 5,
     "title": "Webroot",
     "image": "https://i5.walmartimages.com/seo/Webroot-Antivirus-Software-for-3-Devices-1-Year-Subscription-Windows-MacOS-Digital-Download_df6e22e9-5d09-42ff-8fb8-1507135f0499.d5ed9e35406fb9d744d561acb19cb71b.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
-    "productsCount": 4,
+    "productsCount": 11,
     "link": "https://example.com/kaspersky-antivirus"
   },
   {

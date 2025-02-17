@@ -287,13 +287,26 @@ const productDetails = () => {
 
                 if (fetchedProducts.length > 0) {
                     const product = fetchedProducts[0];
+                    const featuresList = Array.isArray(product.productData?.productInfo?.productFeatures) && product.productData.productInfo.productFeatures.length > 0
+                        ? (
+                            <ul className="list-disc pl-5">
+                                {product.productData.productInfo.productFeatures.map((feature, index) => (
+                                    <li key={index}>{feature}</li>
+                                ))}
+                            </ul>
+                        )
+                        : 'No features listed.';
+
                     setAccordionData([
-                        { title: 'Product details', content: product?.productData?.productInfo?.productDescription || 'No description available.' },
-                        { title: 'Specifications', content: product?.productData?.productInfo?.productFeatures?.join(', ') || 'No specifications listed.' },
-                        { title: 'Warranty', content: product?.productData?.otherDetails?.compatibility || 'No warranty information available.' },
-                        { title: 'Warnings', content: product?.productData?.attribute?.Brands || 'No brand information.' }
+                        { title: 'Product Details', content: product.productData.productInfo.productDescription || 'No description available.' },
+                        { title: 'Features', content: featuresList },
+                        { title: 'Compatibility', content: product.productData.otherDetails.compatibility || 'No compatibility information.' },
+                        { title: 'Brand', content: product.productData.attribute.Brands || 'No brand information.' },
+                        { title: 'Price', content: `$${product.productData.priceInfo.costPrice} (Discount: ${product.productData.priceInfo.discount_Price}%)` }
                     ]);
+
                 }
+
 
                 if (fetchedProducts.length === 0) {
                     console.warn("No matching products found.");
@@ -310,7 +323,7 @@ const productDetails = () => {
 
         fetchAndFilterProducts();
     }, [searchParams]);
-
+    const featuresData = accordionData.filter(item => item.title === 'Features');
     // product from firebase
     useEffect(() => {
         // Create a function to fetch data
@@ -862,41 +875,11 @@ const productDetails = () => {
                                                                         marginBottom: '-0.1em'
                                                                     }}
                                                                 >
-                                                                    <div className="expand-collapse-content dangerous-html w_YUC7">
-                                                                        <ul>
-                                                                            {" "}
-                                                                            <li>
-                                                                                ONGOING PROTECTION Download instantly &amp; install protection for
-                                                                                up to 3 PCs, Macs, iOS or Android devices in minutes!
-                                                                            </li>{" "}
-                                                                            <li>
-                                                                                REAL-TIME THREAT PROTECTION Advanced security protects against
-                                                                                existing and emerging malware threats, including ransomware and
-                                                                                viruses, and it won’t slow down your device performance.
-                                                                            </li>{" "}
-                                                                            <li>
-                                                                                SECURE VPN Browse anonymously and securely with a no-log VPN while
-                                                                                using public Wi-Fi.I6
-                                                                            </li>{" "}
-                                                                            <li>
-                                                                                DARK WEB MONITORING will notify you if your personal information is
-                                                                                found on the dark web**
-                                                                            </li>{" "}
-                                                                            <li>
-                                                                                25GB PC CLOUD BACKUP Automatically store and help protect important
-                                                                                files***
-                                                                            </li>{" "}
-                                                                            <li>
-                                                                                PRE-PAID SUBSCRIPTION A payment method must be stored in your {item.productData.attribute.Brands} account to activate* You won’t be charged until the prepaid term
-                                                                                ends. For new {item.productData.attribute.Brands} subscriptions only at an introductory price
-                                                                            </li>{" "}
-                                                                            <li>
-                                                                                AUTO-RENEWAL Never have a service disruption since this subscription
-                                                                                auto-renews annually If you do not wish to renew, you can cancel in
-                                                                                your {item.productData.attribute.Brands} account anytime
-                                                                            </li>{" "}
-                                                                        </ul>
-                                                                    </div>
+                                                                    {featuresData.map((item, index) => (
+                                                                        <div className="expand-collapse-content dangerous-html w_YUC7" key={index}>
+                                                                            {item.content}
+                                                                        </div>
+                                                                    ))}
                                                                 </span>
                                                                 <button
                                                                     className="w_hhLG w_DZvO w_0_LY dark-gray f6 ph0 pt3"
@@ -1041,8 +1024,7 @@ const productDetails = () => {
                                                                                                 {accordionData.map((item, index) => (
                                                                                                     <div className="wd-accordion-item" key={index}>
                                                                                                         <div
-                                                                                                            className={`wd-accordion-title font-primary wd-fontsize-s wd-font-weight-600 ${openIndex === index ? "wd-active" : ""
-                                                                                                                }`}
+                                                                                                            className={`wd-accordion-title font-primary wd-fontsize-s wd-font-weight-600 ${openIndex === index ? "wd-active" : ""}`}
                                                                                                             onClick={() => toggleAccordion(index)}
                                                                                                         >
                                                                                                             <div className="wd-accordion-title-text">
@@ -1051,16 +1033,18 @@ const productDetails = () => {
                                                                                                             <span className="wd-accordion-opener" />
                                                                                                         </div>
                                                                                                         <div
-                                                                                                            className={`wd-accordion-content wd-entry-content ${openIndex === index ? "wd-active" : ""
-                                                                                                                }`}
-                                                                                                            style={{
-                                                                                                                display: openIndex === index ? "block" : "none",
-                                                                                                            }}
+                                                                                                            className={`wd-accordion-content wd-entry-content ${openIndex === index ? "wd-active" : ""}`}
+                                                                                                            style={{ display: openIndex === index ? "block" : "none" }}
                                                                                                         >
-                                                                                                            <p>{item.content}</p>
+                                                                                                            {typeof item.content === "string" ? (
+                                                                                                                <p>{item.content}</p>
+                                                                                                            ) : (
+                                                                                                                item.content
+                                                                                                            )}
                                                                                                         </div>
                                                                                                     </div>
                                                                                                 ))}
+
                                                                                             </div>
                                                                                         </div>
                                                                                     </div>

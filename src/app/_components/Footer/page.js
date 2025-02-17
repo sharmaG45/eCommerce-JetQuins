@@ -582,11 +582,11 @@ const Footer = () => {
                     <div className="wd-col-start reset-last-child">
                         <small>
                             <a href="/home">
-                                <strong>WOODMART</strong>
+                                <strong>GetPixelSecurity</strong>
                             </a>
                             © 2025 CREATED BY
                             <a href="/">
-                                <strong>XTEMOS STUDIO</strong>
+                                <strong> JetQuins Travel</strong>
                             </a>
                             . PREMIUM E-COMMERCE SOLUTIONS.
                         </small>

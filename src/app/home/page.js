@@ -439,9 +439,9 @@ const HomePage = () => {
                                                             }} className={styles.content}>
                                                                 <h4 className={styles.title}>Norton Antivirus Shopping</h4>
                                                                 <p className={styles.description}>
-                                                                    Shop great deals on MacBook, iPad, iPhone and more.
+                                                                    Shop great deals on Deluxe,Platinum,AntiVirus Plus and more.
                                                                 </p>
-                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={()=>handleCategoryClick(Norton)}>
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={() => handleCategoryClick(Norton)}>
                                                                     Shop Now
                                                                 </a>
                                                             </div>
@@ -473,9 +473,9 @@ const HomePage = () => {
                                                             }} className={styles.content}>
                                                                 <h4 className={styles.title}>Webroot Antivirus Shopping</h4>
                                                                 <p className={styles.description}>
-                                                                    Shop great deals on MacBook, iPad, iPhone and more.
+                                                                    Shop great deals on Antivirus and more.
                                                                 </p>
-                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={()=>handleCategoryClick(webroot)}>
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={() => handleCategoryClick(webroot)}>
                                                                     Shop Now
                                                                 </a>
                                                             </div>
@@ -507,9 +507,9 @@ const HomePage = () => {
                                                             }} className={styles.content}>
                                                                 <h4 className={styles.title}>Bitdefender Antivirus Shopping</h4>
                                                                 <p className={styles.description}>
-                                                                    Shop great deals on MacBook, iPad, iPhone and more.
+                                                                    Shop great deals on Total Security and more.
                                                                 </p>
-                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={()=>handleCategoryClick(Bitdefender)}>
+                                                                <a href="/" className={styles.button} target="_blank" rel="noopener noreferrer" onClick={() => handleCategoryClick(Bitdefender)}>
                                                                     Shop Now
                                                                 </a>
                                                             </div>

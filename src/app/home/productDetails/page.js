@@ -11,6 +11,7 @@ import { CartContext } from "@/app/_components/CartContext/page";
 const productDetails = () => {
 
     const [filteredProducts, setFilteredProducts] = useState([]);
+    const [accordionData, setAccordionData] = useState([]);
     const [cartItems, setCartItems] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [products, setProducts] = useState([]);
@@ -20,12 +21,11 @@ const productDetails = () => {
     const searchParams = useSearchParams();
     const { data, dispatch } = useContext(CartContext);
 
-    const accordionData = [
-        { title: "Product details", content: "Detailed product description goes here." },
-        { title: "About the brand", content: "Brand information goes here." },
-        { title: "Specifications", content: "Product specifications are listed here." },
-        { title: "Warranty", content: "Warranty details and coverage information." },
-    ];
+
+    useEffect(() => {
+        console.log(accordionData, "Details of all data");
+
+    }, [accordionData])
 
     const [openIndex, setOpenIndex] = useState(null);
 
@@ -284,6 +284,16 @@ const productDetails = () => {
                     id: doc.id,
                     ...doc.data(),
                 }));
+
+                if (fetchedProducts.length > 0) {
+                    const product = fetchedProducts[0];
+                    setAccordionData([
+                        { title: 'Product details', content: product?.productData?.productInfo?.productDescription || 'No description available.' },
+                        { title: 'Specifications', content: product?.productData?.productInfo?.productFeatures?.join(', ') || 'No specifications listed.' },
+                        { title: 'Warranty', content: product?.productData?.otherDetails?.compatibility || 'No warranty information available.' },
+                        { title: 'Warnings', content: product?.productData?.attribute?.Brands || 'No brand information.' }
+                    ]);
+                }
 
                 if (fetchedProducts.length === 0) {
                     console.warn("No matching products found.");
@@ -877,63 +887,14 @@ const productDetails = () => {
                                                                                 files***
                                                                             </li>{" "}
                                                                             <li>
-                                                                                PRE-PAID SUBSCRIPTION A payment method must be stored in your Norton
-                                                                                account to activate* You won’t be charged until the prepaid term
-                                                                                ends. For new Norton subscriptions only at an introductory price
+                                                                                PRE-PAID SUBSCRIPTION A payment method must be stored in your {item.productData.attribute.Brands} account to activate* You won’t be charged until the prepaid term
+                                                                                ends. For new {item.productData.attribute.Brands} subscriptions only at an introductory price
                                                                             </li>{" "}
                                                                             <li>
                                                                                 AUTO-RENEWAL Never have a service disruption since this subscription
                                                                                 auto-renews annually If you do not wish to renew, you can cancel in
-                                                                                your Norton account anytime
+                                                                                your {item.productData.attribute.Brands} account anytime
                                                                             </li>{" "}
-                                                                            <li>
-                                                                                **Delivery Method** After placing your order you will first receive
-                                                                                a confirmation email from{" "}
-                                                                                <a href="https://walmart.com/">Walmart.com</a> of successful order
-                                                                                placement. You will then receive a second email (normally within the
-                                                                                hour after placing your order) from{" "}
-                                                                                <a href="mailto:fulfillment@goconveyo.com">
-                                                                                    fulfillment@goconveyo.com
-                                                                                </a>{" "}
-                                                                                that will include an activation code/product key and link to
-                                                                                Norton’s Getting Started page. To ensure you receive this email,
-                                                                                please add{" "}
-                                                                                <a href="mailto:fulfillment@goconveyo.com">
-                                                                                    fulfillment@goconveyo.com
-                                                                                </a>{" "}
-                                                                                to your safe senders list.
-                                                                            </li>{" "}
-                                                                            <li>
-                                                                                Legal Disclaimers: *PAYMENT METHOD REQUIRED FOR 1 YEAR PRE-PAID
-                                                                                SUBSCRIPTION: You are purchasing a recurring subscription which will
-                                                                                automatically renew after the first year. To activate, you must
-                                                                                enroll online and provide your billing information. The price paid
-                                                                                today is valid for the first year of your subscription, and will
-                                                                                automatically renew and charge your stored payment method the
-                                                                                applicable renewal price found at{" "}
-                                                                                <a href="https://norton.com/pricing">Norton.com/pricing</a>. The
-                                                                                price is subject to change, but we will always send you a
-                                                                                notification email in advance. You may cancel the automatic renewal
-                                                                                by logging into your account, or contacting us at: 844-488-4540.
-                                                                                Your coverage may include product, service and/or protection updates
-                                                                                and features that may be added, modified or removed, subject to the
-                                                                                applicable LIcense and Services Agreement found on{" "}
-                                                                                <a href="https://nortonlifelock.com/legal">
-                                                                                    NortonLifeLock.com/legal
-                                                                                </a>
-                                                                                . Data collection, storage and use for subscription management and
-                                                                                renewal purposes subject to our Global Privacy Statement at{" "}
-                                                                                <a href="https://nortonlifelock.com/privacy.**Dark">
-                                                                                    Nortonlifelock.com/privacy.**Dark
-                                                                                </a>{" "}
-                                                                                Web Monitoring in Norton 360 plans defaults to monitor your email
-                                                                                address only. Please log in to your Norton account to review if you
-                                                                                can add additional information for monitoring purposes.***Requires
-                                                                                your device to have an Internet/data plan and be turned on. No one
-                                                                                can prevent all cybercrime or all identity theft. Not all features
-                                                                                are available on all platforms.
-                                                                                &nbsp;
-                                                                            </li>
                                                                         </ul>
                                                                     </div>
                                                                 </span>
@@ -1040,10 +1001,10 @@ const productDetails = () => {
                                     </div>
                                 </div>
                                 <div className="vc_row wpb_row vc_row-fluid vc_custom_1673010868777 vc_column-gap-20 vc_row-o-equal-height vc_row-o-content-top vc_row-flex row-reverse-mobile wd-rs-63b81eae2486b">
-                                    <div className="wpb_column vc_column_container vc_col-sm-7 vc_col-has-fill wd-rs-63b81ecbada64">
+                                    <div className="wpb_column vc_column_container  vc_col-has-fill wd-rs-63b81ecbada64" style={{ width: "100%" }}>
                                         <div className="vc_column-inner vc_custom_1673010898310">
                                             <div className="wpb_wrapper">
-                                                {/* <div
+                                                <div
                                                     className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-63516520354f3 wd-title-color-primary wd-title-style-default text-left  wd-underline-colored"
                                                     id="wd-63516520354f3">
                                                     <div className="liner-continer">
@@ -1074,12 +1035,11 @@ const productDetails = () => {
                                                                                         <div className="wpb_wrapper">
 
                                                                                             <div
-                                                                                                id="wd-63caae15ba090"
-                                                                                                className="wd-accordion wd-wpb wd-rs-63caae15ba090 vc_custom_1674227228977 wd-style-default wd-border-off wd-titles-left wd-opener-pos-right wd-opener-style-arrow wd-inited"
+                                                                                                className="wd-accordion wd-wpb wd-rs-63caae612e8f5 vc_custom_1674227302057 wd-style-default wd-border-off wd-titles-left wd-opener-pos-right wd-opener-style-arrow wd-inited"
                                                                                                 data-state="first"
-                                                                                            >
+                                                                                                id="wd-63caae612e8f5">
                                                                                                 {accordionData.map((item, index) => (
-                                                                                                    <div key={index} className="wd-accordion-item">
+                                                                                                    <div className="wd-accordion-item" key={index}>
                                                                                                         <div
                                                                                                             className={`wd-accordion-title font-primary wd-fontsize-s wd-font-weight-600 ${openIndex === index ? "wd-active" : ""
                                                                                                                 }`}
@@ -1091,8 +1051,11 @@ const productDetails = () => {
                                                                                                             <span className="wd-accordion-opener" />
                                                                                                         </div>
                                                                                                         <div
-                                                                                                            className="wd-accordion-content wd-entry-content"
-                                                                                                            style={{ display: openIndex === index ? "block" : "none" }}
+                                                                                                            className={`wd-accordion-content wd-entry-content ${openIndex === index ? "wd-active" : ""
+                                                                                                                }`}
+                                                                                                            style={{
+                                                                                                                display: openIndex === index ? "block" : "none",
+                                                                                                            }}
                                                                                                         >
                                                                                                             <p>{item.content}</p>
                                                                                                         </div>
@@ -1106,251 +1069,6 @@ const productDetails = () => {
 
                                                                         </div>
                                                                     </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div> */}
-
-                                                <div className="syndigo-featureset-layout syndigo-feature-stacked">
-                                                    <div
-                                                        style={{
-                                                            blockSize: "100%",
-                                                            display: "grid",
-                                                            margin: "auto",
-                                                            gridTemplateColumns: "1fr"
-                                                        }}
-                                                        className="syndigo-featureset-feature"
-                                                    >
-                                                        <div
-                                                            style={{
-                                                                display: "flex",
-                                                                justifyContent: "center",
-                                                                alignItems: "center",
-                                                                margin: "auto",
-                                                                maxInlineSize: 1065
-                                                            }}
-                                                        >
-                                                            <picture>
-                                                                <source
-                                                                    srcSet="/assets/Images/norton_details.webp 240w,
-/assets/Images/norton_details.webp 480w,
-/assets/Images/norton_details.webp 960w,
-/assets/Images/norton_details.webp 1920w"
-                                                                    type="image/webp"
-                                                                />
-                                                                <source
-                                                                    srcSet="/assets/Images/norton_details.webp 240w,
-/assets/Images/norton_details.webp 480w,
-/assets/Images/norton_details.webp 960w,
-/assets/Images/norton_details.webp 1920w"
-                                                                    type="image/jpg"
-                                                                />
-                                                                <img
-                                                                    alt=""
-                                                                    loading="lazy"
-                                                                    srcSet="/assets/Images/norton_details.webp 240w,
-/assets/Images/norton_details.webp 480w,
-/assets/Images/norton_details.webp 960w,
-/assets/Images/norton_details.webp 1920w"
-                                                                    src="/assets/Images/norton_details.webp"
-                                                                    title=""
-                                                                    style={{
-                                                                        blockSize: "auto",
-                                                                        inlineSize: 1065,
-                                                                        maxInlineSize: "min(100%, 1065px)"
-                                                                    }}
-                                                                />
-                                                            </picture>
-                                                        </div>
-                                                        <div
-                                                            className="syndigo-featureset-feature-description-text"
-                                                            style={{ color: "var(--syndiCommonBodyTextColor)", margin: "auto 0px" }}
-                                                        >
-                                                            <div className="syndigo-featureset-feature-nooverlay-inner">
-                                                                <h3
-                                                                    className="syndigo-featureset-feature-caption"
-                                                                    style={{ display: "none" }}
-                                                                />
-                                                                <div className="syndigo-featureset-feature-description" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="wpb_column vc_column_container vc_col-sm-5 woodmart-sticky-column wd_sticky_offset_150 wd-rs-63b81f3631c2e">
-                                        <div
-                                            className="vc_column-inner vc_custom_1673011002782"
-                                            style={{
-                                                position: "relative",
-                                            }}>
-                                            <div
-                                                className="wpb_wrapper is_stuck"
-                                                style={{
-                                                    position: "sticky",
-                                                    top: "150px",
-                                                }}>
-                                                <div className="vc_row wpb_row vc_inner vc_row-fluid wd-rs-637cfc6a79b8b">
-                                                    <div className="wpb_column vc_column_container vc_col-sm-12 vc_col-has-fill wd-rs-637cfca7ed7cb">
-                                                        <div className="vc_column-inner vc_custom_1669135532348">
-                                                            <div className="wpb_wrapper">
-                                                                <div
-                                                                    className="title-wrapper wd-wpb wd-set-mb reset-last-child  wd-rs-635145516dd72 wd-title-color-primary wd-title-style-default text-left  wd-underline-colored"
-                                                                    id="wd-635145516dd72">
-                                                                    <div className="liner-continer">
-                                                                        <h4 className="woodmart-title-container title  wd-font-weight- wd-fontsize-l">
-                                                                            Specification
-                                                                        </h4>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="wd-single-attrs wd-wpb wd-rs-638f53f6e14b5 vc_custom_1670337531889 wd-layout-list wd-style-default">
-                                                                    <h4 className="wd-el-title title element-title">
-                                                                        <span className="title-icon">
-                                                                            <img
-                                                                                className="entered lazyloaded"
-                                                                                data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/overview.svg"
-                                                                                data-ll-status="loaded"
-                                                                                decoding="async"
-                                                                                height="24"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/overview.svg"
-                                                                                title="overview"
-                                                                                width="24"
-                                                                            />
-                                                                            <noscript>
-                                                                                <img
-                                                                                    decoding="async"
-                                                                                    height="24"
-                                                                                    loading="lazy"
-                                                                                    src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/overview.svg"
-                                                                                    title="overview"
-                                                                                    width="24"
-                                                                                />
-                                                                            </noscript>
-                                                                        </span>
-                                                                        <span className="title-text">Overview</span>
-                                                                    </h4>
-                                                                    <table
-                                                                        aria-label="Product Details"
-                                                                        className="woocommerce-product-attributes shop_attributes">
-                                                                        <tbody>
-                                                                            <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_brand">
-                                                                                <th
-                                                                                    className="woocommerce-product-attributes-item__label"
-                                                                                    scope="row">
-                                                                                    <span className="wd-attr-name">
-                                                                                        <span className="wd-attr-name-label">
-                                                                                            Brand
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </th>
-                                                                                <td className="woocommerce-product-attributes-item__value">
-                                                                                    <span className="wd-attr-term">
-                                                                                        <p>Oki</p>
-                                                                                    </span>
-                                                                                </td>
-                                                                            </tr>
-                                                                            <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_compatibility">
-                                                                                <th
-                                                                                    className="woocommerce-product-attributes-item__label"
-                                                                                    scope="row">
-                                                                                    <span className="wd-attr-name">
-                                                                                        <span className="wd-attr-name-label">
-                                                                                            Compatibility
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </th>
-                                                                                <td className="woocommerce-product-attributes-item__value">
-                                                                                    <span className="wd-attr-term">
-                                                                                        <p>PC</p>
-                                                                                    </span>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                                <div className="wd-single-attrs wd-wpb wd-rs-638f4f665e689 vc_custom_1670336370333 wd-layout-list wd-style-default">
-                                                                    <h4 className="wd-el-title title element-title">
-                                                                        <span className="title-icon">
-                                                                            <img
-                                                                                className="entered lazyloaded"
-                                                                                data-lazy-src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/general.svg"
-                                                                                data-ll-status="loaded"
-                                                                                decoding="async"
-                                                                                height="24"
-                                                                                src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/general.svg"
-                                                                                title="general"
-                                                                                width="24"
-                                                                            />
-                                                                            <noscript>
-                                                                                <img
-                                                                                    decoding="async"
-                                                                                    height="24"
-                                                                                    loading="lazy"
-                                                                                    src="https://woodmart.b-cdn.net/mega-electronics/wp-content/uploads/sites/9/2022/10/general.svg"
-                                                                                    title="general"
-                                                                                    width="24"
-                                                                                />
-                                                                            </noscript>
-                                                                        </span>
-                                                                        <span className="title-text">General</span>
-                                                                    </h4>
-                                                                    <table
-                                                                        aria-label="Product Details"
-                                                                        className="woocommerce-product-attributes shop_attributes">
-                                                                        <tbody>
-                                                                            <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_color">
-                                                                                <th
-                                                                                    className="woocommerce-product-attributes-item__label"
-                                                                                    scope="row">
-                                                                                    <span className="wd-attr-name">
-                                                                                        <span className="wd-attr-name-label">
-                                                                                            Color
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </th>
-                                                                                <td className="woocommerce-product-attributes-item__value">
-                                                                                    <span className="wd-attr-term">
-                                                                                        <p>White</p>
-                                                                                    </span>
-                                                                                </td>
-                                                                            </tr>
-                                                                            <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_release-years">
-                                                                                <th
-                                                                                    className="woocommerce-product-attributes-item__label"
-                                                                                    scope="row">
-                                                                                    <span className="wd-attr-name">
-                                                                                        <span className="wd-attr-name-label">
-                                                                                            Release years
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </th>
-                                                                                <td className="woocommerce-product-attributes-item__value">
-                                                                                    <span className="wd-attr-term">
-                                                                                        <p>2021</p>
-                                                                                    </span>
-                                                                                </td>
-                                                                            </tr>
-                                                                            <tr className="woocommerce-product-attributes-item woocommerce-product-attributes-item--attribute_pa_manufacturer-guarantee">
-                                                                                <th
-                                                                                    className="woocommerce-product-attributes-item__label"
-                                                                                    scope="row">
-                                                                                    <span className="wd-attr-name">
-                                                                                        <span className="wd-attr-name-label">
-                                                                                            Manufacturer guarantee
-                                                                                        </span>
-                                                                                    </span>
-                                                                                </th>
-                                                                                <td className="woocommerce-product-attributes-item__value">
-                                                                                    <span className="wd-attr-term">
-                                                                                        <p>14 Days</p>
-                                                                                    </span>
-                                                                                </td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1550,34 +1268,7 @@ const productDetails = () => {
                                                                         Clear filters
                                                                     </a>
                                                                 </div>
-                                                                {/* <form className="wd-reviews-tools wd-reviews-filters">
-                                                                    <div className="wd-with-image">
-                                                                        <input
-                                                                            id="wd-with-image-checkbox"
-                                                                            name="only-image"
-                                                                            type="checkbox"
-                                                                        />
-                                                                        <label htmlFor="wd-with-image-checkbox">
-                                                                            Only with images
-                                                                        </label>
-                                                                    </div>
-                                                                    <select
-                                                                        aria-label="Select reviews sorting"
-                                                                        className="wd-reviews-sorting-select"
-                                                                        name="woodmart_reviews_sorting_select" value={selectedOption}
-                                                                        onChange={handleChange}>
-                                                                        <option selected value="default">
-                                                                            Default
-                                                                        </option>
-                                                                        <option value="newest">Newest</option>
-                                                                        <option value="oldest">Oldest</option>
-                                                                        <option value="most_helpful">Most helpful</option>
-                                                                        <option value="highest_rated">
-                                                                            Highest rated
-                                                                        </option>
-                                                                        <option value="lowest_rated">Lowest rated</option>
-                                                                    </select>
-                                                                </form> */}
+
                                                             </div>
                                                             <div className="wd-reviews-content">
                                                                 <ol

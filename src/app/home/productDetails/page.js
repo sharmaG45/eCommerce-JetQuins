@@ -340,7 +340,7 @@ const productDetails = () => {
                 }));
 
                 console.log("Fetched Products: ", products);
-                localStorage.setItem('product', JSON.stringify(products));
+                // localStorage.setItem('product', JSON.stringify(products));
                 setBestOffers(products);
             } catch (error) {
                 console.error("Error fetching products: ", error);

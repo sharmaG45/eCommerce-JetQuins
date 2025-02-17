@@ -360,7 +360,7 @@ const cart = () => {
                 }));
 
                 console.log("Fetched Products: ", products);
-                localStorage.setItem('product', JSON.stringify(products));
+                // localStorage.setItem('product', JSON.stringify(products));
                 setProducts(products);
             } catch (error) {
                 console.error("Error fetching products: ", error);

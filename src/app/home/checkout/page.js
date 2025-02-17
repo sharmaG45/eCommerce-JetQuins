@@ -280,7 +280,7 @@ const checkout = () => {
         }
 
         const userData = localStorage.getItem('currentUser');
-    
+
         const user = JSON.parse(userData); // Parse the user data from localStorage
 
         try {

@@ -1,6 +1,5 @@
 'use client'
 
-import categories from "../../app/assets/product_categories.json";
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { fireStore } from "@/app/_components/firebase/config";
@@ -8,7 +7,7 @@ import styles from './Slider.module.css'
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Slider from "react-slick";
-import { doc, getDoc, updateDoc, arrayRemove, getDocs, collection } from "firebase/firestore";
+import { doc, getDoc, updateDoc, getDocs, collection, query, where } from "firebase/firestore";
 import { toast } from "react-toastify";
 import Cartwidget from "../_components/Cart-widget/page";
 import { CartContext } from "../_components/CartContext/page";
@@ -25,6 +24,82 @@ const HomePage = () => {
 
     const [products, setProducts] = useState([]);
     const { data, dispatch } = useContext(CartContext);
+
+
+    const [categories, setCategories] = useState([]);
+
+    // Fetch product counts from Firestore
+    const fetchCategories = async () => {
+        try {
+            const categoryList = [
+                {
+                    "id": 1,
+                    "title": "Bitdefender",
+                    "image": "https://i5.walmartimages.com/seo/Bitdefender-Total-Security-5-Device-1-Yr-Digital_1a407fd8-9970-4ffb-bf56-d2f8b8963db3.ada7a9d6fd2f67ec79882d3318055244.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
+
+                },
+                {
+                    "id": 3,
+                    "title": "Norton",
+                    "image": "https://i5.walmartimages.com/seo/Norton-360-Deluxe-2024-5-Devices-1-Year-with-Auto-Renewal-Key-Card_16dd5627-b7e3-4a9a-bb10-709971d7d5c5.929fd473fef625a2ecb2092be61131b8.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
+
+                },
+                {
+                    "id": 4,
+                    "title": "McAfee",
+                    "image": "https://i5.walmartimages.com/seo/McAfee-Total-Protection-1-Year-3-Device-Windows-Mac-OS-Android-iOS_70e71e2b-8db1-4a9a-85e2-ce28fe7618cf.5c2db64fe8db3d923858f3818e74baf3.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
+
+                },
+                {
+                    "id": 5,
+                    "title": "Webroot",
+                    "image": "https://i5.walmartimages.com/seo/Webroot-Antivirus-Software-for-3-Devices-1-Year-Subscription-Windows-MacOS-Digital-Download_df6e22e9-5d09-42ff-8fb8-1507135f0499.d5ed9e35406fb9d744d561acb19cb71b.png?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
+
+                },
+                {
+                    "id": 6,
+                    "title": "Avast",
+                    "image": "https://m.media-amazon.com/images/I/61NeJOKAuHL._SX679_.jpg",
+
+                },
+                {
+                    "id": 7,
+                    "title": "Trend Micro",
+                    "image": "https://i5.walmartimages.com/seo/Trend-Micro-Maximum-Security-5-Users-1-year-subscription-Digital-Download_33e1cc2f-de35-4408-bc30-7ac26e1cd9ff.3c6f62692c3c439ef3fd35f69f1ca7a8.jpeg?odnHeight=640&odnWidth=640&odnBg=FFFFFF",
+
+                },
+                {
+                    "id": 8,
+                    "title": "AVG",
+                    "image": "https://i5.walmartimages.com/seo/AVG-Internet-Security-2-Year-3-Devices-Windows_4f294575-37f4-49b8-b1f7-ee461065f99c.d012a07562f963bf202f5e6a02fac810.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
+
+                }
+            ];
+
+            const updatedCategories = await Promise.all(
+                categoryList.map(async (category) => {
+                    const q = query(
+                        collection(fireStore, 'create_Product'),
+                        where('productData.attribute.Brands', '==', category.title)
+                    );
+                    const querySnapshot = await getDocs(q);
+                    return {
+                        ...category,
+                        productsCount: querySnapshot.size,
+                        link: `/home/productCategory?title=${encodeURIComponent(category.title)}`// Added dynamic category link
+                    };
+                })
+            );
+
+            setCategories(updatedCategories);
+        } catch (error) {
+            console.error('Error fetching categories:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
 
     const handleAddToWishlist = async (e, offer) => {
@@ -135,11 +210,8 @@ const HomePage = () => {
     };
 
     const handleCategoryClick = (category) => {
-        console.log(category.title, "Category");
-
-        const encodedTitle = encodeURIComponent(category.title);
-        console.log(encodedTitle, "Title");
-        router.push(`/home/productCategory?title=${encodedTitle}`);
+        const router = useRouter();
+        router.push(`/home/productCategory?title=${encodeURIComponent(category.title)}`);
     };
 
     const handleProductDetails = (brandDetails) => {
@@ -573,7 +645,7 @@ const HomePage = () => {
                                                                     transform: "translate3d(0px, 0px, 0px)",
                                                                 }}
                                                             >
-                                                                {categories.map((category) => (
+                                                                {/* {categories.map((category) => (
                                                                     <div
                                                                         key={category.id}
                                                                         className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
@@ -611,10 +683,32 @@ const HomePage = () => {
                                                                             </div>
                                                                         </div>
                                                                     </div>
+                                                                ))} */}
+
+                                                                {categories.map((category) => (
+                                                                    <div key={category.id} className="wd-carousel-item wd-slide-visible wd-full-visible wd-active"
+                                                                        style={{ width: "190px", cursor: "pointer" }}
+                                                                        onClick={() => handleCategoryClick(category)}>
+                                                                        <div className="category-grid-item wd-cat product-category">
+                                                                            <div className="wrapp-category">
+                                                                                <div className="category-image-wrapp">
+                                                                                    <a href={category.link} className="category-image" aria-label="Category image">
+                                                                                        <img src={category.image} alt={category.title} className="attachment-200" />
+                                                                                    </a>
+                                                                                </div>
+                                                                                <div className="hover-mask">
+                                                                                    <h3 className="wd-entities-title">
+                                                                                        {category.title} <mark className="count">({category.productsCount})</mark>
+                                                                                    </h3>
+                                                                                    <div className="more-products">
+                                                                                        <a href={category.link}>{category.productsCount} products</a>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
                                                                 ))}
-                                                                {/* <Slider {...settings} >
-                                                                  
-                                                                </Slider> */}
+
                                                             </div>
                                                         </div>
                                                         <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-icon-1">

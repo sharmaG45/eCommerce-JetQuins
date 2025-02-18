@@ -17,7 +17,7 @@
     "id": 4,
     "title": "McAfee",
     "image": "https://i5.walmartimages.com/seo/McAfee-Total-Protection-1-Year-3-Device-Windows-Mac-OS-Android-iOS_70e71e2b-8db1-4a9a-85e2-ce28fe7618cf.5c2db64fe8db3d923858f3818e74baf3.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
-    "productsCount": 12,
+    "productsCount": 15,
     "link": "https://example.com/mcafee-antivirus"
   },
   {
@@ -38,14 +38,14 @@
     "id": 7,
     "title": "Trend Micro",
     "image": "https://i5.walmartimages.com/seo/Trend-Micro-Maximum-Security-5-Users-1-year-subscription-Digital-Download_33e1cc2f-de35-4408-bc30-7ac26e1cd9ff.3c6f62692c3c439ef3fd35f69f1ca7a8.jpeg?odnHeight=640&odnWidth=640&odnBg=FFFFFF",
-    "productsCount": 1,
+    "productsCount": 3,
     "link": "https://example.com/trendmicro-antivirus"
   },
   {
     "id": 8,
     "title": "AVG",
     "image": "https://i5.walmartimages.com/seo/AVG-Internet-Security-2-Year-3-Devices-Windows_4f294575-37f4-49b8-b1f7-ee461065f99c.d012a07562f963bf202f5e6a02fac810.jpeg?odnHeight=2000&odnWidth=2000&odnBg=FFFFFF",
-    "productsCount": 1,
+    "productsCount": 12,
     "link": "https://example.com/avg-antivirus"
   }
 ]

@@ -605,185 +605,169 @@ const cart = () => {
                                                         </form>
                                                     </div>
                                                     <div
-                                                        className="wd-carousel-container  wd-wpb with-title wd-rs-65d5f82529fd1  wd-products-element wd-products products wd-products-with-bg wd-stretch-cont-lg title-line-one"
-                                                        id="carousel-208">
-                                                        <h4 className="wd-el-title title slider-title element-title">
-                                                            <span>You May Be Interested In…</span>
-                                                        </h4>
-                                                        <div className="wd-carousel-inner">
-                                                            <div
-                                                                className="wd-carousel wd-grid wd-stretch-cont-lg wd-initialized wd-horizontal wd-watch-progress wd-backface-hidden"
-                                                                data-grid-gallery='{"grid_gallery":"1","grid_gallery_control":"hover","grid_gallery_enable_arrows":"arrows"}'
-                                                                data-scroll_per_page="yes"
-                                                                style={{
-                                                                    "--wd-col-lg": "3",
-                                                                    "--wd-col-md": "4",
-                                                                    "--wd-col-sm": "2",
-                                                                    "--wd-gap-lg": "20px",
-                                                                    "--wd-gap-sm": "10px",
-                                                                }}>
+                                                        id
+                                                        className="wd-products-element wd-rs-63e1023d7a64b wd-wpb"
+                                                    >
+                                                        <div
+                                                            className="products wd-products  grid-columns-5 elements-grid wd-grid-g title-line-one wd-stretch-cont-lg wd-products-with-bg"
+                                                            data-paged={1}
+                                                            data-atts='{"post_type":"ids","spacing":"20","include":"182, 2435, 1476, 2564, 3110","items_per_page":"5","columns":"5","columns_tablet":"3","sale_countdown":"0","stock_progress_bar":"0","highlighted_products":"0","products_bordered_grid":"0","products_with_background":"1","products_shadow":"0","orderby":"post__in","img_size":"large","woodmart_css_id":"63e1023d7a64b","force_not_ajax":"no"}'
+                                                            data-source="shortcode"
+                                                            data-columns={5}
+                                                            data-grid-gallery='{"grid_gallery":"1","grid_gallery_control":"hover","grid_gallery_enable_arrows":"arrows"}'
+                                                            style={{
+                                                                "--wd-col-lg": "5",
+                                                                "--wd-col-md": "3",
+                                                                "--wd-col-sm": "2",
+                                                                "--wd-gap-lg": "20px",
+                                                                "--wd-gap-sm": "10px",
+                                                            }}
+                                                        >
+                                                            {products.slice(0, 5).map((offer, index) => (
                                                                 <div
-                                                                    className="wd-carousel-wrap"
-                                                                    style={{
-                                                                        cursor: "grab",
-                                                                    }}>
-                                                                    {products.slice(0, 3).map((offer, index) => (
-                                                                        <div
-                                                                            className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product"
-                                                                            data-loop={index}
-                                                                            data-id={offer.id} // Assuming you have unique IDs for each product
-                                                                            key={offer.id} // Use a unique key for each product
-                                                                            style={{ cursor: "pointer" }}
-                                                                        >
-                                                                            <div className="product-wrapper">
-                                                                                <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
-                                                                                <div className="product-element-top wd-quick-shop">
-                                                                                    <a className="product-image-link" onClick={() => handleProductDetails(offer.productData.productInfo.productName)}>
-                                                                                        <div className="wd-product-grid-slider wd-fill" />
-                                                                                        <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
-                                                                                            <div className="wd-prev" />
-                                                                                            <div className="wd-next" />
-                                                                                        </div>
-                                                                                        <div className="wd-product-grid-slider-pagin" />
-                                                                                        <div className="product-labels labels-rounded-sm">
-                                                                                            <span className="onsale product-label">{offer.productData.priceInfo.discount_Price}%</span> {/* Assuming you have discount info */}
-                                                                                        </div>
-                                                                                        <picture decoding="async" className="attachment-large size-large">
-                                                                                            <source
-                                                                                                type="image/webp"
-                                                                                                data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
-                                                                                                srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                            />
-                                                                                            <img
-                                                                                                decoding="async"
-                                                                                                width={700}
-                                                                                                height={800}
-                                                                                                src={offer.productData.productImages[0]}
-                                                                                                data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
-                                                                                                data-lazy-sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                className="entered lazyloaded"
-                                                                                                sizes="(max-width: 700px) 100vw, 700px"
-                                                                                                srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
-                                                                                            />
-                                                                                        </picture>
-                                                                                    </a>
-                                                                                    <div className="wd-buttons wd-pos-r-t">
-                                                                                        <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
-                                                                                            <a
-                                                                                                href="#"
-                                                                                                data-id={offer.id}
-                                                                                                rel="nofollow"
-                                                                                                data-added-text="Compare products"
-                                                                                            >
-                                                                                                <span>Compare</span>
-                                                                                            </a>
-                                                                                        </div>
-                                                                                        <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
-                                                                                            <a className="open-quick-view quick-view-button" rel="nofollow" data-id={offer.id}>
-                                                                                                Quick view
-                                                                                            </a>
-                                                                                        </div>
-                                                                                        <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
-                                                                                            <a
-                                                                                                onClick={(e) => handleAddToWishlist(e, offer)}
-                                                                                                href="#"
-                                                                                                data-key={offer.id}
-                                                                                                data-product-id={offer.id}
-                                                                                                rel="nofollow"
-                                                                                                data-added-text="Browse Wishlist"
-                                                                                            >
-                                                                                                <span>{isAdded ? 'Added to Wishlist' : 'Add to Wishlist'}</span>
-                                                                                            </a>
-                                                                                        </div>
-                                                                                    </div>
+                                                                    className="wd-product wd-with-labels wd-hover-fw-button wd-hover-with-fade wd-col product-grid-item product"
+                                                                    data-loop={index}
+                                                                    data-id={offer.id} // Assuming you have unique IDs for each product
+                                                                    key={offer.id} // Use a unique key for each product
+                                                                    style={{ cursor: "pointer" }}
+                                                                >
+                                                                    <div className="product-wrapper">
+                                                                        <div className="content-product-imagin" style={{ marginBottom: "-112px" }} />
+                                                                        <div className="product-element-top wd-quick-shop">
+                                                                            <a className="product-image-link" onClick={() => handleProductDetails(offer.productData.productInfo.productName)}>
+                                                                                <div className="wd-product-grid-slider wd-fill" />
+                                                                                <div className="wd-product-grid-slider-nav wd-fill wd-hover-enabled">
+                                                                                    <div className="wd-prev" />
+                                                                                    <div className="wd-next" />
                                                                                 </div>
-
-                                                                                <div className="product-element-bottom">
-                                                                                    <h3 className="wd-entities-title">
-                                                                                        <a href={offer.product_url}>
-                                                                                            {offer.productData.productInfo.productName}
-                                                                                        </a>
-                                                                                    </h3>
-                                                                                    <div className="wd-product-cats">
-                                                                                        <a href={offer.productData.attribute.category_url} rel="tag">
-                                                                                            {offer.productData.attribute.category}
-                                                                                        </a>
-                                                                                    </div>
-                                                                                    <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
-                                                                                        <span style={{ width: `${(offer.rating / 5) * 100}%` }}>
-                                                                                            Rated <strong className="rating">{offer.rating}</strong> out of 5
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    <p className="wd-product-stock stock wd-style-default in-stock">
-                                                                                        {offer.stockStatus}
-                                                                                    </p>
-                                                                                    <div className="wrap-price">
-                                                                                        <span className="price">
-                                                                                            <del aria-hidden="true">
-                                                                                                <span className="woocommerce-Price-amount amount">
-                                                                                                    <bdi>
-                                                                                                        <span className="woocommerce-Price-currencySymbol">
-                                                                                                            $
-                                                                                                        </span>
-                                                                                                        {offer.productData.priceInfo.costPrice}
-                                                                                                    </bdi>
-                                                                                                </span>
-                                                                                            </del>
-                                                                                            <span className="screen-reader-text">
-                                                                                                Original price was: {offer.productData.priceInfo.costPrice}.
-                                                                                            </span>
-                                                                                            <ins aria-hidden="true">
-                                                                                                <span className="woocommerce-Price-amount amount">
-                                                                                                    <bdi>
-                                                                                                        <span className="woocommerce-Price-currencySymbol">
-                                                                                                            $
-                                                                                                        </span>
-                                                                                                        {offer.productData.priceInfo.Price}
-                                                                                                    </bdi>
-                                                                                                </span>
-                                                                                            </ins>
-                                                                                            <span className="screen-reader-text">
-                                                                                                Current price is: $ {offer.productData.priceInfo.Price}.
-                                                                                            </span>
-                                                                                        </span>
-                                                                                    </div>
-                                                                                    <div className="wd-add-btn wd-add-btn-replace">
-                                                                                        <a
-                                                                                            href="#"
-                                                                                            aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2435"
-                                                                                            data-quantity={1}
-                                                                                            className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
-                                                                                            data-product_id={offer.id}
-                                                                                            data-product_sku={offer.productCode}
-                                                                                            aria-label={`Add to cart: ${offer.productName}`}
-                                                                                            rel="nofollow"
-                                                                                            onClick={(e) => openCart(e, offer)}
-                                                                                        >
-                                                                                            <span>Add to cart</span>
-                                                                                        </a>
-                                                                                        <span id="woocommerce_loop_add_to_cart_link_describedby_2435" className="screen-reader-text"></span>
-                                                                                    </div>
-                                                                                    <div className="wd-product-detail wd-product-sku">
-                                                                                        <span className="wd-label">SKU: </span>
-                                                                                        <span>{offer.id}</span>
-                                                                                    </div>
+                                                                                <div className="wd-product-grid-slider-pagin" />
+                                                                                <div className="product-labels labels-rounded-sm">
+                                                                                    <span className="onsale product-label">{offer.productData.priceInfo.discount_Price}%</span> {/* Assuming you have discount info */}
+                                                                                </div>
+                                                                                <picture decoding="async" className="attachment-large size-large">
+                                                                                    <source
+                                                                                        type="image/webp"
+                                                                                        data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                        srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                        sizes="(max-width: 700px) 100vw, 700px"
+                                                                                    />
+                                                                                    <img
+                                                                                        decoding="async"
+                                                                                        width={700}
+                                                                                        height={800}
+                                                                                        src={offer.productData.productImages[0]}
+                                                                                        data-lazy-srcset={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                        data-lazy-sizes="(max-width: 700px) 100vw, 700px"
+                                                                                        className="entered lazyloaded"
+                                                                                        sizes="(max-width: 700px) 100vw, 700px"
+                                                                                        srcSet={`${offer.productData.productImages[0]} 700w, ${offer.productData.productImages[0]} 263w`}
+                                                                                    />
+                                                                                </picture>
+                                                                            </a>
+                                                                            <div className="wd-buttons wd-pos-r-t">
+                                                                                <div className="wd-compare-btn product-compare-button wd-action-btn wd-style-icon wd-compare-icon">
+                                                                                    <a
+                                                                                        href="#"
+                                                                                        data-id={offer.id}
+                                                                                        rel="nofollow"
+                                                                                        data-added-text="Compare products"
+                                                                                    >
+                                                                                        <span>Compare</span>
+                                                                                    </a>
+                                                                                </div>
+                                                                                <div className="quick-view wd-action-btn wd-style-icon wd-quick-view-icon">
+                                                                                    <a className="open-quick-view quick-view-button" rel="nofollow" data-id={offer.id}>
+                                                                                        Quick view
+                                                                                    </a>
+                                                                                </div>
+                                                                                <div className="wd-wishlist-btn wd-action-btn wd-style-icon wd-wishlist-icon">
+                                                                                    <a
+                                                                                        onClick={(e) => handleAddToWishlist(e, offer)}
+                                                                                        href="#"
+                                                                                        data-key={offer.id}
+                                                                                        data-product-id={offer.id}
+                                                                                        rel="nofollow"
+                                                                                        data-added-text="Browse Wishlist"
+                                                                                    >
+                                                                                        <span>{isAdded ? 'Added to Wishlist' : 'Add to Wishlist'}</span>
+                                                                                    </a>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                    ))}
 
+                                                                        <div className="product-element-bottom">
+                                                                            <h3 className="wd-entities-title">
+                                                                                <a href={offer.product_url}>
+                                                                                    {offer.productData.productInfo.productName}
+                                                                                </a>
+                                                                            </h3>
+                                                                            <div className="wd-product-cats">
+                                                                                <a href={offer.productData.attribute.category_url} rel="tag">
+                                                                                    {offer.productData.attribute.category}
+                                                                                </a>
+                                                                            </div>
+                                                                            <div className="star-rating" role="img" aria-label={`Rated ${offer.rating} out of 5`}>
+                                                                                <span style={{ width: `${(offer.rating / 5) * 100}%` }}>
+                                                                                    Rated <strong className="rating">{offer.rating}</strong> out of 5
+                                                                                </span>
+                                                                            </div>
+                                                                            <p className="wd-product-stock stock wd-style-default in-stock">
+                                                                                {offer.stockStatus}
+                                                                            </p>
+                                                                            <div className="wrap-price">
+                                                                                <span className="price">
+                                                                                    <del aria-hidden="true">
+                                                                                        <span className="woocommerce-Price-amount amount">
+                                                                                            <bdi>
+                                                                                                <span className="woocommerce-Price-currencySymbol">
+                                                                                                    $
+                                                                                                </span>
+                                                                                                {offer.productData.priceInfo.costPrice}
+                                                                                            </bdi>
+                                                                                        </span>
+                                                                                    </del>
+                                                                                    <span className="screen-reader-text">
+                                                                                        Original price was: {offer.productData.priceInfo.costPrice}.
+                                                                                    </span>
+                                                                                    <ins aria-hidden="true">
+                                                                                        <span className="woocommerce-Price-amount amount">
+                                                                                            <bdi>
+                                                                                                <span className="woocommerce-Price-currencySymbol">
+                                                                                                    $
+                                                                                                </span>
+                                                                                                {offer.productData.priceInfo.Price}
+                                                                                            </bdi>
+                                                                                        </span>
+                                                                                    </ins>
+                                                                                    <span className="screen-reader-text">
+                                                                                        Current price is: $ {offer.productData.priceInfo.Price}.
+                                                                                    </span>
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="wd-add-btn wd-add-btn-replace">
+                                                                                <a
+                                                                                    href="#"
+                                                                                    aria-describedby="woocommerce_loop_add_to_cart_link_describedby_2435"
+                                                                                    data-quantity={1}
+                                                                                    className="button product_type_simple add_to_cart_button ajax_add_to_cart add-to-cart-loop"
+                                                                                    data-product_id={offer.id}
+                                                                                    data-product_sku={offer.productCode}
+                                                                                    aria-label={`Add to cart: ${offer.productName}`}
+                                                                                    rel="nofollow"
+                                                                                    onClick={(e) => openCart(e, offer)}
+                                                                                >
+                                                                                    <span>Add to cart</span>
+                                                                                </a>
+                                                                                <span id="woocommerce_loop_add_to_cart_link_describedby_2435" className="screen-reader-text"></span>
+                                                                            </div>
+                                                                            <div className="wd-product-detail wd-product-sku">
+                                                                                <span className="wd-label">SKU: </span>
+                                                                                <span>{offer.id}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <div className="wd-nav-arrows wd-pos-sep wd-hover-1 wd-icon-1">
-                                                                <div className="wd-btn-arrow wd-prev wd-disabled">
-                                                                    <div className="wd-arrow-inner" />
-                                                                </div>
-                                                                <div className="wd-btn-arrow wd-next">
-                                                                    <div className="wd-arrow-inner" />
-                                                                </div>
-                                                            </div>
-
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1030,7 +1014,7 @@ const cart = () => {
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1670856699156 vc_row-has-fill wd-rs-63973ff6c9ef6">
+                                                    {/* <div className="vc_row wpb_row vc_inner vc_row-fluid vc_custom_1670856699156 vc_row-has-fill wd-rs-63973ff6c9ef6">
                                                         <div className="wpb_column vc_column_container vc_col-sm-12 wd-rs-6213ac5daaf9d">
                                                             <div className="vc_column-inner vc_custom_1645456482508">
                                                                 <div className="wpb_wrapper">
@@ -1080,7 +1064,7 @@ const cart = () => {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    </div> */}
                                                 </div>
                                             </div>
                                         </div>

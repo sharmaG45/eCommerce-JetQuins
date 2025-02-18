@@ -10,8 +10,8 @@ import { ToastContainer, toast } from "react-toastify";
 import { CartContextProvider } from "./_components/CartContext/page";
 
 export const metadata = {
-  title: "Cheap Flights, Compare Flights & Airline Deals - onlineflightreservations.com",
-  description: "Find the cheapest flight tickets with OnlineFlightReservations ! Compare prices effortlessly and book the best deals on flights through our advanced algorithm. Start saving on your next trip today",
+  title: "Cheap Antivirus, Compare Antivirus & Antivirus Deals",
+  description: "Find the cheapest Antivirus with GetPixelSecurity ! Compare prices effortlessly and Buy the best deals on Antivirus through our advanced algorithm.",
   icons: {
     icon: '/favicon.ico'
   }

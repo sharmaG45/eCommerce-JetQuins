@@ -372,7 +372,8 @@ const checkout = () => {
                                                 <div className="wd-wc-notices wd-wpb wd-rs-626fe69382ebd">
                                                     <div className="woocommerce-notices-wrapper" />
                                                 </div>
-                                                <div className="wd-checkout-login wd-wpb wd-rs-64d4a3471801a vc_custom_1691657033730">
+                                                {/* <div className="wd-checkout-login wd-wpb wd-rs-64d4a3471801a vc_custom_1691657033730">
+                                                
                                                     <div className="woocommerce-form-login-toggle">
                                                         <div className="woocommerce-info">
                                                             Returning customer?
@@ -479,7 +480,7 @@ const checkout = () => {
                                                             </p>
                                                         </form>
                                                     )}
-                                                </div>
+                                                </div> */}
 
                                                 <div className="wd-checkout-coupon wd-wpb wd-rs-64d4a33fcb558 vc_custom_1691657029664">
                                                     <div className="woocommerce-form-coupon-toggle">
